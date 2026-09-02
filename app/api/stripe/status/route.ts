@@ -7,7 +7,7 @@ export async function GET() {
     provider: 'stripe-connect',
     configured: Boolean(
       process.env.STRIPE_SECRET_KEY &&
-        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     ),
     connectConfigured: Boolean(process.env.STRIPE_SECRET_KEY),
     webhookConfigured: Boolean(process.env.STRIPE_WEBHOOK_SECRET),

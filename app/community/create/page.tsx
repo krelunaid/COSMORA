@@ -15,6 +15,7 @@ import {
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
 import { moderateText } from '@/lib/community-moderation';
 import { europeEvents } from '@/lib/events-data';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 const categories = [
   'Cosplay',
@@ -62,33 +63,42 @@ export default function CreateCommunityPostPage() {
     reasons: string[];
   } | null>(null);
   const [connectionType, setConnectionType] = useState<ConnectionType>('');
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState('');
   const italianEvents = europeEvents.filter(
     (event) => event.country === 'Italy',
   );
   const otherEvents = europeEvents.filter((event) => event.country !== 'Italy');
 
-  function submit(formData: FormData) {
+  async function submit(formData: FormData) {
     const rawCaption = formData.get('caption');
     const caption = typeof rawCaption === 'string' ? rawCaption : '';
     const moderation = moderateText('Community post', caption);
-    const existing = JSON.parse(
-      localStorage.getItem('cosmora_community_posts') ?? '[]',
-    );
-    localStorage.setItem(
-      'cosmora_community_posts',
-      JSON.stringify([
-        {
-          id: crypto.randomUUID(),
-          caption,
-          category: formData.get('category'),
-          connectionType,
-          connection: formData.get('connection'),
-          status: moderation.status,
-        },
-        ...existing,
-      ]),
-    );
-    setResult(moderation);
+    const supabase = getSupabaseBrowserClient();
+    const session = await supabase?.auth.getSession();
+    const token = session?.data.session?.access_token;
+    if (!token) {
+      window.location.assign('/auth/login');
+      return;
+    }
+    setPublishing(true);
+    setPublishError('');
+    formData.set('connectionType', connectionType);
+    const response = await fetch('/api/community/posts', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const payload = (await response.json().catch(() => null)) as {
+      error?: string;
+      moderation?: { status: string; reasons: string[] };
+    } | null;
+    setPublishing(false);
+    if (!response.ok) {
+      setPublishError(payload?.error ?? 'Pubblicazione non riuscita.');
+      return;
+    }
+    setResult(payload?.moderation ?? moderation);
   }
 
   if (result)
@@ -129,6 +139,7 @@ export default function CreateCommunityPostPage() {
           </span>
           <input
             required
+            name="media"
             type="file"
             accept="image/*,video/*"
             multiple
@@ -226,8 +237,16 @@ export default function CreateCommunityPostPage() {
             </select>
           )}
         </section>
-        <button className="h-12 w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 text-sm font-medium">
-          Publish Post
+        {publishError && (
+          <p role="alert" className="text-[9px] text-rose-300">
+            {publishError}
+          </p>
+        )}
+        <button
+          disabled={publishing}
+          className="h-12 w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 text-sm font-medium disabled:opacity-60"
+        >
+          {publishing ? 'Pubblicazione…' : 'Publish Post'}
         </button>
       </form>
     </MobileShell>
