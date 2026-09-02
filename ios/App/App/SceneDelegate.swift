@@ -2,6 +2,9 @@ import UIKit
 import Capacitor
 
 final class COSMORABridgeViewController: CAPBridgeViewController {
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask { .portrait }
+    override var shouldAutorotate: Bool { false }
+
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
         webView?.scrollView.bounces = false

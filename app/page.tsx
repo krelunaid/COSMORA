@@ -63,7 +63,7 @@ export default function HomePage() {
       <div className="phone-shell relative mx-auto flex h-full min-h-0 w-full max-w-[430px] flex-col overflow-hidden border-white/10 bg-[#080918] sm:my-2 sm:h-[calc(100dvh-1rem)] sm:rounded-[34px] sm:border sm:shadow-[0_30px_100px_rgba(0,0,0,.58)]">
         <div className="pointer-events-none absolute -right-32 top-24 size-80 rounded-full bg-fuchsia-500/10 blur-[100px]" />
 
-        <header className="relative z-20 shrink-0 px-4 pb-2 pt-[calc(.6rem+env(safe-area-inset-top))]">
+        <header className="relative z-20 shrink-0 px-4 pb-2 pt-3">
           <div className="flex h-10 items-center justify-between">
             <Link
               href="/community"
@@ -229,7 +229,7 @@ export default function HomePage() {
         </section>
 
         <nav
-          className="z-50 mt-2 grid h-[calc(64px+env(safe-area-inset-bottom))] shrink-0 grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl"
+          className="z-50 mt-2 grid h-16 shrink-0 grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-2 backdrop-blur-xl"
           aria-label="Mobile navigation"
         >
           <MobileLink icon={Home} label="Home" href="/" active />

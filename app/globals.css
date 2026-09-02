@@ -58,12 +58,33 @@
   * { @apply border-border outline-ring/50; }
   html { @apply min-h-full bg-background font-sans; scroll-behavior: smooth; overscroll-behavior: none; }
   body { @apply min-h-dvh bg-background text-foreground; overflow-x: hidden; overscroll-behavior: none; }
+  a, button { touch-action: manipulation; -webkit-tap-highlight-color: rgb(232 82 224 / 18%); }
+  a:active, button:active { opacity: .72; }
   ::selection { background: rgb(236 72 153 / 35%); color: white; }
 }
 
 body {
   font-family: var(--font-geist-sans), Inter, Arial, Helvetica, sans-serif;
   background: radial-gradient(circle at 50% -10%, rgb(79 30 133 / 22%), transparent 34rem), linear-gradient(#060712, #070816);
+}
+
+html[data-navigating='true'] body::after {
+  content: '';
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+  width: 42%;
+  height: 3px;
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(90deg, #ff4fa6, #9b55ff);
+  box-shadow: 0 0 14px rgb(232 82 224 / 75%);
+  animation: cosmora-route-progress .7s ease-out forwards;
+}
+
+@keyframes cosmora-route-progress {
+  from { width: 8%; opacity: .65; }
+  to { width: 86%; opacity: 1; }
 }
 
 .brand-wordmark { background: linear-gradient(90deg, #fff 5%, #f1d9ff 40%, #ef55e5 75%, #9b69ff); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 1.15rem; font-weight: 700; letter-spacing: .16em; }
@@ -116,17 +137,18 @@ body {
 }
 
 .home-event-hero {
-  height: clamp(180px, 25dvh, 225px);
-  flex: 0 1 225px;
+  min-height: 180px;
+  flex: 1 1 225px;
+  max-height: 275px;
 }
 
 .home-category {
-  height: clamp(86px, 12.2dvh, 112px);
+  height: clamp(86px, 14dvh, 128px);
   aspect-ratio: auto;
 }
 
 .home-events-strip {
-  height: clamp(48px, 7.5dvh, 72px);
+  height: clamp(48px, 9.5dvh, 85px);
   flex-shrink: 1;
 }
 
