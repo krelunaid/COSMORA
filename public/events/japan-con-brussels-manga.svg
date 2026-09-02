@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#19102f"/><stop offset=".55" stop-color="#7a165f"/><stop offset="1" stop-color="#e83e9b"/></linearGradient></defs>
+  <rect width="800" height="520" fill="url(#bg)"/><circle cx="650" cy="120" r="105" fill="#ffb6df" opacity=".9"/><path d="M0 420 Q150 310 280 420T560 405T800 390V520H0Z" fill="#080918" opacity=".82"/><path d="M170 380V185h230v195M135 185h300M170 225h230" stroke="#ffbadf" stroke-width="18" fill="none"/><path d="M230 380V235M340 380V235" stroke="#ffbadf" stroke-width="10"/><text x="470" y="250" fill="white" font-family="Arial,sans-serif" font-size="47" font-weight="800">JAPAN CON</text><text x="470" y="305" fill="#ffd2ec" font-family="Arial,sans-serif" font-size="34" font-weight="700">BRUSSELS MANGA</text><text x="472" y="350" fill="white" font-family="Arial,sans-serif" font-size="22">21–22 FEB 2026</text>
+</svg>
