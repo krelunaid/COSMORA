@@ -59,11 +59,11 @@ const categories = [
 
 export default function HomePage() {
   return (
-    <main className="mobile-app-stage min-h-dvh bg-[#05060f] text-white">
-      <div className="phone-shell relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col overflow-hidden border-white/10 bg-[#080918] sm:my-2 sm:min-h-[calc(100dvh-1rem)] sm:rounded-[34px] sm:border sm:shadow-[0_30px_100px_rgba(0,0,0,.58)]">
+    <main className="mobile-app-stage h-dvh overflow-hidden bg-[#05060f] text-white">
+      <div className="phone-shell relative mx-auto flex h-full min-h-0 w-full max-w-[430px] flex-col overflow-hidden border-white/10 bg-[#080918] sm:my-2 sm:h-[calc(100dvh-1rem)] sm:rounded-[34px] sm:border sm:shadow-[0_30px_100px_rgba(0,0,0,.58)]">
         <div className="pointer-events-none absolute -right-32 top-24 size-80 rounded-full bg-fuchsia-500/10 blur-[100px]" />
 
-        <header className="relative z-20 px-4 pb-2 pt-[calc(.75rem+env(safe-area-inset-top))]">
+        <header className="relative z-20 shrink-0 px-4 pb-2 pt-[calc(.6rem+env(safe-area-inset-top))]">
           <div className="flex h-10 items-center justify-between">
             <Link
               href="/community"
@@ -121,8 +121,8 @@ export default function HomePage() {
           </form>
         </header>
 
-        <section className="relative z-10 flex-1 space-y-2 px-4">
-          <article className="event-hero relative min-h-[225px] overflow-hidden rounded-[22px] border border-white/10">
+        <section className="home-main-content relative z-10 min-h-0 flex-1 px-4">
+          <article className="event-hero home-event-hero relative overflow-hidden rounded-[22px] border border-white/10">
             <Image
               src="/cosmora-hero.png"
               alt="Original COSMORA cosplayer at a European convention"
@@ -132,7 +132,7 @@ export default function HomePage() {
               className="object-cover object-[70%_center] brightness-[1.2] saturate-[1.18]"
             />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,17,.88)_0%,rgba(8,8,24,.54)_47%,rgba(5,5,15,.02)_100%)]" />
-            <div className="relative z-10 flex min-h-[225px] max-w-[72%] flex-col justify-center p-4">
+            <div className="relative z-10 flex h-full max-w-[72%] flex-col justify-center p-4">
               <Badge className="mb-3 h-6 border border-pink-200/20 bg-gradient-to-r from-[#d938a5] to-[#813ee8] px-2.5 text-[10px] tracking-wide text-white">
                 EVENT MODE
               </Badge>
@@ -180,7 +180,7 @@ export default function HomePage() {
                 See all
               </Link>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="home-categories-grid grid grid-cols-3 gap-2">
               {categories.map(({ label, meta, image, reference }) => (
                 <Link
                   href={
@@ -190,7 +190,7 @@ export default function HomePage() {
                   }
                   key={label}
                   aria-label={`${label}, ${meta}`}
-                  className={`mobile-category ${reference ? 'reference-card' : 'artist-card'}`}
+                  className={`mobile-category home-category ${reference ? 'reference-card' : 'artist-card'}`}
                 >
                   <Image
                     src={image}
@@ -201,10 +201,10 @@ export default function HomePage() {
                   />
                   {!reference && (
                     <div className="category-copy">
-                      <p className="line-clamp-1 text-[11px] font-semibold">
+                      <p className="line-clamp-1 text-[12px] font-semibold">
                         {label}
                       </p>
-                      <p className="mt-0.5 text-[9px] text-white/70">{meta}</p>
+                      <p className="mt-0.5 text-[10px] text-white/70">{meta}</p>
                     </div>
                   )}
                 </Link>
@@ -216,7 +216,7 @@ export default function HomePage() {
             id="events"
             href="/events"
             aria-label="Events — Find conventions and meetups"
-            className="events-strip relative block aspect-[358/77] overflow-hidden rounded-[14px]"
+            className="events-strip home-events-strip relative block overflow-hidden rounded-[14px]"
           >
             <Image
               src="/reference-events.png"
@@ -229,18 +229,18 @@ export default function HomePage() {
         </section>
 
         <nav
-          className="sticky bottom-0 z-50 mt-3 grid h-[calc(58px+env(safe-area-inset-bottom))] shrink-0 grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl"
+          className="z-50 mt-2 grid h-[calc(64px+env(safe-area-inset-bottom))] shrink-0 grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl"
           aria-label="Mobile navigation"
         >
           <MobileLink icon={Home} label="Home" href="/" active />
           <MobileLink icon={Compass} label="Explore" href="/explore" />
           <Link
             href="/sell"
-            className="flex flex-col items-center justify-center gap-0.5 text-[8px] text-white"
+            className="flex touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium text-white"
           >
-            <span className="grid size-8 place-items-center rounded-full border border-white/15 bg-[#121327]">
-              <span className="grid size-5 place-items-center rounded-full bg-gradient-to-br from-[#ff4ca6] to-[#824ff6]">
-                <ShoppingBag className="size-3" />
+            <span className="grid size-9 place-items-center rounded-full border border-white/15 bg-[#121327]">
+              <span className="grid size-6 place-items-center rounded-full bg-gradient-to-br from-[#ff4ca6] to-[#824ff6]">
+                <ShoppingBag className="size-3.5" />
               </span>
             </span>
             Sell
@@ -271,9 +271,9 @@ function MobileLink({
   return (
     <Link
       href={href}
-      className={`flex flex-col items-center justify-center gap-0.5 text-[8px] ${active ? 'text-fuchsia-300' : 'text-[#8d899c]'}`}
+      className={`flex touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium ${active ? 'text-fuchsia-300' : 'text-white/60'}`}
     >
-      <Icon className="size-4" />
+      <Icon className="size-5" />
       <span>{label}</span>
     </Link>
   );

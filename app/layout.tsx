@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { I18nProvider } from '@/components/i18n-provider';
@@ -17,6 +17,14 @@ export const metadata: Metadata = {
   title: 'COSMORA — Marketplace & Community',
   description:
     'The European marketplace and community for cosplay, comics, collectibles, creators and events.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({

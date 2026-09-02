@@ -125,10 +125,10 @@ export function MobileNav({
       )}
       <div
         aria-hidden="true"
-        className="h-[calc(58px+env(safe-area-inset-bottom))] shrink-0"
+        className="h-[calc(64px+env(safe-area-inset-bottom))] shrink-0"
       />
       <nav
-        className={`${wide ? 'max-w-[480px]' : 'max-w-[430px]'} fixed bottom-0 left-1/2 z-40 grid h-[calc(58px+env(safe-area-inset-bottom))] w-full -translate-x-1/2 grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:bottom-3 sm:h-[58px] sm:rounded-b-[34px] sm:pb-0`}
+        className={`${wide ? 'max-w-[480px]' : 'max-w-[430px]'} fixed bottom-0 left-1/2 z-40 grid h-[calc(64px+env(safe-area-inset-bottom))] w-full -translate-x-1/2 grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:bottom-3 sm:h-[64px] sm:rounded-b-[34px] sm:pb-0`}
         aria-label="Main navigation"
       >
         {links.map(({ key, label, href, icon: Icon }) =>
@@ -136,10 +136,10 @@ export function MobileNav({
             <button
               key={key}
               onClick={() => setCreateOpen(true)}
-              className="flex flex-col items-center justify-center gap-0.5 text-[8px] text-fuchsia-300"
+              className="flex touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium text-fuchsia-300"
             >
               <span className="grid size-8 place-items-center rounded-full border border-violet-400/40 bg-gradient-to-br from-pink-500 to-violet-600 shadow-lg shadow-fuchsia-500/20">
-                <Icon className="size-4" />
+                <Icon className="size-5" />
               </span>
               <span>{label}</span>
             </button>
@@ -147,9 +147,9 @@ export function MobileNav({
             <Link
               key={key}
               href={href}
-              className={`flex flex-col items-center justify-center gap-0.5 text-[8px] ${active === key ? 'text-fuchsia-300' : 'text-white/50'}`}
+              className={`flex touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium ${active === key ? 'text-fuchsia-300' : 'text-white/60'}`}
             >
-              <Icon className="size-4" />
+              <Icon className="size-5" />
               <span>{label}</span>
             </Link>
           ),

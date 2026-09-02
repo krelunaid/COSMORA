@@ -56,8 +56,8 @@
 
 @layer base {
   * { @apply border-border outline-ring/50; }
-  html { @apply min-h-full bg-background font-sans; scroll-behavior: smooth; }
-  body { @apply min-h-dvh bg-background text-foreground; overflow-x: hidden; }
+  html { @apply min-h-full bg-background font-sans; scroll-behavior: smooth; overscroll-behavior: none; }
+  body { @apply min-h-dvh bg-background text-foreground; overflow-x: hidden; overscroll-behavior: none; }
   ::selection { background: rgb(236 72 153 / 35%); color: white; }
 }
 
@@ -101,9 +101,41 @@ body {
 }
 
 .mobile-app-stage {
+  overscroll-behavior: none;
+  touch-action: manipulation;
   background:
     radial-gradient(circle at 50% 5%, rgb(97 47 163 / 18%), transparent 32rem),
     #04050d;
+}
+
+.home-main-content {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  overflow: hidden;
+}
+
+.home-event-hero {
+  height: clamp(180px, 25dvh, 225px);
+  flex: 0 1 225px;
+}
+
+.home-category {
+  height: clamp(86px, 12.2dvh, 112px);
+  aspect-ratio: auto;
+}
+
+.home-events-strip {
+  height: clamp(48px, 7.5dvh, 72px);
+  flex-shrink: 1;
+}
+
+@media (max-height: 740px) {
+  .home-event-hero { height: 160px; flex-basis: 160px; }
+  .home-category { height: 78px; }
+  .home-events-strip { height: 46px; }
+  .home-main-content { gap: .35rem; }
+  .category-copy { padding: .45rem; }
 }
 
 .phone-shell {
