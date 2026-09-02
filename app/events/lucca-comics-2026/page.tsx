@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/app-link';
 import { Camera, Heart, MapPin, ShieldAlert, ShoppingBag, UsersRound } from 'lucide-react';
 
 import { MobileNav, MobileShell, ScreenHeader } from '@/components/mobile-shell';

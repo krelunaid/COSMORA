@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/app-link';
 import { LockKeyhole, Minus, Plus, ShieldCheck, Trash2 } from 'lucide-react';
 
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';

@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/app-link';
 import { useRouter } from 'next/navigation';
 import {
   CheckCircle2,

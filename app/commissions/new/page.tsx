@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/app-link';
 import { CheckCircle2, ImagePlus } from 'lucide-react';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
 

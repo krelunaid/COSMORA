@@ -56,8 +56,8 @@
 
 @layer base {
   * { @apply border-border outline-ring/50; }
-  html { @apply bg-background font-sans; scroll-behavior: smooth; }
-  body { @apply bg-background text-foreground; }
+  html { @apply min-h-full bg-background font-sans; scroll-behavior: smooth; }
+  body { @apply min-h-dvh bg-background text-foreground; overflow-x: hidden; }
   ::selection { background: rgb(236 72 153 / 35%); color: white; }
 }
 
@@ -92,7 +92,7 @@ body {
 .cosmora-glow-one { top:20%; right:-14rem; background:#a333ff; }
 .cosmora-glow-two { bottom:-16rem; left:20%; background:#ec368f; }
 
-@media (max-width: 1023px) { main { padding-bottom: 5.5rem; } }
+@media (max-width: 1023px) { main:not(.mobile-app-stage) { padding-bottom: 5.5rem; } }
 @media (max-width: 640px) {
   .hero-panel, .hero-panel > div { min-height: 520px; }
   .hero-panel img { object-position: 67% center; }

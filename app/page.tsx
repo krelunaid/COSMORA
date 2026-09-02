@@ -13,10 +13,9 @@ import {
   UserRound,
 } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/app-link';
 
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 const categories = [
@@ -61,10 +60,10 @@ const categories = [
 export default function HomePage() {
   return (
     <main className="mobile-app-stage min-h-dvh bg-[#05060f] text-white">
-      <div className="phone-shell relative mx-auto min-h-dvh w-full max-w-[390px] overflow-hidden border-white/10 bg-[#080918] sm:my-2 sm:min-h-[calc(100dvh-1rem)] sm:rounded-[34px] sm:border sm:shadow-[0_30px_100px_rgba(0,0,0,.58)]">
+      <div className="phone-shell relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col overflow-hidden border-white/10 bg-[#080918] sm:my-2 sm:min-h-[calc(100dvh-1rem)] sm:rounded-[34px] sm:border sm:shadow-[0_30px_100px_rgba(0,0,0,.58)]">
         <div className="pointer-events-none absolute -right-32 top-24 size-80 rounded-full bg-fuchsia-500/10 blur-[100px]" />
 
-        <header className="relative z-20 px-4 pb-2 pt-3">
+        <header className="relative z-20 px-4 pb-2 pt-[calc(.75rem+env(safe-area-inset-top))]">
           <div className="flex h-10 items-center justify-between">
             <Link
               href="/community"
@@ -81,15 +80,14 @@ export default function HomePage() {
               COSMORA
             </Link>
             <div className="flex items-center">
-              <Button
-                variant="ghost"
-                size="icon"
+              <Link
+                href="/inbox"
                 aria-label="Notifications"
-                className="relative text-white"
+                className="relative grid size-9 place-items-center text-white"
               >
-                <Bell />
+                <Bell className="size-5" />
                 <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-fuchsia-400" />
-              </Button>
+              </Link>
               <Link
                 href="/cart"
                 aria-label="Shopping cart"
@@ -103,27 +101,27 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-2 flex gap-2">
+          <form action="/explore" method="get" className="mt-2 flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#817c96]" />
               <Input
                 aria-label="Search COSMORA"
+                name="q"
                 placeholder="Search for items, people, events…"
                 className="h-10 rounded-xl border-white/8 bg-[#17172b] pl-9 text-[13px] shadow-inner placeholder:text-[#7f7a91]"
               />
             </div>
-            <Button
-              variant="outline"
-              size="icon"
+            <Link
+              href="/marketplace"
               aria-label="Search filters"
-              className="size-10 rounded-xl border-white/8 bg-[#17172b] text-white"
+              className="grid size-10 place-items-center rounded-xl border border-white/8 bg-[#17172b] text-white"
             >
-              <Settings2 />
-            </Button>
-          </div>
+              <Settings2 className="size-4" />
+            </Link>
+          </form>
         </header>
 
-        <section className="relative z-10 space-y-2 px-4">
+        <section className="relative z-10 flex-1 space-y-2 px-4">
           <article className="event-hero relative min-h-[225px] overflow-hidden rounded-[22px] border border-white/10">
             <Image
               src="/cosmora-hero.png"
@@ -176,7 +174,7 @@ export default function HomePage() {
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-[15px] font-semibold">Browse Categories</h2>
               <Link
-                href="/#categories"
+                href="/marketplace?category=All"
                 className="text-[11px] font-medium text-fuchsia-300"
               >
                 See all
@@ -231,7 +229,7 @@ export default function HomePage() {
         </section>
 
         <nav
-          className="relative z-50 mt-3 grid h-[58px] grid-cols-5 border-t border-white/10 bg-[#080918] px-2"
+          className="sticky bottom-0 z-50 mt-3 grid h-[calc(58px+env(safe-area-inset-bottom))] shrink-0 grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl"
           aria-label="Mobile navigation"
         >
           <MobileLink icon={Home} label="Home" href="/" active />

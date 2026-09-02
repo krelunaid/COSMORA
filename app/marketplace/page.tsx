@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/app-link';
 import { useSearchParams } from 'next/navigation';
 import { Heart, Search, Settings2, ShoppingCart, Star } from 'lucide-react';
 

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/app-link';
 import { Search } from 'lucide-react';
 import { MobileNav, MobileShell } from '@/components/mobile-shell';
 

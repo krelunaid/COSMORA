@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/app-link';
+import { useSearchParams } from 'next/navigation';
 import {
   CalendarDays,
   ChevronRight,
@@ -100,8 +101,9 @@ const discoveries = [
 ];
 
 export default function ExplorePage() {
+  const searchParams = useSearchParams();
   const [section, setSection] = useState<ExploreSection>('Per te');
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const visible = useMemo(
     () =>
       discoveries.filter(

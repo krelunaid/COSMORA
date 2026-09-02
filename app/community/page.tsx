@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/app-link';
 import { Bell, Flag, Heart, MessageCircle, MoreHorizontal, Search, Share2, UsersRound } from 'lucide-react';
 
 import { MobileNav, MobileShell } from '@/components/mobile-shell';

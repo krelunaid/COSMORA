@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/app-link';
 import { ArrowLeft, CheckCircle2, LoaderCircle, LockKeyhole, Mail, Sparkles, UserRound } from 'lucide-react';
 import { z } from 'zod';
 
