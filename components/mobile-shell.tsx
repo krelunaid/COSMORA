@@ -26,7 +26,7 @@ export function MobileShell({
   return (
     <main className="min-h-dvh bg-[#04050d] text-white">
       <div
-        className={`mx-auto min-h-dvh w-full max-w-[430px] overflow-hidden border-white/10 bg-[#080918] sm:my-3 sm:min-h-[calc(100dvh-1.5rem)] sm:rounded-[34px] sm:border ${className}`}
+        className={`mx-auto min-h-dvh w-full max-w-[430px] overflow-hidden border-white/10 bg-[#080918] pt-[env(safe-area-inset-top)] sm:my-3 sm:min-h-[calc(100dvh-1.5rem)] sm:rounded-[34px] sm:border sm:pt-0 ${className}`}
       >
         {children}
       </div>
@@ -125,10 +125,10 @@ export function MobileNav({
       )}
       <div
         aria-hidden="true"
-        className="h-16 shrink-0"
+        className="h-[calc(64px+env(safe-area-inset-bottom))] shrink-0"
       />
       <nav
-        className={`${wide ? 'max-w-[480px]' : 'max-w-[430px]'} fixed bottom-0 left-1/2 z-40 grid h-16 w-full -translate-x-1/2 grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-2 backdrop-blur-xl sm:bottom-3 sm:rounded-b-[34px]`}
+        className={`${wide ? 'max-w-[480px]' : 'max-w-[430px]'} fixed bottom-0 left-1/2 z-40 grid h-[calc(64px+env(safe-area-inset-bottom))] w-full -translate-x-1/2 grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:bottom-3 sm:h-16 sm:rounded-b-[34px] sm:pb-0`}
         aria-label="Main navigation"
       >
         {links.map(({ key, label, href, icon: Icon }) =>

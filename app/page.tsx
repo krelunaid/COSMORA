@@ -63,7 +63,7 @@ export default function HomePage() {
       <div className="phone-shell relative mx-auto flex h-full min-h-0 w-full max-w-[430px] flex-col overflow-hidden border-white/10 bg-[#080918] sm:my-2 sm:h-[calc(100dvh-1rem)] sm:rounded-[34px] sm:border sm:shadow-[0_30px_100px_rgba(0,0,0,.58)]">
         <div className="pointer-events-none absolute -right-32 top-24 size-80 rounded-full bg-fuchsia-500/10 blur-[100px]" />
 
-        <header className="relative z-20 shrink-0 px-4 pb-2 pt-3">
+        <header className="relative z-20 shrink-0 px-4 pb-2 pt-[calc(.6rem+env(safe-area-inset-top))]">
           <div className="flex h-10 items-center justify-between">
             <Link
               href="/community"
@@ -132,28 +132,28 @@ export default function HomePage() {
               className="object-cover object-[70%_center] brightness-[1.2] saturate-[1.18]"
             />
             <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,17,.88)_0%,rgba(8,8,24,.54)_47%,rgba(5,5,15,.02)_100%)]" />
-            <div className="relative z-10 flex h-full max-w-[72%] flex-col justify-center p-4">
-              <Badge className="mb-3 h-6 border border-pink-200/20 bg-gradient-to-r from-[#d938a5] to-[#813ee8] px-2.5 text-[10px] tracking-wide text-white">
+            <div className="relative z-10 flex h-full max-w-[72%] flex-col justify-center p-3">
+              <Badge className="mb-2 h-6 border border-pink-200/20 bg-gradient-to-r from-[#d938a5] to-[#813ee8] px-2.5 text-[10px] tracking-wide text-white">
                 EVENT MODE
               </Badge>
-              <h1 className="text-[40px] font-black leading-[.88] tracking-[-.04em] text-white">
+              <h1 className="text-[38px] font-black leading-[.88] tracking-[-.04em] text-white">
                 LUCCA
                 <br />
                 <span className="bg-gradient-to-r from-[#ff5cab] to-[#ff4f78] bg-clip-text text-transparent">
                   2026
                 </span>
               </h1>
-              <p className="mt-3 text-[11px] font-medium leading-4 text-white/90">
+              <p className="mt-2 text-[11px] font-medium leading-4 text-white/90">
                 28 OCT – 1 NOV 2026
                 <br />
                 Lucca Comics & Games
               </p>
-              <p className="mt-2 max-w-[190px] text-[11px] leading-4 text-white/68">
+              <p className="mt-1 max-w-[190px] text-[11px] leading-4 text-white/68">
                 Be part of Europe&apos;s biggest pop culture event.
               </p>
               <Link
                 href="/events/lucca-comics-2026"
-                className="mt-4 flex h-9 w-fit items-center gap-1 rounded-xl bg-gradient-to-r from-[#ff4fa6] to-[#bd45ef] px-4 text-xs"
+                className="mt-2.5 flex h-9 w-fit items-center gap-1 rounded-xl bg-gradient-to-r from-[#ff4fa6] to-[#bd45ef] px-4 text-xs"
               >
                 Explore Event <ChevronRight className="size-4" />
               </Link>
@@ -170,7 +170,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          <section id="categories">
+          <section id="categories" className="home-categories-section">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-[15px] font-semibold">Browse Categories</h2>
               <Link
@@ -229,7 +229,7 @@ export default function HomePage() {
         </section>
 
         <nav
-          className="z-50 mt-2 grid h-16 shrink-0 grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-2 backdrop-blur-xl"
+          className="z-50 mt-2 grid h-[calc(64px+env(safe-area-inset-bottom))] shrink-0 grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl"
           aria-label="Mobile navigation"
         >
           <MobileLink icon={Home} label="Home" href="/" active />
