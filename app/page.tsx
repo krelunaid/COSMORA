@@ -124,7 +124,7 @@ export default function HomePage() {
         <section className="home-main-content relative z-10 min-h-0 flex-1 px-4">
           <article className="event-hero home-event-hero relative overflow-hidden rounded-[22px] border border-white/10">
             <Image
-              src="/cosmora-hero.png"
+              src="/cosmora-hero.jpg"
               alt="Original COSMORA cosplayer at a European convention"
               fill
               priority

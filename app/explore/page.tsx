@@ -152,7 +152,7 @@ export default function ExplorePage() {
             className="relative mt-4 block h-44 overflow-hidden rounded-2xl border border-violet-400/20 sm:h-48"
           >
             <Image
-              src="/cosmora-hero.png"
+              src="/cosmora-hero.jpg"
               alt="COSMORA cosplay discovery"
               fill
               priority

@@ -2,13 +2,7 @@ import Image from 'next/image';
 import Link from '@/components/app-link';
 import { Search } from 'lucide-react';
 import { MobileNav, MobileShell } from '@/components/mobile-shell';
-
-const chats = [
-  ['Ana (Spain)', 'Hola! Quiero encargar una espada…', '2m', '/category-artist.png'],
-  ['Lucas (Brazil)', 'Quando você pode enviar?', '15m', '/hd-category-figures.png'],
-  ['Yuki (Japan)', 'この衣装のサイズはありますか？', '1h', '/cosmora-hero.png'],
-  ['MangaVault', 'Your order has shipped.', '3h', '/hd-category-manga.png'],
-];
+import { conversations } from '@/lib/conversations';
 
 export default function InboxPage() {
   return (
@@ -27,15 +21,15 @@ export default function InboxPage() {
         </div>
 
         <div className="divide-y divide-white/8">
-          {chats.map(([name, message, time, image]) => (
+          {conversations.slice(0, 4).map((chat) => (
             <Link
-              href="/inbox"
-              key={name}
+              href={`/inbox/${chat.id}`}
+              key={chat.id}
               className="flex min-h-[92px] items-center gap-4 py-5"
             >
               <span className="relative size-14 shrink-0 overflow-hidden rounded-full">
                 <Image
-                  src={image}
+                  src={chat.image}
                   alt=""
                   fill
                   sizes="56px"
@@ -43,15 +37,15 @@ export default function InboxPage() {
                 />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-semibold">{name}</p>
+                <p className="text-[15px] font-semibold">{chat.name}</p>
                 <p className="mt-1 truncate text-[13px] text-white/55">
-                  {message}
+                  {chat.preview}
                 </p>
                 <p className="mt-1.5 text-[11px] font-medium text-violet-300">
                   AI translation available
                 </p>
               </div>
-              <span className="text-[11px] text-white/40">{time}</span>
+              <span className="text-[11px] text-white/40">{chat.time}</span>
             </Link>
           ))}
         </div>

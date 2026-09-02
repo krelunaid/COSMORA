@@ -92,7 +92,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
     <main className="auth-screen min-h-dvh px-4 py-8">
       <div className="mx-auto grid min-h-[calc(100dvh-4rem)] max-w-[1100px] overflow-hidden rounded-[28px] border border-white/10 bg-[#090a19]/90 shadow-2xl lg:grid-cols-[1.05fr_.95fr]">
         <section className="relative hidden overflow-hidden p-10 lg:flex lg:flex-col lg:justify-between">
-          <Image src="/cosmora-hero.png" alt="COSMORA original convention scene" fill sizes="55vw" className="object-cover object-[68%_center]" />
+          <Image src="/cosmora-hero.jpg" alt="COSMORA original convention scene" fill sizes="55vw" className="object-cover object-[68%_center]" />
           <div className="absolute inset-0 bg-gradient-to-tr from-[#060712] via-[#09091a]/80 to-fuchsia-950/25" />
           <Link href="/" className="relative z-10 flex items-center gap-2 text-sm text-white/70"><ArrowLeft className="size-4" /> Back to COSMORA</Link>
           <div className="relative z-10 max-w-md">

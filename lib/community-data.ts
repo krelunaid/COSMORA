@@ -17,7 +17,7 @@ export const communityPosts = [
     language: 'English',
     category: 'Cosplay',
     text: 'Yae Miko from Genshin Impact 🌸 Costume by Stardust Atelier.',
-    image: '/cosmora-hero.png',
+    image: '/cosmora-hero.jpg',
     likes: 256,
     comments: 39,
     product: 'Raiden Shogun Cosplay Costume',
