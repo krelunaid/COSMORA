@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { useI18n } from '@/components/i18n-provider';
+import { AppBackButton } from '@/components/app-back-button';
 import { localeLabels, supportedLocales, type Locale } from '@/lib/i18n/config';
 
 export function MobileShell({
@@ -201,9 +202,7 @@ export function ScreenHeader({
 }) {
   return (
     <header className="flex h-16 items-center justify-between border-b border-white/8 px-4">
-      <Link href={back} aria-label="Back" className="text-xl">
-        ‹
-      </Link>
+      <AppBackButton fallback={back} className="-ml-3" />
       <h1 className="text-[18px] font-semibold">{title}</h1>
       <div className="min-w-5 text-right">{action}</div>
     </header>

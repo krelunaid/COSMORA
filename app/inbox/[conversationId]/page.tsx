@@ -7,6 +7,7 @@ import { ImagePlus, MoreHorizontal, Send, Sparkles } from 'lucide-react';
 import Link from '@/components/app-link';
 import { MobileShell } from '@/components/mobile-shell';
 import { getConversation } from '@/lib/conversations';
+import { AppBackButton } from '@/components/app-back-button';
 
 export default function ConversationPage() {
   const params = useParams<{ conversationId: string }>();
@@ -34,7 +35,7 @@ export default function ConversationPage() {
   return (
     <MobileShell className="flex h-dvh flex-col">
       <header className="flex min-h-[72px] shrink-0 items-center gap-3 border-b border-white/10 px-4">
-        <Link href="/inbox" aria-label="Torna ai messaggi" className="grid size-10 place-items-center text-3xl text-white/80">‹</Link>
+        <AppBackButton fallback="/inbox" className="-ml-2" />
         <span className="relative size-11 shrink-0 overflow-hidden rounded-full"><Image src={conversation.image} alt="" fill sizes="44px" className="object-cover" /></span>
         <div className="min-w-0 flex-1"><h1 className="truncate text-[16px] font-semibold">{conversation.name}</h1><p className="mt-0.5 text-[12px] text-emerald-300">Online · {conversation.country}</p></div>
         <button aria-label="Altre opzioni" className="grid size-10 place-items-center rounded-full bg-white/5"><MoreHorizontal className="size-5" /></button>

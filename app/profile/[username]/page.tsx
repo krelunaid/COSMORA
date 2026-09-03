@@ -2,12 +2,13 @@ import Image from 'next/image';
 import Link from '@/components/app-link';
 import { BadgeCheck, Heart, Mail, MapPin, Star } from 'lucide-react';
 import { MobileNav, MobileShell } from '@/components/mobile-shell';
+import { AppBackButton } from '@/components/app-back-button';
 
 export default function ProfilePage() {
   const portfolio = ['/category-artist.png','/hd-category-cosplay.png','/cosmora-hero.jpg'];
   const services = [['Custom Wigs','From €90'],['Props & Weapons','From €120'],['Full Costume Builds','From €350']];
   return <MobileShell className="flex flex-col"><div className="flex-1">
-    <div className="relative h-44"><Image src="/cosmora-hero.jpg" alt="Stardust Atelier cover" fill priority sizes="430px" className="object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-[#080918] to-transparent" /><Link href="/" className="absolute left-4 top-4 text-2xl">‹</Link></div>
+    <div className="relative h-44"><Image src="/cosmora-hero.jpg" alt="Stardust Atelier cover" fill priority sizes="430px" className="object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-[#080918] to-transparent" /><AppBackButton fallback="/" className="absolute left-1 top-1 z-10" /></div>
     <div className="-mt-10 px-4"><div className="relative size-20 overflow-hidden rounded-full border-4 border-[#080918]"><Image src="/category-artist.png" alt="Stardust Atelier" fill sizes="80px" className="object-cover" /></div><div className="mt-2 flex items-center gap-2"><h1 className="text-[22px] font-semibold">Stardust Atelier ✨</h1><BadgeCheck className="size-5 text-sky-400" /></div><p className="mt-1 text-[13px] text-white/55">Cosplay Creator · Pro Seller</p>
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[12px] text-white/65"><span className="flex items-center gap-1"><Star className="size-4 fill-amber-300 text-amber-300" />4.9 (238)</span><span>512 Followers</span><span>96% Response</span></div><p className="mt-3 flex items-center gap-1 text-[12px] text-white/55"><MapPin className="size-4" />Rome, Italy · English, Italian</p><p className="mt-3 text-[14px] leading-5 text-white/70">Custom cosplay & props with love to details. Bringing characters to life, one build at a time.</p>
       <Link href="/commissions/new" className="mt-4 flex h-11 items-center justify-center rounded-xl border border-emerald-400/25 bg-emerald-400/8 text-[13px] font-medium text-emerald-200">Commissions Open · Request a quote</Link>
