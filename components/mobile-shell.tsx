@@ -147,6 +147,7 @@ export function MobileNav({
             <Link
               key={key}
               href={href}
+              prefetch
               className={`flex touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium ${active === key ? 'text-fuchsia-300' : 'text-white/60'}`}
             >
               <Icon className="size-5" />

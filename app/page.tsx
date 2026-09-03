@@ -1,5 +1,3 @@
-'use client';
-
 import {
   Bell,
   ChevronRight,
@@ -22,37 +20,37 @@ const categories = [
   {
     label: 'Cosplay',
     meta: '2.8K items',
-    image: '/hd-category-cosplay.png',
+    image: '/mobile-category-cosplay.jpg',
     reference: false,
   },
   {
     label: 'Manga & Comics',
     meta: '3.6K items',
-    image: '/hd-category-manga.png',
+    image: '/mobile-category-manga.jpg',
     reference: false,
   },
   {
     label: 'Figures',
     meta: '4.1K items',
-    image: '/hd-category-figures.png',
+    image: '/mobile-category-figures.jpg',
     reference: false,
   },
   {
     label: 'Cards',
     meta: '2.2K items',
-    image: '/hd-category-cards.png',
+    image: '/mobile-category-cards.jpg',
     reference: false,
   },
   {
     label: 'Gaming',
     meta: '3.0K items',
-    image: '/hd-category-gaming.png',
+    image: '/mobile-category-gaming.jpg',
     reference: false,
   },
   {
     label: 'Artist Alley',
     meta: '1.5K items',
-    image: '/category-artist.png',
+    image: '/mobile-category-artist.jpg',
     reference: false,
   },
 ];
@@ -124,7 +122,7 @@ export default function HomePage() {
         <section className="home-main-content relative z-10 min-h-0 flex-1 px-4">
           <article className="event-hero home-event-hero relative overflow-hidden rounded-[22px] border border-white/10">
             <Image
-              src="/cosmora-hero.jpg"
+              src="/cosmora-hero-mobile.jpg"
               alt="Original COSMORA cosplayer at a European convention"
               fill
               priority
@@ -219,7 +217,7 @@ export default function HomePage() {
             className="events-strip home-events-strip relative block overflow-hidden rounded-[14px]"
           >
             <Image
-              src="/reference-events.png"
+              src="/reference-events-mobile.jpg"
               alt=""
               fill
               sizes="378px"
@@ -236,6 +234,7 @@ export default function HomePage() {
           <MobileLink icon={Compass} label="Explore" href="/explore" />
           <Link
             href="/sell"
+            prefetch
             className="flex touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium text-white"
           >
             <span className="grid size-9 place-items-center rounded-full border border-white/15 bg-[#121327]">
@@ -271,6 +270,7 @@ function MobileLink({
   return (
     <Link
       href={href}
+      prefetch
       className={`flex touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium ${active ? 'text-fuchsia-300' : 'text-white/60'}`}
     >
       <Icon className="size-5" />

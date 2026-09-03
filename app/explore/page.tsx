@@ -38,7 +38,7 @@ const discoveries = [
     section: 'Prodotti' as const,
     title: 'Cosplay e accessori',
     meta: 'Compra oppure noleggia',
-    image: '/hd-category-cosplay.png',
+    image: '/mobile-category-cosplay.jpg',
     href: '/marketplace?category=Cosplay',
     icon: ShoppingBag,
   },
@@ -46,7 +46,7 @@ const discoveries = [
     section: 'Prodotti' as const,
     title: 'Manga & Comics',
     meta: 'Edizioni e collezioni',
-    image: '/hd-category-manga.png',
+    image: '/mobile-category-manga.jpg',
     href: '/marketplace?category=Comics',
     icon: ShoppingBag,
   },
@@ -54,7 +54,7 @@ const discoveries = [
     section: 'Prodotti' as const,
     title: 'Figures',
     meta: 'Figure e collectibles',
-    image: '/hd-category-figures.png',
+    image: '/mobile-category-figures.jpg',
     href: '/marketplace?category=Figures',
     icon: ShoppingBag,
   },
@@ -62,7 +62,7 @@ const discoveries = [
     section: 'Eventi' as const,
     title: 'Lucca Comics & Games 2026',
     meta: 'Lucca · 28 OTT–1 NOV',
-    image: '/events/lucca-comics-games.jpg',
+    image: '/events/lucca-comics-games-mobile.jpg',
     href: '/events/lucca-comics-2026',
     icon: CalendarDays,
   },
@@ -70,7 +70,7 @@ const discoveries = [
     section: 'Eventi' as const,
     title: 'gamescom 2026',
     meta: 'Colonia · 26–30 AGO',
-    image: '/events/gamescom.png',
+    image: '/events/gamescom-mobile.jpg',
     href: '/events',
     icon: CalendarDays,
   },
@@ -78,7 +78,7 @@ const discoveries = [
     section: 'Creator' as const,
     title: 'Stardust Atelier',
     meta: 'Cosplay creator · Commissioni aperte',
-    image: '/category-artist.png',
+    image: '/mobile-category-artist.jpg',
     href: '/profile/stardust-atelier',
     icon: UserRound,
   },
@@ -86,7 +86,7 @@ const discoveries = [
     section: 'Crew' as const,
     title: 'One Piece Crew — Lucca',
     meta: '8/12 membri · Cerca personaggi',
-    image: '/community/squad-example.jpg',
+    image: '/community/squad-example-mobile.jpg',
     href: '/squads/one-piece-crew-lucca-2026',
     icon: UsersRound,
   },
@@ -94,7 +94,7 @@ const discoveries = [
     section: 'Community' as const,
     title: 'Community COSMORA',
     meta: 'Post, collezioni e making of',
-    image: '/community/meetup-example.jpg',
+    image: '/community/meetup-example-mobile.jpg',
     href: '/community',
     icon: Sparkles,
   },
@@ -152,7 +152,7 @@ export default function ExplorePage() {
             className="relative mt-4 block h-44 overflow-hidden rounded-2xl border border-violet-400/20 sm:h-48"
           >
             <Image
-              src="/cosmora-hero.jpg"
+              src="/cosmora-hero-mobile.jpg"
               alt="COSMORA cosplay discovery"
               fill
               priority
