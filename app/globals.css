@@ -199,3 +199,40 @@ body {
   .phone-shell { max-height: calc(100dvh - 2.5rem); overflow-y: auto; }
   .phone-shell::-webkit-scrollbar { width: 0; }
 }
+
+html.native-capacitor .mobile-app-stage {
+  background-color: #080918;
+}
+
+html.native-capacitor .phone-shell,
+html.native-capacitor .mobile-shell-frame {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  min-height: 100dvh;
+  max-height: none;
+  border-radius: 0;
+  border-width: 0;
+  box-shadow: none;
+}
+
+html.native-capacitor .mobile-app-stage.h-dvh > .phone-shell,
+html.native-capacitor .mobile-app-stage.h-dvh > .mobile-shell-frame {
+  height: 100%;
+  min-height: 100%;
+}
+
+html.native-capacitor .mobile-nav-bar {
+  left: 0;
+  right: 0;
+  max-width: none;
+  transform: none;
+  bottom: 0;
+  height: calc(64px + env(safe-area-inset-bottom));
+  border-radius: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+html.native-capacitor .mobile-create-sheet {
+  max-width: none;
+}

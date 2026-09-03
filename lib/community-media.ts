@@ -151,6 +151,65 @@ export function isAllowedCommunityMediaFile(file: {
   return isAllowedCommunityMediaType(inferCommunityMediaType(file));
 }
 
+const CANCEL_ERROR_CODES = new Set([
+  'OS-PLUG-CAMR-0006',
+  'OS-PLUG-CAMR-0013',
+  'OS-PLUG-CAMR-0017',
+  'OS-PLUG-CAMR-0020',
+]);
+
+function errorText(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  if (error && typeof error === 'object') {
+    const record = error as { code?: unknown; message?: unknown };
+    const parts = [record.code, record.message].filter(
+      (part): part is string | number =>
+        typeof part === 'string' || typeof part === 'number',
+    );
+    if (parts.length) return parts.join(' ');
+  }
+  return '';
+}
+
+export function isNativePickerCancel(error: unknown) {
+  const text = errorText(error);
+  const code =
+    error && typeof error === 'object' && 'code' in error
+      ? (error as { code?: unknown }).code
+      : undefined;
+  const codeText =
+    typeof code === 'string' || typeof code === 'number' ? String(code) : '';
+  return CANCEL_ERROR_CODES.has(codeText) || /cancel/i.test(text);
+}
+
+export function inferNativeMediaFormat(input: {
+  metadataFormat?: string;
+  listedFormat?: string;
+  sniffedType?: string;
+  blobType?: string;
+  video?: boolean;
+}) {
+  const raw = (
+    input.metadataFormat ||
+    input.listedFormat ||
+    input.sniffedType?.split('/')[1] ||
+    input.blobType?.split('/')[1] ||
+    (input.video ? 'mp4' : 'jpeg')
+  )
+    .replace(/^\./, '')
+    .toLowerCase();
+  return raw === 'jpeg' ? 'jpg' : raw;
+}
+
+export function shouldFallbackToHtmlFilePicker(input: {
+  nativeResult?: File[] | null;
+  error?: unknown;
+}) {
+  if ('error' in input) return !isNativePickerCancel(input.error);
+  return input.nativeResult == null;
+}
+
 export function communityMediaSelectionError(
   files: Array<{ name: string; type: string; size: number }>,
 ) {

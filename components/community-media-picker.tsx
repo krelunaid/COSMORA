@@ -15,6 +15,7 @@ import {
   MAX_COMMUNITY_MEDIA_FILES,
   isAllowedCommunityMediaFile,
   isVideoMedia,
+  shouldFallbackToHtmlFilePicker,
 } from '@/lib/community-media';
 
 type SelectedMedia = {
@@ -88,6 +89,11 @@ export function CommunityMediaPicker({
     }
   }
 
+  function openHtmlFileInput() {
+    skipNativeRef.current = true;
+    inputRef.current?.click();
+  }
+
   async function onInputClick(event: MouseEvent<HTMLInputElement>) {
     if (skipNativeRef.current || items.length >= MAX_COMMUNITY_MEDIA_FILES) {
       return;
@@ -103,13 +109,16 @@ export function CommunityMediaPicker({
         await addFiles(native);
         return;
       }
-      if (native) return;
-      skipNativeRef.current = true;
-      event.currentTarget.click();
-    } catch {
-      onError('Impossibile aprire le foto. Riprova.');
+      if (shouldFallbackToHtmlFilePicker({ nativeResult: native })) {
+        onError('');
+        openHtmlFileInput();
+      }
+    } catch (error) {
+      if (shouldFallbackToHtmlFilePicker({ error })) {
+        onError('');
+        openHtmlFileInput();
+      }
     } finally {
-      skipNativeRef.current = false;
       setBusy(false);
     }
   }
