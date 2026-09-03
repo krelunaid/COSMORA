@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: "dist/client",
   backgroundColor: "#050617",
   server: {
-    url: "https://cosmora-app.andreagadducci.chatgpt.site/?appBuild=13",
+    url: "https://cosmora-app.andreagadducci.chatgpt.site/?appBuild=14",
     cleartext: false,
     allowNavigation: ["cosmora-app.andreagadducci.chatgpt.site"],
   },
