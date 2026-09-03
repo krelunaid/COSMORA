@@ -5,13 +5,13 @@ import Link from '@/components/app-link';
 import {
   CalendarDays,
   CheckCircle2,
-  ImagePlus,
   Link2,
   ShoppingBag,
   UserRound,
   UsersRound,
 } from 'lucide-react';
 
+import { CommunityMediaPicker } from '@/components/community-media-picker';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
 import { moderateText } from '@/lib/community-moderation';
 import { europeEvents } from '@/lib/events-data';
@@ -65,6 +65,8 @@ export default function CreateCommunityPostPage() {
   const [connectionType, setConnectionType] = useState<ConnectionType>('');
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState('');
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const [mediaError, setMediaError] = useState('');
   const italianEvents = europeEvents.filter(
     (event) => event.country === 'Italy',
   );
@@ -81,8 +83,16 @@ export default function CreateCommunityPostPage() {
       window.location.assign('/auth/login');
       return;
     }
+    if (!mediaFiles.length) {
+      setMediaError('Aggiungi almeno una foto o un video.');
+      return;
+    }
     setPublishing(true);
     setPublishError('');
+    formData.delete('media');
+    for (const file of mediaFiles) {
+      formData.append('media', file);
+    }
     formData.set('connectionType', connectionType);
     const response = await fetch('/api/community/posts', {
       method: 'POST',
@@ -131,21 +141,11 @@ export default function CreateCommunityPostPage() {
     <MobileShell>
       <ScreenHeader title="Post to Community" back="/community" />
       <form action={submit} className="space-y-4 p-4">
-        <label className="grid h-44 place-items-center rounded-2xl border border-dashed border-violet-400/40 bg-violet-500/5">
-          <span className="text-center text-[10px] text-white/55">
-            <ImagePlus className="mx-auto mb-2 size-7 text-violet-300" />
-            <b className="block text-xs text-white">Foto o video</b>
-            <small>Puoi selezionare più foto o un video breve</small>
-          </span>
-          <input
-            required
-            name="media"
-            type="file"
-            accept="image/*,video/*"
-            multiple
-            className="sr-only"
-          />
-        </label>
+        <CommunityMediaPicker
+          onFilesChange={setMediaFiles}
+          error={mediaError}
+          onError={setMediaError}
+        />
         <textarea
           required
           name="caption"
