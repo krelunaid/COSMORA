@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Geist } from 'next/font/google';
 import './globals.css';
 import { I18nProvider } from '@/components/i18n-provider';
+import { NativeAppClass } from '@/components/native-app-class';
 import { ServiceWorkerRegistration } from '@/components/service-worker-registration';
 
 const geistSans = Geist({
@@ -29,10 +30,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} antialiased`}
+        suppressHydrationWarning
       >
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var n=false;var C=window.Capacitor;if(C&&typeof C.isNativePlatform==='function'){n=!!C.isNativePlatform();}else if(/Capacitor/i.test(navigator.userAgent||'')){n=true;}if(n)document.documentElement.classList.add('native-capacitor');}catch(e){}})();`,
+          }}
+        />
+        <NativeAppClass />
         <I18nProvider>
           <ServiceWorkerRegistration />
           {children}

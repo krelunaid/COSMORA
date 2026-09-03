@@ -1,10 +1,54 @@
 import { Capacitor } from '@capacitor/core';
 
-import { isHeicLike, isVideoMedia } from '@/lib/community-media';
+import {
+  inferNativeMediaFormat,
+  isHeicLike,
+  isNativePickerCancel,
+  isVideoMedia,
+  sniffCommunityMediaType,
+} from '@/lib/community-media';
 
-function isPickerCancel(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
-  return /cancel/i.test(message);
+export { inferNativeMediaFormat, isNativePickerCancel };
+
+function mimeFromFormat(extension: string, video: boolean) {
+  if (extension === 'jpg') return 'image/jpeg';
+  if (extension === 'mov') return 'video/quicktime';
+  return `${video ? 'video' : 'image'}/${extension}`;
+}
+
+function isVideoNativeType(type: unknown, videoEnum: unknown) {
+  return type === videoEnum || type === 1 || type === 'Video';
+}
+
+export async function fileFromNativeMedia(
+  media: {
+    webPath?: string;
+    type?: unknown;
+    format?: string;
+    metadata?: { format?: string };
+  },
+  index: number,
+  videoEnum?: unknown,
+): Promise<File | null> {
+  const src = media.webPath;
+  if (!src) return null;
+  const response = await fetch(src);
+  const blob = await response.blob();
+  const header = new Uint8Array(await blob.slice(0, 16).arrayBuffer());
+  const sniffed = sniffCommunityMediaType(header);
+  const video =
+    isVideoNativeType(media.type, videoEnum) ||
+    isVideoMedia({ name: '', type: blob.type || sniffed });
+  const extension = inferNativeMediaFormat({
+    metadataFormat: media.metadata?.format,
+    listedFormat: media.format,
+    sniffedType: sniffed,
+    blobType: blob.type,
+    video,
+  });
+  return new File([blob], `cosmora-${Date.now()}-${index}.${extension}`, {
+    type: blob.type || sniffed || mimeFromFormat(extension, video),
+  });
 }
 
 function loadHtmlImage(url: string) {
@@ -79,46 +123,52 @@ export function canUseNativePhotoPicker() {
   return Capacitor.isNativePlatform() && Capacitor.isPluginAvailable('Camera');
 }
 
+async function filesFromGalleryResults(
+  results: Array<{
+    webPath?: string;
+    type?: unknown;
+    format?: string;
+    metadata?: { format?: string };
+  }>,
+  videoEnum?: unknown,
+) {
+  const files: File[] = [];
+  for (const [index, media] of results.entries()) {
+    const file = await fileFromNativeMedia(media, index, videoEnum);
+    if (file) files.push(file);
+  }
+  return files;
+}
+
 export async function pickNativeCommunityPhotos(limit: number) {
   if (limit <= 0 || !canUseNativePhotoPicker()) return null;
-  const { Camera, MediaType, MediaTypeSelection } =
-    await import('@capacitor/camera');
+  const camera = await import('@capacitor/camera');
+  const { Camera, MediaType, MediaTypeSelection } = camera;
+
+  const choose = async (
+    options: Parameters<typeof Camera.chooseFromGallery>[0],
+  ) => {
+    const result = await Camera.chooseFromGallery(options);
+    return filesFromGalleryResults(result.results, MediaType.Video);
+  };
+
   try {
-    const result = await Camera.chooseFromGallery({
+    return await choose({
       mediaType: MediaTypeSelection.All,
       allowMultipleSelection: true,
-      includeMetadata: true,
       limit,
     });
-    const files: File[] = [];
-    for (const [index, media] of result.results.entries()) {
-      const src = media.webPath;
-      if (!src) continue;
-      const response = await fetch(src);
-      const blob = await response.blob();
-      const format = (
-        media.metadata?.format ||
-        blob.type.split('/')[1] ||
-        (media.type === MediaType.Video ? 'mp4' : 'jpeg')
-      )
-        .replace(/^\./, '')
-        .toLowerCase();
-      const extension = format === 'jpeg' ? 'jpg' : format;
-      const mimeFromFormat =
-        extension === 'jpg'
-          ? 'image/jpeg'
-          : extension === 'mov'
-            ? 'video/quicktime'
-            : `${media.type === MediaType.Video ? 'video' : 'image'}/${extension}`;
-      files.push(
-        new File([blob], `cosmora-${Date.now()}-${index}.${extension}`, {
-          type: blob.type || mimeFromFormat,
-        }),
-      );
-    }
-    return files;
   } catch (error) {
-    if (isPickerCancel(error)) return [];
+    if (isNativePickerCancel(error)) return [];
+  }
+
+  try {
+    return await choose({
+      allowMultipleSelection: true,
+      limit,
+    });
+  } catch (error) {
+    if (isNativePickerCancel(error)) return [];
     throw error;
   }
 }
