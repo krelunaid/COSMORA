@@ -5,7 +5,7 @@ import type { ComponentProps } from 'react';
 
 type AppLinkProps = ComponentProps<typeof NextLink>;
 
-/** Keep the app mounted and change pages through Vinext's client router. */
-export default function AppLink({ prefetch = true, ...props }: AppLinkProps) {
+/** Keep the app mounted without preloading every destination on mobile. */
+export default function AppLink({ prefetch = false, ...props }: AppLinkProps) {
   return <NextLink prefetch={prefetch} {...props} />;
 }
