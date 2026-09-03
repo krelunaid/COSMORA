@@ -65,5 +65,13 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>COSMORA usa la fotocamera per scattare foto e video da pubblicare nella Community.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>COSMORA accede alle tue foto per allegarle ai post della Community.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>COSMORA può salvare nella libreria le foto che scatti nell’app.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>COSMORA usa il microfono quando registri un video per la Community.</string>
 </dict>
 </plist>

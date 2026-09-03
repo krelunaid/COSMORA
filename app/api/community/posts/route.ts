@@ -2,6 +2,16 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { moderateText } from '@/lib/community-moderation';
+import {
+  COMMUNITY_MEDIA_LIMIT_ERROR,
+  MAX_COMMUNITY_MEDIA_BYTES,
+  MAX_COMMUNITY_MEDIA_FILES,
+  communityMediaStorageExtension,
+  inferCommunityMediaType,
+  isAllowedCommunityMediaType,
+  isVideoMedia,
+  sniffCommunityMediaType,
+} from '@/lib/community-media';
 import { europeEvents } from '@/lib/events-data';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
 
@@ -12,13 +22,12 @@ const schema = z.object({
   connection: z.string().trim().max(150).optional(),
 });
 
-const allowedTypes = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'video/mp4',
-  'video/webm',
-]);
+async function resolveMediaType(item: File) {
+  const inferred = inferCommunityMediaType(item);
+  if (isAllowedCommunityMediaType(inferred)) return inferred;
+  const header = new Uint8Array(await item.slice(0, 16).arrayBuffer());
+  return sniffCommunityMediaType(header) || inferred;
+}
 
 function slugify(value: string) {
   return value
@@ -88,17 +97,21 @@ export async function POST(request: Request) {
   const media = form
     .getAll('media')
     .filter((item): item is File => item instanceof File && item.size > 0);
+  const mediaTypes = await Promise.all(
+    media.map((item) => resolveMediaType(item)),
+  );
   if (
     !media.length ||
-    media.length > 8 ||
+    media.length > MAX_COMMUNITY_MEDIA_FILES ||
     media.some(
-      (item) => !allowedTypes.has(item.type) || item.size > 25 * 1024 * 1024,
+      (item, index) =>
+        !isAllowedCommunityMediaType(mediaTypes[index] ?? '') ||
+        item.size > MAX_COMMUNITY_MEDIA_BYTES,
     )
   ) {
     return NextResponse.json(
       {
-        error:
-          'Inserisci fino a 8 foto o video supportati (massimo 25 MB ciascuno).',
+        error: COMMUNITY_MEDIA_LIMIT_ERROR,
       },
       { status: 400 },
     );
@@ -146,17 +159,15 @@ export async function POST(request: Request) {
   const paths: string[] = [];
   try {
     for (const [index, item] of media.entries()) {
-      const extension =
-        item.name
-          .split('.')
-          .pop()
-          ?.toLowerCase()
-          .replace(/[^a-z0-9]/g, '') ||
-        (item.type.startsWith('video/') ? 'mp4' : 'jpg');
+      const type = mediaTypes[index] || item.type;
+      const extension = communityMediaStorageExtension({
+        name: item.name,
+        type,
+      });
       const path = `${user.id}/${id}/${index}-${crypto.randomUUID()}.${extension}`;
       const upload = await admin.storage
         .from('community-media')
-        .upload(path, item, { contentType: item.type });
+        .upload(path, item, { contentType: type || item.type });
       if (upload.error) throw upload.error;
       paths.push(path);
     }
@@ -164,7 +175,12 @@ export async function POST(request: Request) {
       paths.map((storagePath, index) => ({
         post_id: id,
         storage_path: storagePath,
-        media_type: media[index]?.type.startsWith('video/') ? 'VIDEO' : 'IMAGE',
+        media_type: isVideoMedia({
+          name: media[index]?.name ?? '',
+          type: mediaTypes[index] || media[index]?.type || '',
+        })
+          ? 'VIDEO'
+          : 'IMAGE',
         sort_order: index,
       })),
     );
