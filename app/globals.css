@@ -105,7 +105,6 @@ body {
 .cosmora-glow-one { top:20%; right:-14rem; background:#a333ff; }
 .cosmora-glow-two { bottom:-16rem; left:20%; background:#ec368f; }
 
-@media (max-width: 1023px) { main:not(.mobile-app-stage) { padding-bottom: 5.5rem; } }
 @media (max-width: 640px) {
   .hero-panel, .hero-panel > div { min-height: 520px; }
   .hero-panel img { object-position: 67% center; }

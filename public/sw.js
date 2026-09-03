@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cosmora-shell-v10-2';
+const CACHE_NAME = 'cosmora-shell-v11';
 const APP_SHELL = [
   '/',
   '/explore',

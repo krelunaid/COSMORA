@@ -18,13 +18,13 @@ export default function InboxPage() {
   const [tab, setTab] = useState<InboxTab>('messages');
 
   return (
-    <MobileShell className="flex min-h-dvh flex-col">
+    <MobileShell className="flex !h-dvh !min-h-0 flex-col overflow-hidden">
       <header className="flex h-[72px] shrink-0 items-center justify-between px-5">
         <h1 className="text-[24px] font-semibold">Inbox</h1>
         <button type="button" aria-label="Cerca nei messaggi" className="grid size-11 place-items-center rounded-full active:bg-white/8"><Search className="size-6" /></button>
       </header>
 
-      <div className="min-h-0 flex-1 px-5">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5">
         <div className="grid grid-cols-2 border-b border-white/10 text-center text-[14px] font-medium" role="tablist" aria-label="Inbox">
           <button type="button" role="tab" aria-selected={tab === 'messages'} onClick={() => setTab('messages')} className={`min-h-14 border-b-2 py-4 ${tab === 'messages' ? 'border-pink-400 text-pink-300' : 'border-transparent text-white/55'}`}>Messaggi</button>
           <button type="button" role="tab" aria-selected={tab === 'orders'} onClick={() => setTab('orders')} className={`min-h-14 border-b-2 py-4 ${tab === 'orders' ? 'border-pink-400 text-pink-300' : 'border-transparent text-white/55'}`}>Ordini</button>
