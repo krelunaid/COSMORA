@@ -1,10 +1,22 @@
-const CACHE_NAME = 'cosmora-shell-v10';
+const CACHE_NAME = 'cosmora-shell-v10-2';
 const APP_SHELL = [
   '/',
   '/explore',
+  '/marketplace',
+  '/marketplace/raiden-shogun-cosplay',
+  '/events',
+  '/events/lucca-comics-2026',
+  '/community',
   '/sell',
+  '/seller',
   '/inbox',
+  '/inbox/ana-spain',
+  '/inbox/lucas-brazil',
+  '/inbox/yuki-japan',
+  '/inbox/mangavault',
   '/profile/stardust-atelier',
+  '/cart',
+  '/rental-safety',
   '/cosmora-hero-mobile.jpg',
   '/mobile-category-cosplay.jpg',
   '/mobile-category-manga.jpg',
