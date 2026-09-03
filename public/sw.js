@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cosmora-shell-v11';
+const CACHE_NAME = 'cosmora-shell-v12';
 const APP_SHELL = [
   '/',
   '/explore',
@@ -55,6 +55,12 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) {
+    return;
+  }
+
+  // Never intercept RSC flight requests — those are vinext client-router
+  // data fetches and must always go to the server.
+  if (request.headers.get('RSC') === '1' || request.headers.get('Next-Router-State-Tree')) {
     return;
   }
 

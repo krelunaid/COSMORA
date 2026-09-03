@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 export function AppBackButton({
   fallback = '/',
   className = '',
@@ -7,16 +9,18 @@ export function AppBackButton({
   fallback?: string;
   className?: string;
 }) {
+  const router = useRouter();
+
   function goBack() {
     if (document.referrer) {
       const previous = new URL(document.referrer);
       if (previous.origin === window.location.origin) {
-        window.history.back();
+        router.back();
         return;
       }
     }
 
-    window.location.replace(fallback);
+    router.replace(fallback);
   }
 
   return (
@@ -26,7 +30,7 @@ export function AppBackButton({
       aria-label="Back"
       className={`grid size-11 touch-manipulation place-items-center rounded-full text-3xl leading-none active:bg-white/8 ${className}`}
     >
-      ‹
+      &#8249;
     </button>
   );
 }
