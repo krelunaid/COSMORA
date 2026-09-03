@@ -158,16 +158,6 @@ export default function HomePage() {
             </div>
           </article>
 
-          <div
-            className="flex justify-center gap-1.5"
-            aria-label="Featured slide 1 of 5"
-          >
-            <span className="h-1.5 w-4 rounded-full bg-white" />
-            {[0, 1, 2, 3].map((dot) => (
-              <span key={dot} className="size-1.5 rounded-full bg-white/25" />
-            ))}
-          </div>
-
           <section id="categories" className="home-categories-section">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-[15px] font-semibold">Browse Categories</h2>

@@ -122,7 +122,7 @@ body {
 
 .home-main-content {
   display: grid;
-  grid-template-rows: minmax(248px, 1.15fr) 8px minmax(190px, 1fr) minmax(52px, 85px);
+  grid-template-rows: minmax(248px, 1.15fr) minmax(190px, 1fr) minmax(52px, 85px);
   gap: .5rem;
   overflow: hidden;
 }
@@ -154,7 +154,7 @@ body {
 }
 
 @media (max-height: 740px) {
-  .home-main-content { grid-template-rows: 235px 6px minmax(178px, 1fr) 46px; }
+  .home-main-content { grid-template-rows: 235px minmax(178px, 1fr) 46px; }
   .home-main-content { gap: .35rem; }
   .category-copy { padding: .45rem; }
 }
