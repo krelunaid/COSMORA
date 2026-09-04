@@ -11,6 +11,9 @@ Non pronta per il lancio commerciale. Pagamenti reali bloccati nel codice.
 - Ordini letti dal database e filtrati per partecipante; stato vuoto senza esempi falsi.
 - Pubblicazione annuncio con foto, recupero dal catalogo e dettaglio tramite slug.
 - Il collegamento Profilo apre il proprio account, non Stardust Atelier.
+- Gestione annunci personali: modifica titolo/descrizione/prezzi, sospensione e riattivazione, paginazione e conflitti tra sessioni. Pannello venditore senza ordini/incassi inventati.
+- Recupero password e schermata accesso in italiano. Redirect di produzione configurati; prova del token e cambio password con account temporaneo. Consegna email e ritorno su iPhone ancora da verificare.
+- Google e Apple predisposti ma disabilitati finché i provider Supabase non risultano attivi; non sono configurati.
 
 Test ripetibile: scripts/test-account-flows.mjs, con TEST_APP_URL e variabili Supabase locali.
 Il test crea account temporanei senza email e li elimina insieme ai dati di prova.
@@ -18,7 +21,7 @@ Il test crea account temporanei senza email e li elimina insieme ai dati di prov
 ## Ancora da completare e verificare
 
 - Chat: paginazione oltre 100 messaggi, allegati, segnalazioni e notifiche push.
-- Account: recupero password completo, eliminazione account, OAuth configurati e testati.
+- Account: verifica consegna email di recupero/conferma, eliminazione account, OAuth configurati e testati.
 - Marketplace: catalogo dimostrativo ancora separato dagli annunci reali; filtri unificati, preferiti e carrello persistenti.
 - Ordini: relazione articolo/quantità, stato spedizione, tracking, rimborso e contestazione; autorizzazioni e test end-to-end.
 - Community e crew: collegamento completo delle schermate alle tabelle, adesioni, moderazione operativa e segnalazioni.

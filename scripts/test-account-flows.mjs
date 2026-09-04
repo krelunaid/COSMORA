@@ -22,7 +22,7 @@ try {
     const client = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false } });
     const signed = await client.auth.signInWithPassword({ email, password });
     if (signed.error) throw signed.error;
-    users.push({ id: data.user.id, token: signed.data.session.access_token });
+    users.push({ id: data.user.id, token: signed.data.session.access_token, email });
     assert.equal((await request('/api/account', users[i].token, 'PUT', { displayName: `Temporary test ${i}`, country: 'Italy' })).status, 200);
   }
   const [a,b,c] = users;
@@ -44,10 +44,37 @@ try {
   const catalog = await request(`/api/listings?slug=${listingBody.listing.slug}`);
   assert.equal(catalog.body.listings[0].seller_id, a.id);
   assert.equal(catalog.body.listings[0].images.length, 1);
+  const owned = await request('/api/seller/listings', a.token);
+  assert.equal(owned.status, 200);
+  const editable = owned.body.listings.find((item) => item.id === listingBody.listing.id);
+  assert.ok(editable);
+  assert.equal((await request('/api/seller/listings', b.token)).body.listings.length, 0);
+  assert.equal((await request('/api/seller/listings')).status, 401);
+  const changes = { id: editable.id, updatedAt: editable.updated_at, title: 'Updated test listing', description: editable.description, status: 'paused', salePriceCents: 1200, rentalPriceCents: null };
+  assert.equal((await request('/api/seller/listings', b.token, 'PATCH', changes)).status, 404);
+  const saved = await request('/api/seller/listings', a.token, 'PATCH', changes);
+  assert.equal(saved.status, 200);
+  assert.equal((await request(`/api/listings?slug=${editable.slug}`)).body.listings.length, 0);
+  assert.equal((await request('/api/seller/listings', a.token, 'PATCH', changes)).status, 409);
+  assert.equal((await request('/api/seller/listings', a.token, 'PATCH', { ...changes, updatedAt: saved.body.listing.updated_at, status: 'active' })).status, 200);
+  assert.equal((await request(`/api/listings?slug=${editable.slug}`)).body.listings[0].sale_price_cents, 1200);
   const block = await admin.from('user_blocks').insert({ blocker_id: b.id, blocked_id: a.id });
   if (block.error) throw block.error;
   assert.equal((await request('/api/messages', a.token, 'POST', { ...message, id: crypto.randomUUID() })).status, 403);
-  console.log('PASS: account persistence, authenticated messaging, retry deduplication, participant isolation, empty orders, blocked sender.');
+  const recoveryRedirect = 'https://cosmora-app.andreagadducci.chatgpt.site/auth/recovery';
+  const link = await admin.auth.admin.generateLink({ type: 'recovery', email: c.email, options: { redirectTo: recoveryRedirect } });
+  if (link.error) throw link.error;
+  assert.equal(new URL(link.data.properties.action_link).searchParams.get('redirect_to'), recoveryRedirect);
+  const recovery = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+  const verified = await recovery.auth.verifyOtp({ token_hash: link.data.properties.hashed_token, type: 'recovery' });
+  if (verified.error) throw verified.error;
+  const replacement = crypto.randomUUID() + 'aA!9';
+  const changed = await recovery.auth.updateUser({ password: replacement });
+  if (changed.error) throw changed.error;
+  const relogin = await recovery.auth.signInWithPassword({ email: c.email, password: replacement });
+  if (relogin.error) throw relogin.error;
+  console.log('PASS: recovery redirect, recovery token and password replacement (no email sent).');
+  console.log('PASS: account, messages, isolation, orders, listing ownership/edit/pause/reactivation/conflict, blocked sender.');
 } finally {
   if (uploaded.length) {
     const result = await admin.storage.from('listing-images').remove(uploaded);

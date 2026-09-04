@@ -1,11 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from '@/components/app-link';
 import { MobileNav, MobileShell } from '@/components/mobile-shell';
 import { accountRequest } from '@/lib/account-client';
 type Item = { id: string; label: string; detail: string };
 export default function RealInbox() {
-  const [tab, setTab] = useState('messages');
+  const params = useSearchParams();
+  const [tab, setTab] = useState(params.get('tab') === 'orders' ? 'orders' : 'messages');
   const [query, setQuery] = useState('');
   const [items, setItems] = useState<Item[]>([]);
   const [error, setError] = useState('');
