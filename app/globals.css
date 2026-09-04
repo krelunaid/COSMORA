@@ -258,4 +258,5 @@ html.native-capacitor .mobile-create-sheet {
 
 .discovery-card {
   min-width: 0;
+  height: 100%;
 }

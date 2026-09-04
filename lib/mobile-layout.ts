@@ -10,7 +10,7 @@ export const DISCOVERY_CARD_CHROME = {
   imageAspect: '5 / 4',
   titleLines: 2,
   metaLines: 2,
-  minBodyHeightClass: 'min-h-[5.5rem]',
+  bodyHeightClass: 'h-[5.75rem]',
 } as const;
 
 export const PHONE_SHELL_MAX_WIDTH_CLASS = `max-w-[${PHONE_SHELL_MAX_WIDTH_PX}px]`;

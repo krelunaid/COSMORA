@@ -43,7 +43,7 @@ export default function ExplorePage() {
 
   return (
     <MobileShell className="flex flex-col">
-      <div className="min-h-0 flex-1 px-3 pb-6 pt-5 sm:px-4">
+      <div className="flex-1 px-3 pb-8 pt-5 sm:px-4">
         <div>
           <p className="text-[9px] font-medium uppercase tracking-[.2em] text-pink-300">
             Scopri tutto COSMORA
@@ -150,15 +150,15 @@ function DiscoveryCard({ item }: { item: ExploreDiscovery }) {
         </span>
       </div>
       <div
-        className={`${DISCOVERY_CARD_CHROME.minBodyHeightClass} flex flex-1 flex-col p-3`}
+        className={`${DISCOVERY_CARD_CHROME.bodyHeightClass} flex shrink-0 flex-col p-3`}
       >
-        <span className="text-[7px] font-medium uppercase tracking-[.12em] text-violet-300">
+        <span className="shrink-0 text-[7px] font-medium uppercase tracking-[.12em] text-violet-300">
           {item.section}
         </span>
-        <h2 className="mt-1 line-clamp-2 text-xs font-medium leading-4">
+        <h2 className="mt-1 line-clamp-2 h-8 text-xs font-medium leading-4">
           {item.title}
         </h2>
-        <p className="mt-1.5 line-clamp-2 text-[9px] leading-3 text-white/45">
+        <p className="mt-1.5 line-clamp-2 h-6 text-[9px] leading-3 text-white/45">
           {item.meta}
         </p>
       </div>
