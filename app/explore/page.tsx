@@ -138,7 +138,7 @@ function DiscoveryCard({ item }: { item: ExploreDiscovery }) {
       className="discovery-card flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/8 bg-[#111225] transition hover:border-pink-400/25"
     >
       <div
-        className={`discovery-card-media relative aspect-[5/4] w-full shrink-0 overflow-hidden bg-[#17172b] ${item.imageFit === 'contain' ? 'p-3' : ''}`}
+        className={`discovery-card-media relative aspect-[5/4] w-full shrink-0 overflow-hidden bg-[#17172b] ${item.imageFit === 'contain' ? 'discovery-card-media-logo p-3' : ''}`}
       >
         <Image
           src={item.image}

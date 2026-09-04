@@ -282,3 +282,7 @@ html.native-capacitor .mobile-create-sheet {
 .discovery-card-media {
   background-color: #17172b;
 }
+
+.discovery-card-media-logo img {
+  object-fit: contain !important;
+}

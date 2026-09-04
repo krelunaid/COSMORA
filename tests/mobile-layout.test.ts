@@ -151,6 +151,7 @@ void test('shell and Explore markup no longer use the 480 / translate pair', () 
   assert.match(explore, /discovery-grid/);
   assert.match(explore, /discovery-card/);
   assert.match(explore, /discovery-card-media/);
+  assert.match(explore, /discovery-card-media-logo/);
   assert.match(explore, /line-clamp-2/);
   assert.match(explore, /aspect-\[5\/4\]/);
   assert.match(explore, /bodyHeightClass/);
