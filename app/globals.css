@@ -214,6 +214,11 @@ html.native-capacitor .mobile-shell-frame {
   border-radius: 0;
   border-width: 0;
   box-shadow: none;
+  overflow-x: hidden;
+}
+
+html.native-capacitor .mobile-shell-frame {
+  overflow-y: auto;
 }
 
 html.native-capacitor .mobile-app-stage.h-dvh > .phone-shell,
@@ -225,14 +230,32 @@ html.native-capacitor .mobile-app-stage.h-dvh > .mobile-shell-frame {
 html.native-capacitor .mobile-nav-bar {
   left: 0;
   right: 0;
+  width: 100%;
   max-width: none;
+  margin-left: 0;
+  margin-right: 0;
   transform: none;
+  translate: none;
   bottom: 0;
   height: calc(64px + env(safe-area-inset-bottom));
   border-radius: 0;
+  padding-left: max(0.25rem, env(safe-area-inset-left));
+  padding-right: max(0.25rem, env(safe-area-inset-right));
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+html.native-capacitor .mobile-nav-bar > * {
+  min-width: 0;
 }
 
 html.native-capacitor .mobile-create-sheet {
   max-width: none;
+}
+
+.discovery-grid {
+  align-items: stretch;
+}
+
+.discovery-card {
+  min-width: 0;
 }

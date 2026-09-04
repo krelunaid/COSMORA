@@ -12,7 +12,9 @@
     "ios:sync": "cap sync ios",
     "ios:open": "cap open ios",
     "lint": "oxlint app components/auth lib",
-    "format": "oxfmt"
+    "format": "oxfmt",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",
