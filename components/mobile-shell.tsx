@@ -16,6 +16,10 @@ import {
 import { useI18n } from '@/components/i18n-provider';
 import { AppBackButton } from '@/components/app-back-button';
 import { localeLabels, supportedLocales, type Locale } from '@/lib/i18n/config';
+import {
+  MOBILE_NAV_POSITION_CLASS,
+  PHONE_SHELL_MAX_WIDTH_CLASS,
+} from '@/lib/mobile-layout';
 
 export function MobileShell({
   children,
@@ -27,7 +31,7 @@ export function MobileShell({
   return (
     <main className="mobile-app-stage min-h-dvh bg-[#04050d] text-white">
       <div
-        className={`phone-shell mobile-shell-frame mx-auto min-h-dvh w-full max-w-[430px] overflow-hidden border-white/10 bg-[#080918] pt-[env(safe-area-inset-top)] sm:my-3 sm:min-h-[calc(100dvh-1.5rem)] sm:rounded-[34px] sm:border sm:pt-0 ${className}`}
+        className={`phone-shell mobile-shell-frame mx-auto min-h-dvh w-full ${PHONE_SHELL_MAX_WIDTH_CLASS} overflow-x-hidden border-white/10 bg-[#080918] pt-[env(safe-area-inset-top)] sm:my-3 sm:min-h-[calc(100dvh-1.5rem)] sm:rounded-[34px] sm:border sm:pt-0 ${className}`}
       >
         {children}
       </div>
@@ -37,10 +41,8 @@ export function MobileShell({
 
 export function MobileNav({
   active,
-  wide = false,
 }: {
   active: 'home' | 'explore' | 'sell' | 'inbox' | 'profile';
-  wide?: boolean;
 }) {
   const [createOpen, setCreateOpen] = useState(false);
   const { locale, setLocale, messages } = useI18n();
@@ -70,7 +72,7 @@ export function MobileNav({
         >
           <section
             onClick={(event) => event.stopPropagation()}
-            className="mobile-create-sheet w-full max-w-[430px] rounded-t-[28px] border border-white/10 bg-[#101122] p-4 pb-7 shadow-2xl"
+            className={`mobile-create-sheet w-full ${PHONE_SHELL_MAX_WIDTH_CLASS} rounded-t-[28px] border border-white/10 bg-[#101122] p-4 pb-7 shadow-2xl`}
           >
             <div className="mb-4 flex items-center justify-between">
               <div>
@@ -129,7 +131,7 @@ export function MobileNav({
         className="h-[calc(64px+env(safe-area-inset-bottom))] shrink-0"
       />
       <nav
-        className={`mobile-nav-bar ${wide ? 'max-w-[480px]' : 'max-w-[430px]'} fixed bottom-0 left-1/2 z-40 grid h-[calc(64px+env(safe-area-inset-bottom))] w-full -translate-x-1/2 grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:bottom-3 sm:h-16 sm:rounded-b-[34px] sm:pb-0`}
+        className={`mobile-nav-bar ${MOBILE_NAV_POSITION_CLASS} ${PHONE_SHELL_MAX_WIDTH_CLASS} fixed bottom-0 z-40 grid h-[calc(64px+env(safe-area-inset-bottom))] grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:bottom-3 sm:h-16 sm:rounded-b-[34px] sm:px-2 sm:pb-0`}
         aria-label="Main navigation"
       >
         {links.map(({ key, label, href, icon: Icon }) =>
@@ -137,22 +139,26 @@ export function MobileNav({
             <button
               key={key}
               onClick={() => setCreateOpen(true)}
-              className="flex touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium text-fuchsia-300"
+              className="flex min-w-0 touch-manipulation flex-col items-center justify-center gap-1 px-0.5 text-[10px] font-medium text-fuchsia-300 sm:text-[11px]"
             >
               <span className="grid size-8 place-items-center rounded-full border border-violet-400/40 bg-gradient-to-br from-pink-500 to-violet-600 shadow-lg shadow-fuchsia-500/20">
                 <Icon className="size-5" />
               </span>
-              <span>{label}</span>
+              <span className="max-w-full text-center leading-none whitespace-nowrap">
+                {label}
+              </span>
             </button>
           ) : (
             <Link
               key={key}
               href={href}
               prefetch
-              className={`flex touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium ${active === key ? 'text-fuchsia-300' : 'text-white/60'}`}
+              className={`flex min-w-0 touch-manipulation flex-col items-center justify-center gap-1 px-0.5 text-[10px] font-medium sm:text-[11px] ${active === key ? 'text-fuchsia-300' : 'text-white/60'}`}
             >
               <Icon className="size-5" />
-              <span>{label}</span>
+              <span className="max-w-full text-center leading-none whitespace-nowrap">
+                {label}
+              </span>
             </Link>
           ),
         )}
