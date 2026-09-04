@@ -23,6 +23,18 @@ export const PHONE_SHELL_MAX_WIDTH_CLASS = `max-w-[${PHONE_SHELL_MAX_WIDTH_PX}px
 export const MOBILE_NAV_POSITION_CLASS =
   'inset-x-0 mx-auto w-full translate-none';
 
+/**
+ * Inline resets that win over leftover utility classes even when
+ * `html.native-capacitor` is missing (some WKWebView builds never get it).
+ */
+export const MOBILE_NAV_BAR_INLINE_STYLE = {
+  left: '0',
+  right: '0',
+  width: '100%',
+  transform: 'none',
+  translate: 'none',
+} as const;
+
 export function usesConflictingNavCentering(className: string) {
   const usesHalfLeft = /(^|\s)left-1\/2(\s|$)/.test(className);
   const usesNegativeHalfTranslate =
@@ -35,6 +47,7 @@ export function nativeNavBarCssResets() {
   return {
     left: '0',
     right: '0',
+    width: '100%',
     maxWidth: 'none',
     transform: 'none',
     translate: 'none',

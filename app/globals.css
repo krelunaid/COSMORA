@@ -227,6 +227,24 @@ html.native-capacitor .mobile-app-stage.h-dvh > .mobile-shell-frame {
   min-height: 100%;
 }
 
+/* Always-on: WKWebView may never get html.native-capacitor. Never let a
+   leftover translate clip Home / Esplora off the left edge. */
+.mobile-nav-bar {
+  left: 0;
+  right: 0;
+  width: 100%;
+  transform: none;
+  translate: none;
+}
+
+@media (max-width: 639px) {
+  .mobile-nav-bar {
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
 html.native-capacitor .mobile-nav-bar {
   left: 0;
   right: 0;
@@ -259,4 +277,12 @@ html.native-capacitor .mobile-create-sheet {
 .discovery-card {
   min-width: 0;
   height: 100%;
+}
+
+.discovery-card-media {
+  background-color: #17172b;
+}
+
+.discovery-card-media-logo img {
+  object-fit: contain !important;
 }

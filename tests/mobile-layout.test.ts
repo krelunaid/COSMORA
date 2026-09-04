@@ -15,6 +15,7 @@ import {
   DISCOVERY_GRID_COLUMNS,
   isCompleteDiscoveryCard,
   MOBILE_NAV_ITEM_COUNT,
+  MOBILE_NAV_BAR_INLINE_STYLE,
   MOBILE_NAV_POSITION_CLASS,
   nativeNavBarCssResets,
   PHONE_SHELL_MAX_WIDTH_CLASS,
@@ -31,9 +32,17 @@ void test('keeps one 430px shell width and inset-centered nav', () => {
   assert.equal(usesConflictingNavCentering(MOBILE_NAV_POSITION_CLASS), false);
   assert.match(MOBILE_NAV_POSITION_CLASS, /inset-x-0/);
   assert.match(MOBILE_NAV_POSITION_CLASS, /translate-none/);
+  assert.deepEqual(MOBILE_NAV_BAR_INLINE_STYLE, {
+    left: '0',
+    right: '0',
+    width: '100%',
+    transform: 'none',
+    translate: 'none',
+  });
   assert.deepEqual(nativeNavBarCssResets(), {
     left: '0',
     right: '0',
+    width: '100%',
     maxWidth: 'none',
     transform: 'none',
     translate: 'none',
@@ -62,6 +71,11 @@ void test('Explore discoveries always expose image, label, title and meta', () =
   assert.equal(figures.section, 'Prodotti');
   assert.equal(figures.meta, 'Figure e collectibles');
   assert.equal(figures.image, '/mobile-category-figures.jpg');
+  const lucca = exploreDiscoveries.find(
+    (card) => card.title === 'Lucca Comics & Games 2026',
+  );
+  assert.ok(lucca);
+  assert.equal(lucca.imageFit, 'contain');
 });
 
 void test('Explore filters keep Italian section labels', () => {
@@ -102,6 +116,11 @@ void test('native letterbox full-bleed and nav translate reset stay in CSS', () 
     css,
     /html\.native-capacitor \.(phone-shell|mobile-shell-frame)[\s\S]*max-width:\s*none/,
   );
+  assert.match(css, /\.mobile-nav-bar\s*\{[^}]*left:\s*0/);
+  assert.match(css, /\.mobile-nav-bar\s*\{[^}]*right:\s*0/);
+  assert.match(css, /\.mobile-nav-bar\s*\{[^}]*width:\s*100%/);
+  assert.match(css, /\.mobile-nav-bar\s*\{[^}]*transform:\s*none/);
+  assert.match(css, /\.mobile-nav-bar\s*\{[^}]*translate:\s*none/);
   assert.match(
     css,
     /html\.native-capacitor \.mobile-nav-bar\s*\{[^}]*translate:\s*none/,
@@ -125,12 +144,17 @@ void test('shell and Explore markup no longer use the 480 / translate pair', () 
   assert.doesNotMatch(shell, /max-w-\[480px\]/);
   assert.doesNotMatch(shell, /wide\s*=/);
   assert.match(shell, /MOBILE_NAV_POSITION_CLASS/);
+  assert.match(shell, /MOBILE_NAV_BAR_INLINE_STYLE/);
   assert.match(shell, /PHONE_SHELL_MAX_WIDTH_CLASS/);
   assert.doesNotMatch(explore, /max-w-\[480px\]/);
   assert.doesNotMatch(explore, /wide/);
   assert.match(explore, /discovery-grid/);
   assert.match(explore, /discovery-card/);
+  assert.match(explore, /discovery-card-media/);
+  assert.match(explore, /discovery-card-media-logo/);
   assert.match(explore, /line-clamp-2/);
   assert.match(explore, /aspect-\[5\/4\]/);
   assert.match(explore, /bodyHeightClass/);
+  assert.match(explore, /imageFit/);
+  assert.match(explore, /objectFit/);
 });
