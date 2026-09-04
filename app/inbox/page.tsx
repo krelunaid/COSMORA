@@ -16,15 +16,26 @@ const orders = [
 
 export default function InboxPage() {
   const [tab, setTab] = useState<InboxTab>('messages');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const normalizedQuery = query.trim().toLocaleLowerCase('it');
+  const visibleConversations = conversations.slice(0, 4).filter((chat) =>
+    `${chat.name} ${chat.preview}`.toLocaleLowerCase('it').includes(normalizedQuery),
+  );
+  const visibleOrders = orders.filter((order) =>
+    `${order.id} ${order.title} ${order.seller} ${order.status}`.toLocaleLowerCase('it').includes(normalizedQuery),
+  );
 
   return (
     <MobileShell className="flex !h-dvh !min-h-0 flex-col overflow-hidden">
       <header className="flex h-[72px] shrink-0 items-center justify-between px-5">
         <h1 className="text-[24px] font-semibold">Inbox</h1>
-        <button type="button" aria-label="Cerca nei messaggi" className="grid size-11 place-items-center rounded-full active:bg-white/8"><Search className="size-6" /></button>
+        <button type="button" aria-label="Cerca messaggi e ordini" aria-expanded={searchOpen} aria-controls="inbox-search" onClick={() => { setSearchOpen(!searchOpen); setQuery(''); }} className="grid size-11 place-items-center rounded-full active:bg-white/8"><Search className="size-6" /></button>
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5">
+        {searchOpen && <div id="inbox-search" className="pb-3"><label htmlFor="inbox-query" className="mb-2 block text-sm">Cerca messaggi e ordini</label><input id="inbox-query" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nome, prodotto o numero ordine" className="w-full rounded-xl border border-white/20 bg-[#111225] px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-pink-400" /></div>}
+        <p className="rounded-xl border border-violet-400/25 bg-violet-400/10 px-3 py-2 text-sm text-violet-200">Anteprima dimostrativa: questi messaggi e ordini sono esempi, non attività del tuo account.</p>
         <div className="grid grid-cols-2 border-b border-white/10 text-center text-[14px] font-medium" role="tablist" aria-label="Inbox">
           <button type="button" role="tab" aria-selected={tab === 'messages'} onClick={() => setTab('messages')} className={`min-h-14 border-b-2 py-4 ${tab === 'messages' ? 'border-pink-400 text-pink-300' : 'border-transparent text-white/55'}`}>Messaggi</button>
           <button type="button" role="tab" aria-selected={tab === 'orders'} onClick={() => setTab('orders')} className={`min-h-14 border-b-2 py-4 ${tab === 'orders' ? 'border-pink-400 text-pink-300' : 'border-transparent text-white/55'}`}>Ordini</button>
@@ -32,13 +43,14 @@ export default function InboxPage() {
 
         {tab === 'messages' ? (
           <div className="divide-y divide-white/8" role="tabpanel">
-            {conversations.slice(0, 4).map((chat) => (
+            {visibleConversations.length === 0 && <output className="block py-8 text-base text-white/70">Nessun messaggio trovato. Prova un altro nome o testo.</output>}
+            {visibleConversations.map((chat) => (
               <Link href={`/inbox/${chat.id}`} key={chat.id} className="flex min-h-[96px] touch-manipulation items-center gap-4 py-5 active:bg-white/[.035]">
                 <span className="relative size-14 shrink-0 overflow-hidden rounded-full"><Image src={chat.image} alt="" fill sizes="56px" className="object-cover" /></span>
                 <div className="min-w-0 flex-1">
                   <p className="text-[16px] font-semibold">{chat.name}</p>
                   <p className="mt-1 truncate text-[14px] text-white/55">{chat.preview}</p>
-                  <p className="mt-1.5 text-[12px] font-medium text-violet-300">Traduzione AI disponibile</p>
+                  <p className="mt-1.5 text-[14px] font-medium text-violet-300">Conversazione di esempio</p>
                 </div>
                 <span className="text-[12px] text-white/40">{chat.time}</span>
                 <ChevronRight className="size-4 shrink-0 text-white/25" />
@@ -48,7 +60,8 @@ export default function InboxPage() {
         ) : (
           <div className="space-y-3 py-4" role="tabpanel">
             <p className="text-[13px] text-white/45">Acquisti, noleggi e stato delle spedizioni.</p>
-            {orders.map((order) => {
+            {visibleOrders.length === 0 && <output className="block py-8 text-base text-white/70">Nessun ordine trovato. Prova un altro prodotto o numero ordine.</output>}
+            {visibleOrders.map((order) => {
               const Icon = order.icon;
               return (
                 <Link key={order.id} href={order.href} className="block rounded-2xl border border-white/10 bg-[#111225] p-3 active:bg-white/8">
@@ -64,7 +77,7 @@ export default function InboxPage() {
                 </Link>
               );
             })}
-            <Link href="/inbox/mangavault" className="flex h-12 items-center justify-center gap-2 rounded-xl border border-violet-400/25 text-[13px] text-violet-200"><MessageCircle className="size-4" />Contatta l’assistenza ordine</Link>
+            <Link href="/inbox/mangavault" className="flex h-12 items-center justify-center gap-2 rounded-xl border border-violet-400/25 text-[14px] text-violet-200"><MessageCircle className="size-4" />Apri la conversazione di esempio</Link>
           </div>
         )}
       </div>
