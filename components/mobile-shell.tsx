@@ -17,6 +17,7 @@ import { useI18n } from '@/components/i18n-provider';
 import { AppBackButton } from '@/components/app-back-button';
 import { localeLabels, supportedLocales, type Locale } from '@/lib/i18n/config';
 import {
+  MOBILE_NAV_BAR_INLINE_STYLE,
   MOBILE_NAV_POSITION_CLASS,
   PHONE_SHELL_MAX_WIDTH_CLASS,
 } from '@/lib/mobile-layout';
@@ -132,6 +133,7 @@ export function MobileNav({
       />
       <nav
         className={`mobile-nav-bar ${MOBILE_NAV_POSITION_CLASS} ${PHONE_SHELL_MAX_WIDTH_CLASS} fixed bottom-0 z-40 grid h-[calc(64px+env(safe-area-inset-bottom))] grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:bottom-3 sm:h-16 sm:rounded-b-[34px] sm:px-2 sm:pb-0`}
+        style={MOBILE_NAV_BAR_INLINE_STYLE}
         aria-label="Main navigation"
       >
         {links.map(({ key, label, href, icon: Icon }) =>

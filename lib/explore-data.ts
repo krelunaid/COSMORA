@@ -14,6 +14,7 @@ export type ExploreSection = (typeof exploreSections)[number];
 export type ExploreDiscovery = DiscoveryCardContent & {
   section: Exclude<ExploreSection, 'Per te'>;
   icon: 'bag' | 'calendar' | 'user' | 'users' | 'sparkles';
+  imageFit?: 'cover' | 'contain';
 };
 
 export const exploreDiscoveries: ExploreDiscovery[] = [
@@ -48,6 +49,7 @@ export const exploreDiscoveries: ExploreDiscovery[] = [
     image: '/events/lucca-comics-games-mobile.jpg',
     href: '/events/lucca-comics-2026',
     icon: 'calendar',
+    imageFit: 'contain',
   },
   {
     section: 'Eventi',
