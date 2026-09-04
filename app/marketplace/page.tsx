@@ -8,6 +8,7 @@ import { Heart, Search, Settings2, ShoppingCart, Star } from 'lucide-react';
 
 import { MobileNav, MobileShell } from '@/components/mobile-shell';
 import { products, euro } from '@/lib/marketplace-data';
+import { LiveListings } from '@/components/live-listings';
 
 const categories = ['Cosplay', 'Comics', 'Figures', 'Cards', 'Gaming', 'All'];
 
@@ -68,8 +69,9 @@ export default function MarketplacePage() {
   return (
     <MobileShell className="flex flex-col">
       <div className="flex-1 px-4 pt-5">
+        <LiveListings />
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold">Marketplace</h1>
+          <h1 className="text-xl font-semibold">Catalogo dimostrativo</h1>
           <Link href="/cart" aria-label="Cart" className="relative">
             <ShoppingCart />
             <span className="absolute -right-2 -top-2 grid size-4 place-items-center rounded-full bg-fuchsia-500 text-[9px]">

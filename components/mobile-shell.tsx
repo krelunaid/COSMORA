@@ -60,7 +60,7 @@ export function MobileNav({
     {
       key: 'profile',
       label: messages.nav.profile,
-      href: '/profile/stardust-atelier',
+      href: '/profile/me',
       icon: UserRound,
     },
   ] as const;

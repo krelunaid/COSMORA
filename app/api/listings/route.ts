@@ -1,7 +1,19 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { requireAuthenticatedUser } from '@/lib/supabase/server';
+import { getSupabaseAdmin, requireAuthenticatedUser } from '@/lib/supabase/server';
+
+export async function GET(request: Request) {
+  const admin = getSupabaseAdmin();
+  if (!admin) return NextResponse.json({ error: 'Catalogo non disponibile.' }, { status: 503 });
+  const slug = new URL(request.url).searchParams.get('slug');
+  let query = admin.from('listings').select('id, slug, seller_id, title, description, category, condition, sale_mode, sale_price_cents, rental_price_cents, listing_images(storage_path,position)').eq('status', 'active');
+  if (slug) query = query.eq('slug', slug);
+  const { data, error } = await query.order('created_at', { ascending: false }).limit(50);
+  if (error) return NextResponse.json({ error: 'Catalogo non disponibile. Riprova.' }, { status: 503 });
+  const listings = (data ?? []).map((listing) => ({ ...listing, images: listing.listing_images.sort((a, b) => a.position - b.position).map((image) => admin.storage.from('listing-images').getPublicUrl(image.storage_path).data.publicUrl), listing_images: undefined }));
+  return NextResponse.json({ listings });
+}
 
 const listingSchema = z.object({
   title: z.string().trim().min(3).max(120),

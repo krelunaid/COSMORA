@@ -13,6 +13,7 @@ import {
 
 import { MobileShell, SellerChip } from '@/components/mobile-shell';
 import { products, euro } from '@/lib/marketplace-data';
+import { LiveListings } from '@/components/live-listings';
 
 export default async function ProductPage({
   params,
@@ -20,7 +21,8 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = products.find((item) => item.slug === slug) ?? products[0];
+  const product = products.find((item) => item.slug === slug);
+  if (!product) return <MobileShell><div className="px-4 py-4"><Link href="/marketplace" className="text-base text-pink-300">Torna al marketplace</Link><LiveListings slug={slug} /></div></MobileShell>;
   return (
     <MobileShell>
       <div className="relative h-[430px] bg-[#111225]">

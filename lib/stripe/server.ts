@@ -2,7 +2,8 @@ import Stripe from 'stripe';
 
 export function getStripe() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
-  if (!secretKey) return null;
+  // Live payments stay disabled until the commercial configuration is approved.
+  if (!secretKey || !secretKey.startsWith('sk_test_')) return null;
   return new Stripe(secretKey);
 }
 
