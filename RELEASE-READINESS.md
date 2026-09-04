@@ -1,36 +1,40 @@
-# COSMORA — stato verificato, 4 settembre 2026
+# COSMORA — verifica del 5 settembre 2026
 
-Non pronta per il lancio commerciale. Pagamenti reali bloccati nel codice.
+## Stato
+Versione di test, non pronta per pagamenti reali o lancio commerciale.
+Il contenitore iOS usa ancora l’interfaccia remota: questi interventi NON lo trasformano in un’app offline o in un’interfaccia Swift nativa.
 
-## Implementato e verificato con account temporanei
+## Interventi implementati
+- Home e pagine interne usano la stessa navigazione: Home, Esplora, Crea, Messaggi, Profilo personale.
+- Home con titolo e pulsante evento leggibili; categorie senza contatori inventati. Scorrimento consentito sui dispositivi piccoli per non tagliare contenuti.
+- Testi e controlli ingranditi nelle sezioni modificate, zoom consentito, menu Crea in dialogo accessibile.
+- Cache del service worker limitata alle risorse statiche immutabili; niente cache di pagine, API, navigazioni o dati personali.
+- Marketplace con annunci reali, filtri ricerca/categoria/condizione/prezzo/vendita-noleggio, paginazione e dettagli.
+- Profili pubblici e directory con dati reali, annuncio collegato al venditore effettivo.
+- Community: feed persistente, caricamento di foto/video, collegamenti validati a eventi/prodotti/profili/crew, blocchi e segnalazioni.
+- Post e annunci diventano pubblici soltanto dopo il completamento del caricamento immagini.
+- Crew/incontri salvati sul database, iscrizioni e richieste approvate dall’organizzatore; limite posti protetto da transazione.
+- Dati amministrativi venditore persistenti e privati, distinti dal profilo pubblico. Paese e forma attività Stripe derivano dai dati salvati, non da valori predefiniti.
+- Mutazioni community/crew/segnalazioni riservate alle API autenticate per impedire l’aggiramento dei controlli applicativi.
+- Le chiavi Stripe live restano bloccate.
 
-- Profilo personale autenticato, lettura e salvataggio sul database.
-- Messaggi persistenti tra partecipanti, isolamento da un terzo account.
-- Invio con identificatore idempotente e limite applicativo di frequenza.
-- Blocco reciproco dell'invio quando uno dei partecipanti blocca l'altro.
-- Ordini letti dal database e filtrati per partecipante; stato vuoto senza esempi falsi.
-- Pubblicazione annuncio con foto, recupero dal catalogo e dettaglio tramite slug.
-- Il collegamento Profilo apre il proprio account, non Stardust Atelier.
-- Gestione annunci personali: modifica titolo/descrizione/prezzi, sospensione e riattivazione, paginazione e conflitti tra sessioni. Pannello venditore senza ordini/incassi inventati.
-- Recupero password e schermata accesso in italiano. Redirect di produzione configurati; prova del token e cambio password con account temporaneo. Consegna email e ritorno su iPhone ancora da verificare.
-- Google e Apple predisposti ma disabilitati finché i provider Supabase non risultano attivi; non sono configurati.
+## Verifiche
+- TypeScript, lint e test di regressione layout/media.
+- scripts/test-account-flows.mjs verifica account temporanei, recupero password senza invio email, messaggi e isolamento, blocco invio, ordini per partecipante, pubblicazione e modifica annunci, filtri, profili, dati venditore, post con media, segnalazioni, adesioni/approvazioni/capienza crew.
+- Account e immagini temporanei rimossi dal test.
+- Verifica browser mobile 390×844: navigazione interamente nel viewport, cambio Messaggi/Ordini e apertura delle sezioni.
+- La verifica browser desktop/mobile non sostituisce la verifica su iPhone reale.
 
-Test ripetibile: scripts/test-account-flows.mjs, con TEST_APP_URL e variabili Supabase locali.
-Il test crea account temporanei senza email e li elimina insieme ai dati di prova.
-
-## Ancora da completare e verificare
-
-- Chat: paginazione oltre 100 messaggi, allegati, segnalazioni e notifiche push.
-- Account: verifica consegna email di recupero/conferma, eliminazione account, OAuth configurati e testati.
-- Marketplace: catalogo dimostrativo ancora separato dagli annunci reali; filtri unificati, preferiti e carrello persistenti.
-- Ordini: relazione articolo/quantità, stato spedizione, tracking, rimborso e contestazione; autorizzazioni e test end-to-end.
-- Community e crew: collegamento completo delle schermate alle tabelle, adesioni, moderazione operativa e segnalazioni.
-- Seller: distinguere persone fisiche, ditte individuali e società senza equiparare ogni negozio a una società.
-- Pagamenti: decisione su Connect e responsabilità, poi configurazione e prove prima di abilitare chiavi live.
-- Documenti privacy/condizioni, assistenza e requisiti App Store da completare con informazioni effettive dell'attività.
-- Verifica su iPhone reale di foto, tastiera, navigazione, prestazioni, errori di rete e accessibilità.
-- Il contenitore iOS carica tuttora l'interfaccia dal sito remoto: non è una migrazione a interfaccia offline/nativa.
-
-## Avvisi database preesistenti
-
-Gli advisor segnalano RLS senza policy su event_meetups, event_squads, moderation_actions, post_categories e privilegi pubblici sulla funzione rls_auto_enable. Non ampliare i permessi indiscriminatamente; verificare la funzione e l'accesso richiesto prima di modificarli.
+## Ancora necessari prima del lancio commerciale
+- Apple e Google OAuth: credenziali/provider configurati e ritorno all’app testato; email di conferma/recupero effettivamente recapitate.
+- Eliminazione account, preferenze privacy e flussi assistenza.
+- Ordini completi: articolo/quantità, checkout di beni reali, spedizione/tracking, resi, rimborsi, contestazioni e responsabilità Connect.
+- Carrello/preferiti persistenti. Le vecchie pagine carrello/checkout dimostrative non costituiscono un flusso commerciale verificato.
+- Chat: cronologia oltre 100 messaggi, allegati, stato lettura e notifiche push.
+- Community: commenti/like reali, moderazione operativa e sottotitoli dei video. La verifica automatica del testo è soltanto un primo filtro.
+- Crew: modifiche/annullamento, copertina personalizzata, notifiche ai partecipanti e calendario.
+- Eventi: sostituire tutte le residue informazioni dimostrative, accordi con gli organizzatori per dati ufficiali, loghi, biglietti e mappe.
+- Traduzione completa dell’interfaccia; le pagine modificate sono in italiano, non ancora localizzate in tutte le lingue.
+- Privacy, condizioni di servizio, documenti societari e revisione legale specifica.
+- Architettura mobile con interfaccia inclusa nella build, navigazione e cache dati dedicate; misure su dispositivi/reti reali.
+- TestFlight richiede upload e successiva elaborazione Apple. Una compilazione locale non equivale a disponibilità per i tester.

@@ -32,8 +32,34 @@ export default function SellPage() {
   const [publishError, setPublishError] = useState('');
 
   useEffect(() => {
-    if (!localStorage.getItem('cosmora_seller_profile'))
-      router.replace('/seller/onboarding');
+    let active = true;
+    async function checkSeller() {
+      const session = await getSupabaseBrowserClient()?.auth.getSession();
+      if (!active) return;
+      const token = session?.data.session?.access_token;
+      if (!token) {
+        router.replace('/auth/login');
+        return;
+      }
+      try {
+        const response = await fetch('/api/seller/profile', {
+          headers: { Authorization: 'Bearer ' + token },
+        });
+        const result = (await response.json()) as { profile?: unknown };
+        if (active && response.ok && !result.profile)
+          router.replace('/seller/onboarding');
+        else if (active && !response.ok)
+          setPublishError(
+            'Non riesco a verificare il profilo venditore. Riprova.',
+          );
+      } catch {
+        if (active) setPublishError('Connessione non disponibile. Riprova.');
+      }
+    }
+    void checkSeller();
+    return () => {
+      active = false;
+    };
   }, [router]);
   if (published)
     return (
@@ -61,12 +87,12 @@ export default function SellPage() {
         title="Create Listing"
         back="/"
         action={
-          <Link href="/seller" className="text-[10px] text-pink-300">
+          <Link href="/seller" className="text-xs text-pink-300">
             Dashboard
           </Link>
         }
       />
-      <div className="mx-4 mt-4 flex items-center justify-between rounded-xl border border-violet-400/20 bg-violet-400/5 px-3 py-2 text-[9px]">
+      <div className="mx-4 mt-4 flex items-center justify-between rounded-xl border border-violet-400/20 bg-violet-400/5 px-3 py-2 text-xs">
         <span>Publishing with your seller profile</span>
         <Link href="/seller/onboarding" className="text-pink-300">
           Edit profile
@@ -139,7 +165,7 @@ export default function SellPage() {
           }}
         />
         {photoError && (
-          <p role="alert" className="-mt-2 text-[9px] text-rose-300">
+          <p role="alert" className="-mt-2 text-xs text-rose-300">
             {photoError}
           </p>
         )}
@@ -171,14 +197,14 @@ export default function SellPage() {
           </select>
         </div>
         <div>
-          <p className="mb-2 text-[10px] text-white/55">Available for</p>
+          <p className="mb-2 text-xs text-white/55">Available for</p>
           <div className="grid grid-cols-3 gap-2">
             {(['buy', 'rent', 'both'] as const).map((mode) => (
               <button
                 type="button"
                 onClick={() => setSaleMode(mode)}
                 key={mode}
-                className={`h-10 rounded-xl border text-[10px] uppercase ${saleMode === mode ? 'border-pink-400 bg-pink-400/10 text-pink-300' : 'border-white/10 text-white/50'}`}
+                className={`h-10 rounded-xl border text-xs uppercase ${saleMode === mode ? 'border-pink-400 bg-pink-400/10 text-pink-300' : 'border-white/10 text-white/50'}`}
               >
                 {mode === 'both' ? 'Buy + Rent' : mode}
               </button>
@@ -252,17 +278,17 @@ export default function SellPage() {
           </select>
           <input placeholder="Estimated delivery" className="checkout-input" />
         </div>
-        <label className="flex items-center gap-2 rounded-xl border border-white/8 p-3 text-[10px]">
+        <label className="flex items-center gap-2 rounded-xl border border-white/8 p-3 text-xs">
           <input type="checkbox" />
           Local hand delivery at a public meeting point
         </label>
-        <label className="flex items-start gap-2 rounded-xl border border-white/8 p-3 text-[9px] leading-4 text-white/55">
+        <label className="flex items-start gap-2 rounded-xl border border-white/8 p-3 text-xs leading-4 text-white/55">
           <input required type="checkbox" className="mt-0.5" />I confirm the
           listing is accurate, legal, and clearly identifies official
           merchandise or fan-made work.
         </label>
         {publishError && (
-          <p role="alert" className="text-[9px] text-rose-300">
+          <p role="alert" className="text-xs text-rose-300">
             {publishError}
           </p>
         )}
@@ -419,7 +445,7 @@ function ListingPhotoUploader({
           }}
           className={`grid h-52 w-full cursor-pointer place-items-center overflow-hidden rounded-2xl border border-dashed transition sm:h-56 ${dragging ? 'border-pink-300 bg-pink-400/10' : 'border-violet-400/40 bg-[radial-gradient(circle_at_50%_35%,rgba(139,92,246,.16),transparent_55%)]'}`}
         >
-          <span className="text-center text-[10px] text-white/55">
+          <span className="text-center text-xs text-white/55">
             <span className="mx-auto mb-3 grid size-12 place-items-center rounded-2xl border border-violet-300/20 bg-violet-400/10">
               <ImagePlus className="size-6 text-violet-200" />
             </span>
@@ -427,7 +453,7 @@ function ListingPhotoUploader({
             <span className="mt-1 block">
               Tocca oppure trascina qui · massimo 8
             </span>
-            <span className="mt-1 block text-[8px] text-white/30">
+            <span className="mt-1 block text-xs text-white/30">
               JPG, PNG o WebP · 10 MB per foto
             </span>
           </span>
@@ -443,7 +469,7 @@ function ListingPhotoUploader({
           className="sr-only"
         />
         {error && (
-          <p role="alert" className="mt-2 text-[9px] text-rose-300">
+          <p role="alert" className="mt-2 text-xs text-rose-300">
             {error}
           </p>
         )}
@@ -470,7 +496,7 @@ function ListingPhotoUploader({
                 className="object-contain"
               />
               {index === 0 && (
-                <span className="absolute left-2 top-2 rounded-full bg-pink-500 px-2 py-1 text-[7px] font-semibold">
+                <span className="absolute left-2 top-2 rounded-full bg-pink-500 px-2 py-1 text-xs font-semibold">
                   COPERTINA
                 </span>
               )}
@@ -488,7 +514,7 @@ function ListingPhotoUploader({
                 <button
                   type="button"
                   onClick={() => restoreOriginal(photo.id)}
-                  className="flex h-8 w-full items-center justify-center gap-1 rounded-lg border border-white/10 text-[8px] text-white/60"
+                  className="flex h-8 w-full items-center justify-center gap-1 rounded-lg border border-white/10 text-xs text-white/60"
                 >
                   <Undo2 className="size-3" />
                   Usa originale
@@ -498,7 +524,7 @@ function ListingPhotoUploader({
                   type="button"
                   disabled={photo.processing}
                   onClick={() => removeBackground(photo.id)}
-                  className="flex h-8 w-full items-center justify-center gap-1 rounded-lg border border-violet-400/25 bg-violet-400/8 text-[8px] text-violet-200 disabled:opacity-60"
+                  className="flex h-8 w-full items-center justify-center gap-1 rounded-lg border border-violet-400/25 bg-violet-400/8 text-xs text-violet-200 disabled:opacity-60"
                 >
                   {photo.processing ? (
                     <LoaderCircle className="size-3 animate-spin" />
@@ -509,7 +535,7 @@ function ListingPhotoUploader({
                 </button>
               )}
               {photo.error && (
-                <p className="mt-2 text-[7px] leading-3 text-amber-200/70">
+                <p className="mt-2 text-xs leading-3 text-amber-200/70">
                   {photo.error} L’originale è rimasto intatto.
                 </p>
               )}
@@ -519,7 +545,7 @@ function ListingPhotoUploader({
       </div>
       <label
         htmlFor={inputId}
-        className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-violet-400/30 text-[9px] text-violet-200"
+        className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-violet-400/30 text-xs text-violet-200"
       >
         <ImagePlus className="size-4" />
         Aggiungi altre foto
@@ -534,14 +560,14 @@ function ListingPhotoUploader({
           className="sr-only"
         />
       </label>
-      <p className="flex items-start gap-2 rounded-xl border border-white/8 p-3 text-[8px] leading-3 text-white/40">
+      <p className="flex items-start gap-2 rounded-xl border border-white/8 p-3 text-xs leading-3 text-white/40">
         <Sparkles className="mt-0.5 size-3 shrink-0 text-pink-300" />
         Lo scontorno è facoltativo e può sbagliare su capelli, trasparenze o
         oggetti simili allo sfondo. Controlla sempre l’anteprima; l’originale
         non viene eliminato.
       </p>
       {error && (
-        <p role="alert" className="text-[9px] text-rose-300">
+        <p role="alert" className="text-xs text-rose-300">
           {error}
         </p>
       )}

@@ -1,19 +1,19 @@
-import type { CapacitorConfig } from "@capacitor/cli";
+import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: "com.kreluna.cosmora",
-  appName: "COSMORA",
-  webDir: "dist/client",
-  backgroundColor: "#050617",
+  appId: 'com.kreluna.cosmora',
+  appName: 'COSMORA',
+  webDir: 'dist/client',
+  backgroundColor: '#050617',
   server: {
-    url: "https://cosmora-app.andreagadducci.chatgpt.site/?appBuild=17",
+    url: 'https://cosmora-app.andreagadducci.chatgpt.site/?appBuild=18',
     cleartext: false,
-    allowNavigation: ["cosmora-app.andreagadducci.chatgpt.site"],
+    allowNavigation: ['cosmora-app.andreagadducci.chatgpt.site'],
   },
   ios: {
-    backgroundColor: "#050617",
-    contentInset: "never",
-    preferredContentMode: "mobile",
+    backgroundColor: '#050617',
+    contentInset: 'never',
+    preferredContentMode: 'mobile',
   },
 };
 

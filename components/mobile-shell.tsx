@@ -67,25 +67,26 @@ export function MobileNav({
   return (
     <>
       {createOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm"
-          onClick={() => setCreateOpen(false)}
+        <dialog
+          ref={(node) => {
+            if (node && !node.open) node.showModal();
+          }}
+          onClose={() => setCreateOpen(false)}
+          aria-label="Crea in COSMORA"
+          className="fixed inset-0 m-0 flex h-dvh max-h-none w-screen max-w-none items-end justify-center border-0 bg-black/70 p-0 text-white backdrop-blur-sm"
         >
           <section
-            onClick={(event) => event.stopPropagation()}
             className={`mobile-create-sheet w-full ${PHONE_SHELL_MAX_WIDTH_CLASS} rounded-t-[28px] border border-white/10 bg-[#101122] p-4 pb-7 shadow-2xl`}
           >
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-base font-semibold">Crea</p>
-                <p className="text-[9px] text-white/45">
-                  Scegli cosa vuoi fare.
-                </p>
+                <p className="text-xs text-white/65">Scegli cosa vuoi fare.</p>
               </div>
               <button
                 onClick={() => setCreateOpen(false)}
                 aria-label="Close create menu"
-                className="grid size-9 place-items-center rounded-full bg-white/5"
+                className="grid size-11 place-items-center rounded-full bg-white/5"
               >
                 <X className="size-4" />
               </button>
@@ -110,12 +111,12 @@ export function MobileNav({
                 description="Forma una crew di personaggi oppure organizza un ritrovo pubblico."
               />
             </div>
-            <label className="mt-4 flex items-center justify-between border-t border-white/8 pt-4 text-[9px] text-white/50">
+            <label className="mt-4 flex items-center justify-between border-t border-white/8 pt-4 text-xs text-white/50">
               App language
               <select
                 value={locale}
                 onChange={(event) => setLocale(event.target.value as Locale)}
-                className="h-9 rounded-lg border border-white/10 bg-[#17172b] px-3 text-[10px] text-white"
+                className="h-9 rounded-lg border border-white/10 bg-[#17172b] px-3 text-xs text-white"
               >
                 {supportedLocales.map((item) => (
                   <option key={item} value={item}>
@@ -125,7 +126,7 @@ export function MobileNav({
               </select>
             </label>
           </section>
-        </div>
+        </dialog>
       )}
       <div
         aria-hidden="true"
@@ -141,7 +142,7 @@ export function MobileNav({
             <button
               key={key}
               onClick={() => setCreateOpen(true)}
-              className="flex min-w-0 touch-manipulation flex-col items-center justify-center gap-1 px-0.5 text-[10px] font-medium text-fuchsia-300 sm:text-[11px]"
+              className="flex min-w-0 touch-manipulation flex-col items-center justify-center gap-1 px-0.5 text-sm font-medium text-fuchsia-300 sm:text-xs"
             >
               <span className="grid size-8 place-items-center rounded-full border border-violet-400/40 bg-gradient-to-br from-pink-500 to-violet-600 shadow-lg shadow-fuchsia-500/20">
                 <Icon className="size-5" />
@@ -155,7 +156,7 @@ export function MobileNav({
               key={key}
               href={href}
               prefetch
-              className={`flex min-w-0 touch-manipulation flex-col items-center justify-center gap-1 px-0.5 text-[10px] font-medium sm:text-[11px] ${active === key ? 'text-fuchsia-300' : 'text-white/60'}`}
+              className={`flex min-w-0 touch-manipulation flex-col items-center justify-center gap-1 px-0.5 text-sm font-medium sm:text-xs ${active === key ? 'text-fuchsia-300' : 'text-white/60'}`}
             >
               <Icon className="size-5" />
               <span className="max-w-full text-center leading-none whitespace-nowrap">
@@ -190,7 +191,7 @@ function CreateAction({
       </span>
       <span>
         <b className="block text-xs uppercase tracking-wide">{title}</b>
-        <small className="mt-1 block text-[9px] text-white/45">
+        <small className="mt-1 block text-xs text-white/65">
           {description}
         </small>
       </span>
@@ -220,14 +221,12 @@ export function ScreenHeader({
 export function SellerChip() {
   return (
     <Link href="/profile/stardust-atelier" className="flex items-center gap-2">
-      <span className="grid size-7 place-items-center rounded-full bg-gradient-to-br from-pink-400 to-violet-600 text-[9px] font-bold">
+      <span className="grid size-7 place-items-center rounded-full bg-gradient-to-br from-pink-400 to-violet-600 text-xs font-bold">
         SA
       </span>
       <span>
-        <b className="block text-[10px]">Stardust Atelier</b>
-        <small className="block text-[8px] text-white/45">
-          Verified Seller
-        </small>
+        <b className="block text-xs">Stardust Atelier</b>
+        <small className="block text-xs text-white/65">Verified Seller</small>
       </span>
     </Link>
   );

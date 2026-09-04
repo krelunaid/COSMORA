@@ -1,18 +1,100 @@
-import Image from 'next/image';
+'use client';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import Link from '@/components/app-link';
-import { BadgeCheck, Heart, Mail, MapPin, Star } from 'lucide-react';
-import { MobileNav, MobileShell } from '@/components/mobile-shell';
-import { AppBackButton } from '@/components/app-back-button';
-
+import {
+  MobileShell,
+  MobileNav,
+  ScreenHeader,
+} from '@/components/mobile-shell';
+import { LiveListings } from '@/components/live-listings';
+import { ShareButton } from '@/components/share-button';
+type Profile = {
+  id: string;
+  display_name: string;
+  country: string;
+  created_at: string;
+};
 export default function ProfilePage() {
-  const portfolio = ['/category-artist.png','/hd-category-cosplay.png','/cosmora-hero.jpg'];
-  const services = [['Custom Wigs','From €90'],['Props & Weapons','From €120'],['Full Costume Builds','From €350']];
-  return <MobileShell className="flex flex-col"><div className="flex-1">
-    <div className="relative h-44"><Image src="/cosmora-hero.jpg" alt="Stardust Atelier cover" fill priority sizes="430px" className="object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-[#080918] to-transparent" /><AppBackButton fallback="/" className="absolute left-1 top-1 z-10" /></div>
-    <div className="-mt-10 px-4"><div className="relative size-20 overflow-hidden rounded-full border-4 border-[#080918]"><Image src="/category-artist.png" alt="Stardust Atelier" fill sizes="80px" className="object-cover" /></div><div className="mt-2 flex items-center gap-2"><h1 className="text-[22px] font-semibold">Stardust Atelier ✨</h1><BadgeCheck className="size-5 text-sky-400" /></div><p className="mt-1 text-[13px] text-white/55">Cosplay Creator · Pro Seller</p>
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[12px] text-white/65"><span className="flex items-center gap-1"><Star className="size-4 fill-amber-300 text-amber-300" />4.9 (238)</span><span>512 Followers</span><span>96% Response</span></div><p className="mt-3 flex items-center gap-1 text-[12px] text-white/55"><MapPin className="size-4" />Rome, Italy · English, Italian</p><p className="mt-3 text-[14px] leading-5 text-white/70">Custom cosplay & props with love to details. Bringing characters to life, one build at a time.</p>
-      <Link href="/commissions/new" className="mt-4 flex h-11 items-center justify-center rounded-xl border border-emerald-400/25 bg-emerald-400/8 text-[13px] font-medium text-emerald-200">Commissions Open · Request a quote</Link>
-      <div className="mt-2 grid grid-cols-[1fr_1fr_44px] gap-2"><button className="flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 text-[13px]"><Heart className="size-4" />Follow</button><Link href="/inbox/stardust-atelier" className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white/8 text-[13px]"><Mail className="size-4" />Message</Link><button aria-label="Share profile" className="rounded-xl bg-white/8 text-lg">↗</button></div>
-      <div className="mt-4 grid grid-cols-4 border-b border-white/10 text-center text-[13px]"><span className="border-b-2 border-pink-400 py-3 text-pink-300">Shop</span><span className="py-3 text-white/55">Portfolio</span><span className="py-3 text-white/55">Reviews</span><span className="py-3 text-white/55">About</span></div><h2 className="mt-4 text-[16px] font-semibold">Featured Portfolio</h2><div className="mt-2 grid grid-cols-3 gap-2">{portfolio.map((src) => <div key={src} className="relative aspect-square overflow-hidden rounded-xl"><Image src={src} alt="" fill sizes="120px" className="object-cover" /></div>)}</div><h2 className="mt-4 text-[16px] font-semibold">Services</h2><div className="mt-2 space-y-2 pb-4">{services.map(([title, price]) => <div key={title} className="flex min-h-12 items-center rounded-xl border border-white/8 bg-[#111225] p-3 text-[13px]"><span>{title}</span><span className="ml-auto text-emerald-300">{price}</span></div>)}</div>
-    </div></div><MobileNav active="profile" /></MobileShell>;
+  const { username } = useParams<{ username: string }>();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [lastUsername, setLastUsername] = useState(username);
+  if (lastUsername !== username) {
+    setLastUsername(username);
+    setLoading(true);
+    setError('');
+    setProfile(null);
+  }
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch('/api/profiles?id=' + encodeURIComponent(username), {
+      signal: controller.signal,
+    })
+      .then(async (r) => {
+        const v = (await r.json()) as { profiles: Profile[]; error?: string };
+        if (!r.ok) throw Error(v.error);
+        setProfile(v.profiles[0] || null);
+      })
+      .catch((e) => {
+        if (!controller.signal.aborted) setError(e.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [username]);
+  return (
+    <MobileShell className="flex flex-col">
+      <ScreenHeader title="Profilo" back="/explore" />
+      <div className="flex-1 p-5">
+        {loading ? (
+          <output>Caricamento profilo…</output>
+        ) : error ? (
+          <p role="alert">{error}</p>
+        ) : profile ? (
+          <>
+            <div className="grid size-20 place-items-center rounded-3xl bg-gradient-to-br from-pink-500 to-violet-600 text-3xl font-bold">
+              {profile.display_name?.slice(0, 1).toUpperCase() || 'C'}
+            </div>
+            <h1 className="mt-5 text-2xl font-semibold">
+              {profile.display_name || 'Utente COSMORA'}
+            </h1>
+            <p className="mt-2 text-base text-white/65">{profile.country}</p>
+            <p className="mt-2 text-sm text-white/60">
+              Su COSMORA dal{' '}
+              {new Date(profile.created_at).toLocaleDateString('it-IT', {
+                month: 'long',
+                year: 'numeric',
+              })}
+            </p>
+            <Link
+              href={'/inbox/' + profile.id}
+              className="mt-5 flex min-h-12 items-center justify-center rounded-xl bg-violet-600 text-base"
+            >
+              Invia un messaggio
+            </Link>
+            <ShareButton title={profile.display_name || 'Profilo COSMORA'} />
+            <h2 className="mt-5 text-lg font-semibold">Annunci pubblicati</h2>
+            <LiveListings seller={profile.id} />
+          </>
+        ) : (
+          <div className="space-y-4">
+            <h1 className="text-xl">Profilo non disponibile</h1>
+            <p className="text-base text-white/70">
+              Questo profilo non esiste o non è più disponibile.
+            </p>
+            <Link
+              href="/explore?section=Creator"
+              className="inline-flex min-h-11 items-center text-pink-300"
+            >
+              Scopri le persone della community
+            </Link>
+          </div>
+        )}
+      </div>
+      <MobileNav active="profile" />
+    </MobileShell>
+  );
 }

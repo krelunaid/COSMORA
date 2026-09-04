@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from '@/components/app-link';
 import {
   CalendarDays,
@@ -13,6 +13,7 @@ import {
 
 import { CommunityMediaPicker } from '@/components/community-media-picker';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
+import { accountRequest } from '@/lib/account-client';
 import { moderateText } from '@/lib/community-moderation';
 import { europeEvents } from '@/lib/events-data';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -34,7 +35,7 @@ const connectionTypes = [
   {
     id: 'event' as const,
     label: 'Evento',
-    description: 'Il post apparirà anche nella pagina dell’evento.',
+    description: 'Chi legge può aprire la pagina dell’evento.',
     icon: CalendarDays,
   },
   {
@@ -63,6 +64,32 @@ export default function CreateCommunityPostPage() {
     reasons: string[];
   } | null>(null);
   const [connectionType, setConnectionType] = useState<ConnectionType>('');
+  const [options, setOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+  const [connectionError, setConnectionError] = useState('');
+  useEffect(() => {
+    let active = true;
+    if (!connectionType || connectionType === 'event') return;
+    accountRequest<{ options: Array<{ value: string; label: string }> }>(
+      '/api/community/connections?type=' + connectionType,
+    )
+      .then((d) => {
+        if (active) {
+          setOptions(d.options);
+          setConnectionError('');
+        }
+      })
+      .catch((e) => {
+        if (active) {
+          setOptions([]);
+          setConnectionError(e.message);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [connectionType]);
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState('');
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
@@ -120,18 +147,17 @@ export default function CreateCommunityPostPage() {
           />
           <h1 className="mt-5 text-2xl font-semibold">
             {result.status === 'ACTIVE'
-              ? 'Post published'
-              : 'Post sent for review'}
+              ? 'Post pubblicato'
+              : 'Post inviato in revisione'}
           </h1>
           <p className="mt-3 text-sm text-white/50">
-            {result.reasons[0] ??
-              'Il post è visibile nella Community e nella pagina collegata.'}
+            {result.reasons[0] ?? 'Il post è visibile nella Community.'}
           </p>
           <Link
             href="/community"
             className="mt-6 grid h-11 w-full place-items-center rounded-xl bg-gradient-to-r from-pink-500 to-violet-500"
           >
-            Open Community
+            Apri Community
           </Link>
         </div>
       </MobileShell>
@@ -139,7 +165,7 @@ export default function CreateCommunityPostPage() {
 
   return (
     <MobileShell>
-      <ScreenHeader title="Post to Community" back="/community" />
+      <ScreenHeader title="Pubblica nella Community" back="/community" />
       <form action={submit} className="space-y-4 p-4">
         <CommunityMediaPicker
           onFilesChange={setMediaFiles}
@@ -168,7 +194,7 @@ export default function CreateCommunityPostPage() {
                 Collega a…{' '}
                 <span className="font-normal text-white/35">facoltativo</span>
               </h2>
-              <p className="mt-1 text-[8px] leading-3 text-white/40">
+              <p className="mt-1 text-sm leading-3 text-white/40">
                 Serve per rendere cliccabile nel post un evento, prodotto,
                 creator o crew. Se non ti serve, lascia vuoto.
               </p>
@@ -182,7 +208,7 @@ export default function CreateCommunityPostPage() {
                 onClick={() =>
                   setConnectionType((current) => (current === id ? '' : id))
                 }
-                className={`flex h-10 items-center justify-center gap-2 rounded-xl border text-[9px] ${connectionType === id ? 'border-pink-400 bg-pink-400/10 text-pink-200' : 'border-white/8 text-white/50'}`}
+                className={`flex h-10 items-center justify-center gap-2 rounded-xl border text-sm ${connectionType === id ? 'border-pink-400 bg-pink-400/10 text-pink-200' : 'border-white/8 text-white/50'}`}
               >
                 <Icon className="size-3.5" />
                 {label}
@@ -190,7 +216,7 @@ export default function CreateCommunityPostPage() {
             ))}
           </div>
           {connectionType && (
-            <p className="rounded-lg bg-white/[.035] p-2 text-[8px] leading-3 text-white/45">
+            <p className="rounded-lg bg-white/[.035] p-2 text-sm leading-3 text-white/45">
               {
                 connectionTypes.find((item) => item.id === connectionType)
                   ?.description
@@ -216,29 +242,38 @@ export default function CreateCommunityPostPage() {
               </optgroup>
             </select>
           )}
-          {connectionType === 'product' && (
-            <select name="connection" required className="checkout-input">
-              <option value="">Scegli un tuo prodotto</option>
-              <option>Raiden Shogun Cosplay Costume</option>
-              <option>Custom Wig Commission</option>
-            </select>
-          )}
-          {connectionType === 'creator' && (
-            <select name="connection" required className="checkout-input">
-              <option value="">Scegli un creator</option>
-              <option>Stardust Atelier</option>
-            </select>
-          )}
-          {connectionType === 'crew' && (
-            <select name="connection" required className="checkout-input">
-              <option value="">Scegli crew o incontro</option>
-              <option>One Piece Crew Lucca 2026</option>
-              <option>Lucca Night Photo Meetup</option>
-            </select>
+          {connectionType && connectionType !== 'event' && (
+            <>
+              <select
+                name="connection"
+                required
+                className="checkout-input"
+                key={connectionType}
+              >
+                <option value="">Scegli un collegamento</option>
+                {options.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+              {connectionError ? (
+                <p role="alert" className="text-sm text-amber-200">
+                  {connectionError}
+                </p>
+              ) : (
+                !options.length && (
+                  <p className="text-sm text-white/70">
+                    Nessun contenuto disponibile da collegare. Puoi pubblicare
+                    senza collegamenti.
+                  </p>
+                )
+              )}
+            </>
           )}
         </section>
         {publishError && (
-          <p role="alert" className="text-[9px] text-rose-300">
+          <p role="alert" className="text-sm text-rose-300">
             {publishError}
           </p>
         )}
@@ -246,7 +281,7 @@ export default function CreateCommunityPostPage() {
           disabled={publishing}
           className="h-12 w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 text-sm font-medium disabled:opacity-60"
         >
-          {publishing ? 'Pubblicazione…' : 'Publish Post'}
+          {publishing ? 'Pubblicazione…' : 'Pubblica post'}
         </button>
       </form>
     </MobileShell>

@@ -3,11 +3,21 @@ import { createClient } from '@supabase/supabase-js';
 
 const base = process.env.TEST_APP_URL || 'http://localhost:3000';
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const admin = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+const admin = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false },
+});
 const created = [];
 const uploaded = [];
+const communityUploaded = [];
 async function request(path, token, method = 'GET', body) {
-  const response = await fetch(`${base}${path}`, { method, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+  const response = await fetch(`${base}${path}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
   return { status: response.status, body: await response.json() };
 }
 try {
@@ -16,66 +26,369 @@ try {
   for (let i = 0; i < 3; i++) {
     const email = `cosmora-test-${crypto.randomUUID()}@example.com`;
     const password = crypto.randomUUID() + 'aA!9';
-    const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
+    const { data, error } = await admin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    });
     if (error) throw error;
     created.push(data.user.id);
-    const client = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+    const client = createClient(
+      url,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      { auth: { persistSession: false } },
+    );
     const signed = await client.auth.signInWithPassword({ email, password });
     if (signed.error) throw signed.error;
-    users.push({ id: data.user.id, token: signed.data.session.access_token, email });
-    assert.equal((await request('/api/account', users[i].token, 'PUT', { displayName: `Temporary test ${i}`, country: 'Italy' })).status, 200);
+    users.push({
+      id: data.user.id,
+      token: signed.data.session.access_token,
+      email,
+    });
+    assert.equal(
+      (
+        await request('/api/account', users[i].token, 'PUT', {
+          displayName: `Temporary test ${i}`,
+          country: 'Italy',
+        })
+      ).status,
+      200,
+    );
   }
-  const [a,b,c] = users;
-  assert.equal((await request('/api/account', a.token)).body.displayName, 'Temporary test 0');
-  const message = { id: crypto.randomUUID(), recipientId: b.id, body: 'Account integration test' };
-  assert.equal((await request('/api/messages', a.token, 'POST', message)).status, 201);
-  assert.equal((await request('/api/messages', a.token, 'POST', message)).status, 200);
-  assert.equal((await request(`/api/messages?peer=${a.id}`, b.token)).body.messages.length, 1);
-  assert.equal((await request(`/api/messages?peer=${a.id}`, c.token)).body.messages.length, 0);
+  const [a, b, c] = users;
+  const seller = {
+    displayName: 'Temporary seller',
+    country: 'IT',
+    sellerType: 'private',
+    email: a.email,
+    phone: '0000000000',
+  };
+  assert.equal(
+    (await request('/api/seller/profile', a.token, 'POST', seller)).status,
+    200,
+  );
+  assert.equal(
+    (await request('/api/seller/profile', a.token)).body.profile.country_code,
+    'IT',
+  );
+  assert.equal(
+    (await request('/api/seller/profile', b.token)).body.profile,
+    null,
+  );
+  assert.equal(
+    (await request('/api/account', a.token)).body.displayName,
+    'Temporary seller',
+  );
+  const message = {
+    id: crypto.randomUUID(),
+    recipientId: b.id,
+    body: 'Account integration test',
+  };
+  assert.equal(
+    (await request('/api/messages', a.token, 'POST', message)).status,
+    201,
+  );
+  assert.equal(
+    (await request('/api/messages', a.token, 'POST', message)).status,
+    200,
+  );
+  assert.equal(
+    (await request(`/api/messages?peer=${a.id}`, b.token)).body.messages.length,
+    1,
+  );
+  assert.equal(
+    (await request(`/api/messages?peer=${a.id}`, c.token)).body.messages.length,
+    0,
+  );
   assert.equal((await request('/api/orders', a.token)).body.orders.length, 0);
   const form = new FormData();
-  for (const [key, value] of Object.entries({ title: 'Temporary integration listing', description: 'Temporary test listing to verify storage.', category: 'Cosplay', condition: 'New', saleMode: 'buy', salePrice: '10' })) form.set(key, value);
-  form.append('photos', new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aF8cAAAAASUVORK5CYII=', 'base64')], { type: 'image/png' }), 'test.png');
-  const listingResponse = await fetch(`${base}/api/listings`, { method: 'POST', headers: { Authorization: `Bearer ${a.token}` }, body: form });
+  for (const [key, value] of Object.entries({
+    title: 'Temporary integration listing',
+    description: 'Temporary test listing to verify storage.',
+    category: 'Cosplay',
+    condition: 'New',
+    saleMode: 'buy',
+    salePrice: '10',
+  }))
+    form.set(key, value);
+  form.append(
+    'photos',
+    new Blob(
+      [
+        Buffer.from(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aF8cAAAAASUVORK5CYII=',
+          'base64',
+        ),
+      ],
+      { type: 'image/png' },
+    ),
+    'test.png',
+  );
+  const listingResponse = await fetch(`${base}/api/listings`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${a.token}` },
+    body: form,
+  });
   const listingBody = await listingResponse.json();
   assert.equal(listingResponse.status, 201);
-  const imageRows = await admin.from('listing_images').select('storage_path').eq('listing_id', listingBody.listing.id);
+  const imageRows = await admin
+    .from('listing_images')
+    .select('storage_path')
+    .eq('listing_id', listingBody.listing.id);
   uploaded.push(...imageRows.data.map((row) => row.storage_path));
-  const catalog = await request(`/api/listings?slug=${listingBody.listing.slug}`);
+  const catalog = await request(
+    `/api/listings?slug=${listingBody.listing.slug}`,
+  );
   assert.equal(catalog.body.listings[0].seller_id, a.id);
   assert.equal(catalog.body.listings[0].images.length, 1);
+  assert.equal(
+    (await request('/api/listings?category=Cards&seller=' + a.id)).body.listings
+      .length,
+    0,
+  );
+  assert.equal(
+    (await request('/api/listings?category=Cosplay&seller=' + a.id)).body
+      .listings.length,
+    1,
+  );
+  assert.equal(
+    (await request('/api/profiles?id=' + a.id)).body.profiles[0].display_name,
+    'Temporary seller',
+  );
+  const crewCreated = await request('/api/squads', a.token, 'POST', {
+    name: 'Temporary test crew',
+    description: 'An integration test crew in a public venue.',
+    type: 'COSPLAY_SQUAD',
+    city: 'Lucca',
+    startsAt: new Date(Date.now() + 86400000).toISOString(),
+    location: 'Ingresso principale della fiera',
+    maxMembers: 2,
+    approval: true,
+    rules: 'Respect everyone and the public venue.',
+    fandom: 'Cosplay',
+  });
+  assert.equal(crewCreated.status, 201);
+  const crewId = crewCreated.body.squad.id;
+  assert.equal(
+    (
+      await request('/api/squads', b.token, 'PATCH', {
+        id: crewId,
+        action: 'join',
+      })
+    ).body.status,
+    'PENDING',
+  );
+  assert.equal(
+    (
+      await request('/api/squads', c.token, 'PATCH', {
+        id: crewId,
+        action: 'approve',
+        memberId: b.id,
+      })
+    ).status,
+    409,
+  );
+  assert.equal(
+    (
+      await request('/api/squads', a.token, 'PATCH', {
+        id: crewId,
+        action: 'approve',
+        memberId: b.id,
+      })
+    ).body.status,
+    'ACTIVE',
+  );
+  assert.equal(
+    (
+      await request('/api/squads', c.token, 'PATCH', {
+        id: crewId,
+        action: 'join',
+      })
+    ).body.status,
+    'PENDING',
+  );
+  assert.equal(
+    (
+      await request('/api/squads', a.token, 'PATCH', {
+        id: crewId,
+        action: 'approve',
+        memberId: c.id,
+      })
+    ).status,
+    409,
+  );
+  assert.equal(
+    (await request('/api/squads?id=' + crewId)).body.squads[0].memberCount,
+    2,
+  );
+  assert.equal(
+    (
+      await request('/api/squads', b.token, 'PATCH', {
+        id: crewId,
+        action: 'leave',
+      })
+    ).body.status,
+    'LEFT',
+  );
+  const postForm = new FormData();
+  postForm.set('caption', 'Temporary test post with a real uploaded image.');
+  postForm.set('category', 'Cosplay');
+  postForm.append(
+    'media',
+    new Blob(
+      [
+        Buffer.from(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aF8cAAAAASUVORK5CYII=',
+          'base64',
+        ),
+      ],
+      { type: 'image/png' },
+    ),
+    'test.png',
+  );
+  const postResponse = await fetch(base + '/api/community/posts', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + a.token },
+    body: postForm,
+  });
+  const postBody = await postResponse.json();
+  assert.equal(postResponse.status, 201);
+  const postMedia = await admin
+    .from('post_media')
+    .select('storage_path')
+    .eq('post_id', postBody.post.id);
+  communityUploaded.push(...postMedia.data.map((row) => row.storage_path));
+  const feed = await request(
+    '/api/community/posts?q=Temporary%20test%20post',
+    b.token,
+  );
+  assert.ok(
+    feed.body.posts.some(
+      (p) => p.id === postBody.post.id && p.media.length === 1,
+    ),
+  );
+  assert.equal(
+    (
+      await request('/api/reports', b.token, 'POST', {
+        targetType: 'POST',
+        targetId: postBody.post.id,
+        reason: 'OTHER',
+        details: 'Temporary integration test.',
+      })
+    ).status,
+    201,
+  );
   const owned = await request('/api/seller/listings', a.token);
   assert.equal(owned.status, 200);
-  const editable = owned.body.listings.find((item) => item.id === listingBody.listing.id);
+  const editable = owned.body.listings.find(
+    (item) => item.id === listingBody.listing.id,
+  );
   assert.ok(editable);
-  assert.equal((await request('/api/seller/listings', b.token)).body.listings.length, 0);
+  assert.equal(
+    (await request('/api/seller/listings', b.token)).body.listings.length,
+    0,
+  );
   assert.equal((await request('/api/seller/listings')).status, 401);
-  const changes = { id: editable.id, updatedAt: editable.updated_at, title: 'Updated test listing', description: editable.description, status: 'paused', salePriceCents: 1200, rentalPriceCents: null };
-  assert.equal((await request('/api/seller/listings', b.token, 'PATCH', changes)).status, 404);
-  const saved = await request('/api/seller/listings', a.token, 'PATCH', changes);
+  const changes = {
+    id: editable.id,
+    updatedAt: editable.updated_at,
+    title: 'Updated test listing',
+    description: editable.description,
+    status: 'paused',
+    salePriceCents: 1200,
+    rentalPriceCents: null,
+  };
+  assert.equal(
+    (await request('/api/seller/listings', b.token, 'PATCH', changes)).status,
+    404,
+  );
+  const saved = await request(
+    '/api/seller/listings',
+    a.token,
+    'PATCH',
+    changes,
+  );
   assert.equal(saved.status, 200);
-  assert.equal((await request(`/api/listings?slug=${editable.slug}`)).body.listings.length, 0);
-  assert.equal((await request('/api/seller/listings', a.token, 'PATCH', changes)).status, 409);
-  assert.equal((await request('/api/seller/listings', a.token, 'PATCH', { ...changes, updatedAt: saved.body.listing.updated_at, status: 'active' })).status, 200);
-  assert.equal((await request(`/api/listings?slug=${editable.slug}`)).body.listings[0].sale_price_cents, 1200);
-  const block = await admin.from('user_blocks').insert({ blocker_id: b.id, blocked_id: a.id });
+  assert.equal(
+    (await request(`/api/listings?slug=${editable.slug}`)).body.listings.length,
+    0,
+  );
+  assert.equal(
+    (await request('/api/seller/listings', a.token, 'PATCH', changes)).status,
+    409,
+  );
+  assert.equal(
+    (
+      await request('/api/seller/listings', a.token, 'PATCH', {
+        ...changes,
+        updatedAt: saved.body.listing.updated_at,
+        status: 'active',
+      })
+    ).status,
+    200,
+  );
+  assert.equal(
+    (await request(`/api/listings?slug=${editable.slug}`)).body.listings[0]
+      .sale_price_cents,
+    1200,
+  );
+  const block = await admin
+    .from('user_blocks')
+    .insert({ blocker_id: b.id, blocked_id: a.id });
   if (block.error) throw block.error;
-  assert.equal((await request('/api/messages', a.token, 'POST', { ...message, id: crypto.randomUUID() })).status, 403);
-  const recoveryRedirect = 'https://cosmora-app.andreagadducci.chatgpt.site/auth/recovery';
-  const link = await admin.auth.admin.generateLink({ type: 'recovery', email: c.email, options: { redirectTo: recoveryRedirect } });
+  assert.equal(
+    (await request('/api/community/posts?q=Temporary%20test%20post', b.token))
+      .body.posts.length,
+    0,
+  );
+  assert.equal(
+    (
+      await request('/api/messages', a.token, 'POST', {
+        ...message,
+        id: crypto.randomUUID(),
+      })
+    ).status,
+    403,
+  );
+  const recoveryRedirect =
+    'https://cosmora-app.andreagadducci.chatgpt.site/auth/recovery';
+  const link = await admin.auth.admin.generateLink({
+    type: 'recovery',
+    email: c.email,
+    options: { redirectTo: recoveryRedirect },
+  });
   if (link.error) throw link.error;
-  assert.equal(new URL(link.data.properties.action_link).searchParams.get('redirect_to'), recoveryRedirect);
-  const recovery = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false } });
-  const verified = await recovery.auth.verifyOtp({ token_hash: link.data.properties.hashed_token, type: 'recovery' });
+  assert.equal(
+    new URL(link.data.properties.action_link).searchParams.get('redirect_to'),
+    recoveryRedirect,
+  );
+  const recovery = createClient(
+    url,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    { auth: { persistSession: false } },
+  );
+  const verified = await recovery.auth.verifyOtp({
+    token_hash: link.data.properties.hashed_token,
+    type: 'recovery',
+  });
   if (verified.error) throw verified.error;
   const replacement = crypto.randomUUID() + 'aA!9';
   const changed = await recovery.auth.updateUser({ password: replacement });
   if (changed.error) throw changed.error;
-  const relogin = await recovery.auth.signInWithPassword({ email: c.email, password: replacement });
+  const relogin = await recovery.auth.signInWithPassword({
+    email: c.email,
+    password: replacement,
+  });
   if (relogin.error) throw relogin.error;
-  console.log('PASS: recovery redirect, recovery token and password replacement (no email sent).');
-  console.log('PASS: account, messages, isolation, orders, listing ownership/edit/pause/reactivation/conflict, blocked sender.');
+  console.log(
+    'PASS: recovery redirect, recovery token and password replacement (no email sent).',
+  );
+  console.log(
+    'PASS: account, messages, isolation, orders, listing ownership/edit/pause/reactivation/conflict, blocked sender.',
+  );
 } finally {
+  if (communityUploaded.length)
+    await admin.storage.from('community-media').remove(communityUploaded);
   if (uploaded.length) {
     const result = await admin.storage.from('listing-images').remove(uploaded);
     if (result.error) throw result.error;

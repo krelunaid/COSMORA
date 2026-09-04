@@ -12,14 +12,8 @@ export function AppBackButton({
   const router = useRouter();
 
   function goBack() {
-    if (document.referrer) {
-      const previous = new URL(document.referrer);
-      if (previous.origin === window.location.origin) {
-        router.back();
-        return;
-      }
-    }
-
+    // Referrer does not track client-side route changes. Explicit section
+    // destinations remain reliable after a deep link, reload or OAuth return.
     router.replace(fallback);
   }
 

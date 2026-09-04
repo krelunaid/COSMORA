@@ -13,7 +13,93 @@ import {
   sniffCommunityMediaType,
 } from '@/lib/community-media';
 import { europeEvents } from '@/lib/events-data';
-import { requireAuthenticatedUser } from '@/lib/supabase/server';
+import {
+  getSupabaseAdmin,
+  requireAuthenticatedUser,
+} from '@/lib/supabase/server';
+
+export async function GET(request: Request) {
+  const admin = getSupabaseAdmin();
+  if (!admin)
+    return NextResponse.json(
+      { error: 'Community non disponibile.' },
+      { status: 503 },
+    );
+  const params = new URL(request.url).searchParams;
+  const offset = Math.max(
+    0,
+    Math.min(10000, Number(params.get('offset')) || 0),
+  );
+  const auth = await requireAuthenticatedUser(request);
+  let query = admin
+    .from('community_posts')
+    .select(
+      'id, author_id, caption, country_code, language_code, created_at, link_label, link_url, post_categories(label), post_media(storage_path,media_type,sort_order)',
+    )
+    .eq('status', 'ACTIVE');
+  if (params.get('q'))
+    query = query.ilike(
+      'caption',
+      '%' + params.get('q')!.slice(0, 100).replace(/[%_]/g, '') + '%',
+    );
+  if (auth) {
+    const blocks = await admin
+      .from('user_blocks')
+      .select('blocker_id,blocked_id')
+      .or(`blocker_id.eq.${auth.user.id},blocked_id.eq.${auth.user.id}`);
+    if (blocks.error)
+      return NextResponse.json(
+        { error: 'Community non disponibile.' },
+        { status: 503 },
+      );
+    const excluded = (blocks.data ?? []).map((row) =>
+      row.blocker_id === auth.user.id ? row.blocked_id : row.blocker_id,
+    );
+    if (excluded.length)
+      query = query.not('author_id', 'in', '(' + excluded.join(',') + ')');
+  }
+  const { data, error } = await query
+    .order('created_at', { ascending: false })
+    .order('id')
+    .range(offset, offset + 19);
+  if (error)
+    return NextResponse.json(
+      { error: 'Non è stato possibile caricare i post.' },
+      { status: 503 },
+    );
+  const ids = [...new Set((data ?? []).map((row) => row.author_id))];
+  const profiles = ids.length
+    ? await admin.from('profiles').select('id,display_name').in('id', ids)
+    : { data: [] };
+  const posts = await Promise.all(
+    (data ?? []).map(async (post) => {
+      const media = post.post_media.sort((a, b) => a.sort_order - b.sort_order);
+      const urls = media.length
+        ? await admin.storage.from('community-media').createSignedUrls(
+            media.map((item) => item.storage_path),
+            3600,
+          )
+        : { data: [] };
+      return {
+        ...post,
+        author:
+          profiles.data?.find((p) => p.id === post.author_id)?.display_name ||
+          'Utente COSMORA',
+        post_media: undefined,
+        media: media
+          .map((item, index) => ({
+            type: item.media_type,
+            url: urls.data?.[index]?.signedUrl || '',
+          }))
+          .filter((item) => item.url),
+      };
+    }),
+  );
+  return NextResponse.json(
+    { posts, hasMore: posts.length === 20, userId: auth?.user.id },
+    { headers: { 'Cache-Control': 'private, no-store' } },
+  );
+}
 
 const schema = z.object({
   caption: z.string().trim().min(12).max(2000),
@@ -38,38 +124,64 @@ function slugify(value: string) {
     .replace(/(^-|-$)/g, '');
 }
 
-function resolveLink(type?: string, label?: string) {
-  if (!type || !label) return {};
+async function resolveLink(
+  admin: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
+  userId: string,
+  type?: string,
+  value?: string,
+) {
+  if (!type || !value) return {};
   if (type === 'event') {
-    const event = europeEvents.find((item) => item.name === label);
+    const event = europeEvents.find((e) => e.name === value);
+    if (!event) throw Error('Evento non disponibile.');
     return {
       link_type: 'EVENT',
-      link_label: label,
-      link_url: event?.internalUrl ?? event?.url ?? null,
+      link_label: event.name,
+      link_url: event.internalUrl || event.url,
     };
   }
+  if (!z.uuid().safeParse(value).success)
+    throw Error('Collegamento non valido.');
   if (type === 'product') {
+    const { data } = await admin
+      .from('listings')
+      .select('slug,title')
+      .eq('id', value)
+      .eq('seller_id', userId)
+      .eq('status', 'active')
+      .maybeSingle();
+    if (!data) throw Error('Annuncio non disponibile.');
     return {
       link_type: 'PRODUCT',
-      link_label: label,
-      link_url: label.startsWith('Raiden')
-        ? '/marketplace/raiden-shogun-cosplay'
-        : '/commissions/new',
+      link_label: data.title,
+      link_url: '/marketplace/' + data.slug,
     };
   }
   if (type === 'creator') {
+    const { data } = await admin
+      .from('profiles')
+      .select('display_name')
+      .eq('id', value)
+      .maybeSingle();
+    if (!data) throw Error('Profilo non disponibile.');
     return {
       link_type: 'CREATOR',
-      link_label: label,
-      link_url: '/profile/stardust-atelier',
+      link_label: data.display_name,
+      link_url: '/profile/' + value,
     };
   }
+  const { data } = await admin
+    .from('squads')
+    .select('name')
+    .eq('id', value)
+    .eq('status', 'ACTIVE')
+    .eq('is_private', false)
+    .maybeSingle();
+  if (!data) throw Error('Crew non disponibile.');
   return {
     link_type: 'SQUAD',
-    link_label: label,
-    link_url: label.startsWith('One Piece')
-      ? '/squads/one-piece-crew-lucca-2026'
-      : '/squads/lucca-night-photo-meetup',
+    link_label: data.name,
+    link_url: '/squads/' + value,
   };
 }
 
@@ -118,6 +230,33 @@ export async function POST(request: Request) {
   }
 
   const { admin, user } = authenticated;
+  let connection;
+  try {
+    connection = await resolveLink(
+      admin,
+      user.id,
+      parsed.data.connectionType,
+      parsed.data.connection,
+    );
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : 'Collegamento non valido.' },
+      { status: 400 },
+    );
+  }
+  const recent = await admin
+    .from('community_posts')
+    .select('id', { count: 'exact', head: true })
+    .eq('author_id', user.id)
+    .gte('created_at', new Date(Date.now() - 3600000).toISOString());
+  if (recent.error || (recent.count ?? 0) >= 20)
+    return NextResponse.json(
+      {
+        error:
+          'Pubblicazione momentaneamente non disponibile. Riprova più tardi.',
+      },
+      { status: 429 },
+    );
   const categorySlug = slugify(parsed.data.category);
   const category = await admin
     .from('post_categories')
@@ -144,9 +283,9 @@ export async function POST(request: Request) {
       caption: parsed.data.caption,
       country_code: user.user_metadata?.country_code ?? null,
       language_code: user.user_metadata?.language_code ?? 'it',
-      status: moderation.status === 'ACTIVE' ? 'ACTIVE' : 'PENDING_REVIEW',
+      status: 'DRAFT',
       risk_score: moderation.status === 'ACTIVE' ? 0 : 1,
-      ...resolveLink(parsed.data.connectionType, parsed.data.connection),
+      ...connection,
     })
     .select('id, status')
     .single();
@@ -185,6 +324,11 @@ export async function POST(request: Request) {
       })),
     );
     if (savedMedia.error) throw savedMedia.error;
+    const activated = await admin
+      .from('community_posts')
+      .update({ status: moderation.status })
+      .eq('id', id);
+    if (activated.error) throw activated.error;
   } catch {
     if (paths.length) await admin.storage.from('community-media').remove(paths);
     await admin.from('community_posts').delete().eq('id', id);
@@ -194,5 +338,8 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ post: post.data, moderation }, { status: 201 });
+  return NextResponse.json(
+    { post: { ...post.data, status: moderation.status }, moderation },
+    { status: 201 },
+  );
 }

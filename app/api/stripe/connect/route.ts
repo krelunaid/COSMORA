@@ -1,13 +1,7 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
 import { getAppUrl, getStripe } from '@/lib/stripe/server';
-
-const schema = z.object({
-  country: z.string().length(2).default('IT'),
-  sellerType: z.enum(['private', 'shop']).default('private'),
-});
 
 export async function POST(request: Request) {
   const stripe = getStripe();
@@ -19,10 +13,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const parsed = schema.safeParse(await request.json().catch(() => ({})));
-  if (!parsed.success) {
+  const seller = await authenticated.admin
+    .from('seller_details')
+    .select('country_code,seller_type,details')
+    .eq('user_id', authenticated.user.id)
+    .maybeSingle();
+  if (seller.error || !seller.data) {
     return NextResponse.json(
-      { error: 'Dati venditore non validi.' },
+      { error: 'Salva prima il profilo venditore.' },
       { status: 400 },
     );
   }
@@ -35,25 +33,44 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   let accountId = existing.data?.stripe_account_id ?? null;
+  if (existing.error)
+    return NextResponse.json(
+      { error: 'Conto non disponibile. Riprova.' },
+      { status: 503 },
+    );
   if (!accountId) {
-    const account = await stripe.accounts.create({
-      type: 'express',
-      country: parsed.data.country,
-      email: user.email,
-      business_type:
-        parsed.data.sellerType === 'shop' ? 'company' : 'individual',
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
+    const account = await stripe.accounts.create(
+      {
+        type: 'express',
+        country: seller.data.country_code,
+        email: user.email,
+        business_type:
+          seller.data.seller_type === 'shop' &&
+          seller.data.details.businessType === 'company'
+            ? 'company'
+            : 'individual',
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+        metadata: { cosmora_user_id: user.id },
       },
-      metadata: { cosmora_user_id: user.id },
-    });
+      {
+        idempotencyKey:
+          'cosmora-connect-' +
+          user.id +
+          '-' +
+          seller.data.country_code +
+          '-' +
+          seller.data.details.businessType,
+      },
+    );
     accountId = account.id;
     const saved = await admin.from('seller_payment_accounts').upsert({
       user_id: user.id,
       stripe_account_id: account.id,
       account_type: 'express',
-      country: parsed.data.country,
+      country: seller.data.country_code,
       updated_at: new Date().toISOString(),
     });
     if (saved.error) {

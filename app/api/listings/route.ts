@@ -1,18 +1,79 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { getSupabaseAdmin, requireAuthenticatedUser } from '@/lib/supabase/server';
+import {
+  getSupabaseAdmin,
+  requireAuthenticatedUser,
+} from '@/lib/supabase/server';
 
 export async function GET(request: Request) {
   const admin = getSupabaseAdmin();
-  if (!admin) return NextResponse.json({ error: 'Catalogo non disponibile.' }, { status: 503 });
-  const slug = new URL(request.url).searchParams.get('slug');
-  let query = admin.from('listings').select('id, slug, seller_id, title, description, category, condition, sale_mode, sale_price_cents, rental_price_cents, listing_images(storage_path,position)').eq('status', 'active');
+  if (!admin)
+    return NextResponse.json(
+      { error: 'Catalogo non disponibile.' },
+      { status: 503 },
+    );
+  const params = new URL(request.url).searchParams;
+  const slug = params.get('slug');
+  const offset = Math.max(
+    0,
+    Math.min(10000, Number(params.get('offset')) || 0),
+  );
+  let query = admin
+    .from('listings')
+    .select(
+      'id, slug, seller_id, title, description, category, condition, sale_mode, sale_price_cents, rental_price_cents, rental_days, deposit_cents, listing_images(storage_path,position)',
+    )
+    .eq('status', 'active');
   if (slug) query = query.eq('slug', slug);
-  const { data, error } = await query.order('created_at', { ascending: false }).limit(50);
-  if (error) return NextResponse.json({ error: 'Catalogo non disponibile. Riprova.' }, { status: 503 });
-  const listings = (data ?? []).map((listing) => ({ ...listing, images: listing.listing_images.sort((a, b) => a.position - b.position).map((image) => admin.storage.from('listing-images').getPublicUrl(image.storage_path).data.publicUrl), listing_images: undefined }));
-  return NextResponse.json({ listings });
+  const category = params.get('category');
+  const mode = params.get('mode');
+  const search = params.get('q')?.trim().slice(0, 100);
+  if (category && category !== 'All') query = query.eq('category', category);
+  if (mode === 'buy' || mode === 'rent')
+    query = query.in('sale_mode', [mode, 'both']);
+  if (params.get('seller')) {
+    if (!z.uuid().safeParse(params.get('seller')).success)
+      return NextResponse.json(
+        { error: 'Venditore non valido.' },
+        { status: 400 },
+      );
+    query = query.eq('seller_id', params.get('seller')!);
+  }
+  if (search)
+    query = query.ilike('title', '%' + search.replace(/[%_]/g, '') + '%');
+  if (params.get('condition'))
+    query = query.eq('condition', params.get('condition')!);
+  const max = Number(params.get('max'));
+  if (params.get('max') && Number.isFinite(max) && max >= 0)
+    query = query.lte(
+      mode === 'rent' ? 'rental_price_cents' : 'sale_price_cents',
+      Math.round(max * 100),
+    );
+  const { data, error } = await query
+    .order('created_at', { ascending: false })
+    .order('id')
+    .range(offset, offset + 23);
+  if (error)
+    return NextResponse.json(
+      { error: 'Catalogo non disponibile. Riprova.' },
+      { status: 503 },
+    );
+  const listings = (data ?? []).map((listing) => ({
+    ...listing,
+    images: listing.listing_images
+      .sort((a, b) => a.position - b.position)
+      .map(
+        (image) =>
+          admin.storage.from('listing-images').getPublicUrl(image.storage_path)
+            .data.publicUrl,
+      ),
+    listing_images: undefined,
+  }));
+  return NextResponse.json(
+    { listings, hasMore: listings.length === 24 },
+    { headers: { 'Cache-Control': 'no-store' } },
+  );
 }
 
 const listingSchema = z.object({
@@ -93,6 +154,21 @@ export async function POST(request: Request) {
   }
 
   const { admin, user } = authenticated;
+  const sellerProfile = await admin
+    .from('seller_details')
+    .select('user_id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if (sellerProfile.error)
+    return NextResponse.json(
+      { error: 'Profilo venditore non disponibile.' },
+      { status: 503 },
+    );
+  if (!sellerProfile.data)
+    return NextResponse.json(
+      { error: 'Completa prima il profilo venditore.' },
+      { status: 403 },
+    );
   const data = parsed.data;
   if (data.saleMode !== 'rent' && data.salePrice === undefined) {
     return NextResponse.json(
@@ -125,7 +201,7 @@ export async function POST(request: Request) {
         data.saleMode === 'buy' ? null : cents(data.rentalPrice),
       rental_days: data.saleMode === 'buy' ? null : data.rentalDays,
       deposit_cents: data.saleMode === 'buy' ? 0 : (cents(data.deposit) ?? 0),
-      status: 'active',
+      status: 'draft',
     })
     .select('id, slug')
     .single();
@@ -163,6 +239,13 @@ export async function POST(request: Request) {
       is_background_removed: form.get(`photoProcessed:${position}`) === 'true',
     }));
     const imageInsert = await admin.from('listing_images').insert(imageRows);
+    if (!imageInsert.error) {
+      const activated = await admin
+        .from('listings')
+        .update({ status: 'active' })
+        .eq('id', id);
+      if (activated.error) throw activated.error;
+    }
     if (imageInsert.error) throw imageInsert.error;
   } catch {
     if (uploadedPaths.length)

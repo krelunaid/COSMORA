@@ -1,96 +1,37 @@
-const CACHE_NAME = 'cosmora-shell-v12';
-const APP_SHELL = [
-  '/',
-  '/explore',
-  '/marketplace',
-  '/marketplace/raiden-shogun-cosplay',
-  '/events',
-  '/events/lucca-comics-2026',
-  '/community',
-  '/sell',
-  '/seller',
-  '/inbox',
-  '/inbox/ana-spain',
-  '/inbox/lucas-brazil',
-  '/inbox/yuki-japan',
-  '/inbox/mangavault',
-  '/profile/stardust-atelier',
-  '/cart',
-  '/rental-safety',
-  '/cosmora-hero-mobile.jpg',
-  '/mobile-category-cosplay.jpg',
-  '/mobile-category-manga.jpg',
-  '/mobile-category-figures.jpg',
-  '/mobile-category-cards.jpg',
-  '/mobile-category-gaming.jpg',
-  '/mobile-category-artist.jpg',
-  '/reference-events-mobile.jpg',
-];
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL))
-      .then(() => self.skipWaiting()),
-  );
-});
-
+// Cache immutable assets only. Documents, APIs and route payloads stay fresh.
+const CACHE_NAME = 'cosmora-assets-v13';
+self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)),
-        ),
-      )
-      .then(() => self.clients.claim()),
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter((key) => key.startsWith('cosmora-') && key !== CACHE_NAME)
+          .map((key) => caches.delete(key)),
+      );
+      await self.clients.claim();
+    })(),
   );
 });
-
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  if (request.method !== 'GET') return;
-
+  const request = event.request;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) {
+  if (
+    request.method !== 'GET' ||
+    url.origin !== self.location.origin ||
+    !url.pathname.startsWith('/_next/static/') ||
+    !['script', 'style', 'font'].includes(request.destination)
+  )
     return;
-  }
-
-  // Never intercept RSC flight requests — those are vinext client-router
-  // data fetches and must always go to the server.
-  if (request.headers.get('RSC') === '1' || request.headers.get('Next-Router-State-Tree')) {
-    return;
-  }
-
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      caches.match(url.pathname).then((cached) => {
-        const refresh = fetch(request).then((response) => {
-          if (response.ok) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(url.pathname, response.clone()));
-          }
-          return response;
-        });
-        return cached || refresh;
-      }),
-    );
-    return;
-  }
-
-  if (['image', 'font', 'style', 'script'].includes(request.destination)) {
-    event.respondWith(
-      caches.match(request).then(
-        (cached) =>
-          cached ||
-          fetch(request).then((response) => {
-            if (response.ok) {
-              caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
-            }
-            return response;
-          }),
-      ),
-    );
-  }
+  event.respondWith(
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(request);
+      if (cached) return cached;
+      const response = await fetch(request);
+      if (response.ok) await cache.put(request, response.clone());
+      return response;
+    })(),
+  );
 });

@@ -1,270 +1,153 @@
-import {
-  Bell,
-  ChevronRight,
-  Compass,
-  Home,
-  Inbox,
-  Menu,
-  Search,
-  Settings2,
-  ShoppingBag,
-  UserRound,
-} from 'lucide-react';
+import { Bell, CalendarDays, ChevronRight, Menu, Search } from 'lucide-react';
 import Image from 'next/image';
 import Link from '@/components/app-link';
-
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { MobileNav, MobileShell } from '@/components/mobile-shell';
 
 const categories = [
   {
     label: 'Cosplay',
-    meta: '2.8K items',
+    category: 'Cosplay',
     image: '/mobile-category-cosplay.jpg',
-    reference: false,
   },
   {
-    label: 'Manga & Comics',
-    meta: '3.6K items',
+    label: 'Manga e fumetti',
+    category: 'Comics',
     image: '/mobile-category-manga.jpg',
-    reference: false,
   },
   {
-    label: 'Figures',
-    meta: '4.1K items',
+    label: 'Figure',
+    category: 'Figures',
     image: '/mobile-category-figures.jpg',
-    reference: false,
   },
+  { label: 'Carte', category: 'Cards', image: '/mobile-category-cards.jpg' },
+  { label: 'Gaming', category: 'Gaming', image: '/mobile-category-gaming.jpg' },
   {
-    label: 'Cards',
-    meta: '2.2K items',
-    image: '/mobile-category-cards.jpg',
-    reference: false,
-  },
-  {
-    label: 'Gaming',
-    meta: '3.0K items',
-    image: '/mobile-category-gaming.jpg',
-    reference: false,
-  },
-  {
-    label: 'Artist Alley',
-    meta: '1.5K items',
+    label: 'Creator',
+    href: '/explore?section=Creator',
     image: '/mobile-category-artist.jpg',
-    reference: false,
   },
 ];
 
 export default function HomePage() {
   return (
-    <main className="mobile-app-stage h-dvh overflow-hidden bg-[#05060f] text-white">
-      <div className="phone-shell relative mx-auto flex h-full min-h-0 w-full max-w-[430px] flex-col overflow-hidden border-white/10 bg-[#080918] sm:my-2 sm:h-[calc(100dvh-1rem)] sm:rounded-[34px] sm:border sm:shadow-[0_30px_100px_rgba(0,0,0,.58)]">
-        <div className="pointer-events-none absolute -right-32 top-24 size-80 rounded-full bg-fuchsia-500/10 blur-[100px]" />
-
-        <header className="relative z-20 shrink-0 px-4 pb-2 pt-[calc(.6rem+env(safe-area-inset-top))]">
-          <div className="flex h-10 items-center justify-between">
+    <MobileShell className="home-shell flex flex-col">
+      <header className="flex shrink-0 items-center justify-between px-4 py-3">
+        <Link
+          href="/community"
+          aria-label="Apri community"
+          className="grid size-11 place-items-center rounded-xl active:bg-white/10"
+        >
+          <Menu />
+        </Link>
+        <Link href="/" className="brand-wordmark" aria-label="COSMORA home">
+          COSMORA
+        </Link>
+        <Link
+          href="/inbox"
+          aria-label="Messaggi e ordini"
+          className="grid size-11 place-items-center rounded-xl active:bg-white/10"
+        >
+          <Bell />
+        </Link>
+      </header>
+      <form
+        action="/explore"
+        method="get"
+        className="mx-4 mb-3 flex shrink-0 items-center gap-2 rounded-2xl border border-white/15 bg-[#17172b] px-3"
+      >
+        <Search className="size-5 shrink-0 text-white/50" />
+        <input
+          name="q"
+          aria-label="Cerca in COSMORA"
+          placeholder="Prodotti, eventi, persone…"
+          className="h-12 min-w-0 flex-1 bg-transparent text-base outline-none"
+        />
+        <button
+          aria-label="Cerca"
+          className="grid size-11 shrink-0 place-items-center text-pink-300"
+        >
+          <ChevronRight />
+        </button>
+      </form>
+      <div className="home-main-content px-4 pb-4">
+        <article className="home-event-hero relative overflow-hidden rounded-3xl border border-white/15">
+          <Image
+            src="/cosmora-hero-mobile.jpg"
+            alt="Cosplayer fantasy, illustrazione COSMORA"
+            fill
+            priority
+            sizes="(max-width: 640px) 100vw, 430px"
+            className="object-cover object-right"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#080918]/95 via-[#080918]/70 to-transparent" />
+          <div className="relative flex h-full flex-col items-start justify-center gap-3 p-5">
+            <span className="rounded-full bg-fuchsia-500/25 px-3 py-1 text-xs font-semibold text-pink-200">
+              IN EVIDENZA
+            </span>
+            <h1 className="text-4xl font-bold leading-none">
+              LUCCA <span className="block text-pink-400">2026</span>
+            </h1>
+            <p className="max-w-[65%] text-sm leading-relaxed text-white/85">
+              28 ottobre – 1 novembre
+              <br />
+              Lucca Comics &amp; Games
+            </p>
             <Link
-              href="/community"
-              aria-label="Open community"
-              className="grid size-9 place-items-center text-white"
+              href="/events/lucca-comics-2026"
+              className="flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-violet-600 px-4 text-sm font-semibold"
             >
-              <Menu className="size-6" />
+              Scopri l’evento <ChevronRight className="size-4" />
             </Link>
-            <Link
-              href="/"
-              className="brand-wordmark text-[1.3rem]!"
-              aria-label="COSMORA home"
-            >
-              COSMORA
-            </Link>
-            <div className="flex items-center">
-              <Link
-                href="/inbox"
-                aria-label="Notifications"
-                className="relative grid size-9 place-items-center text-white"
-              >
-                <Bell className="size-5" />
-                <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-fuchsia-400" />
-              </Link>
-              <Link
-                href="/cart"
-                aria-label="Shopping cart"
-                className="relative grid size-9 place-items-center text-white"
-              >
-                <ShoppingBag />
-                <span className="absolute right-0.5 top-0.5 grid size-4 place-items-center rounded-full bg-fuchsia-500 text-[9px] font-bold">
-                  3
-                </span>
-              </Link>
-            </div>
           </div>
-
-          <form action="/explore" method="get" className="mt-2 flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#817c96]" />
-              <Input
-                aria-label="Search COSMORA"
-                name="q"
-                placeholder="Search for items, people, events…"
-                className="h-10 rounded-xl border-white/8 bg-[#17172b] pl-9 text-[13px] shadow-inner placeholder:text-[#7f7a91]"
-              />
-            </div>
+        </article>
+        <section className="home-categories-section">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold">Le tue passioni</h2>
             <Link
               href="/marketplace"
-              aria-label="Search filters"
-              className="grid size-10 place-items-center rounded-xl border border-white/8 bg-[#17172b] text-white"
+              className="flex min-h-11 items-center text-sm text-pink-300"
             >
-              <Settings2 className="size-4" />
+              Tutti gli annunci
             </Link>
-          </form>
-        </header>
-
-        <section className="home-main-content relative z-10 min-h-0 flex-1 px-4">
-          <article className="event-hero home-event-hero relative overflow-hidden rounded-[22px] border border-white/10">
-            <Image
-              src="/cosmora-hero-mobile.jpg"
-              alt="Original COSMORA cosplayer at a European convention"
-              fill
-              priority
-              sizes="(max-width: 640px) 100vw, 470px"
-              className="object-cover object-[70%_center] brightness-[1.2] saturate-[1.18]"
-            />
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,6,17,.88)_0%,rgba(8,8,24,.54)_47%,rgba(5,5,15,.02)_100%)]" />
-            <div className="relative z-10 flex h-full max-w-[72%] flex-col justify-center p-3">
-              <Badge className="mb-2 h-6 border border-pink-200/20 bg-gradient-to-r from-[#d938a5] to-[#813ee8] px-2.5 text-[10px] tracking-wide text-white">
-                EVENT MODE
-              </Badge>
-              <h1 className="text-[38px] font-black leading-[.88] tracking-[-.04em] text-white">
-                LUCCA
-                <br />
-                <span className="bg-gradient-to-r from-[#ff5cab] to-[#ff4f78] bg-clip-text text-transparent">
-                  2026
-                </span>
-              </h1>
-              <p className="mt-2 text-[11px] font-medium leading-4 text-white/90">
-                28 OCT – 1 NOV 2026
-                <br />
-                Lucca Comics & Games
-              </p>
-              <p className="mt-1 max-w-[190px] text-[11px] leading-4 text-white/68">
-                Be part of Europe&apos;s biggest pop culture event.
-              </p>
+          </div>
+          <div className="home-categories-grid grid grid-cols-3 gap-2">
+            {categories.map((item) => (
               <Link
-                href="/events/lucca-comics-2026"
-                className="mt-2.5 flex h-9 w-fit items-center gap-1 rounded-xl bg-gradient-to-r from-[#ff4fa6] to-[#bd45ef] px-4 text-xs"
+                key={item.label}
+                href={item.href || `/marketplace?category=${item.category}`}
+                className="mobile-category home-category"
               >
-                Explore Event <ChevronRight className="size-4" />
+                <Image
+                  src={item.image}
+                  alt=""
+                  fill
+                  sizes="140px"
+                  className="object-cover"
+                />
+                <div className="category-copy">
+                  <p className="text-sm font-semibold leading-snug">
+                    {item.label}
+                  </p>
+                </div>
               </Link>
-            </div>
-          </article>
-
-          <section id="categories" className="home-categories-section">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-[15px] font-semibold">Browse Categories</h2>
-              <Link
-                href="/marketplace?category=All"
-                className="text-[11px] font-medium text-fuchsia-300"
-              >
-                See all
-              </Link>
-            </div>
-            <div className="home-categories-grid grid grid-cols-3 gap-2">
-              {categories.map(({ label, meta, image, reference }) => (
-                <Link
-                  href={
-                    label === 'Artist Alley'
-                      ? '/profile/stardust-atelier'
-                      : `/marketplace?category=${encodeURIComponent(label === 'Manga & Comics' ? 'Comics' : label)}`
-                  }
-                  key={label}
-                  aria-label={`${label}, ${meta}`}
-                  className={`mobile-category home-category ${reference ? 'reference-card' : 'artist-card'}`}
-                >
-                  <Image
-                    src={image}
-                    alt=""
-                    fill
-                    sizes="140px"
-                    className="object-cover"
-                  />
-                  {!reference && (
-                    <div className="category-copy">
-                      <p className="line-clamp-1 text-[12px] font-semibold">
-                        {label}
-                      </p>
-                      <p className="mt-0.5 text-[10px] text-white/70">{meta}</p>
-                    </div>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </section>
-
-          <Link
-            id="events"
-            href="/events"
-            aria-label="Events — Find conventions and meetups"
-            className="events-strip home-events-strip relative block overflow-hidden rounded-[14px]"
-          >
-            <Image
-              src="/reference-events-mobile.jpg"
-              alt=""
-              fill
-              sizes="378px"
-              className="object-cover"
-            />
-          </Link>
+            ))}
+          </div>
         </section>
-
-        <nav
-          className="z-50 mt-2 grid h-[calc(64px+env(safe-area-inset-bottom))] shrink-0 grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl"
-          aria-label="Mobile navigation"
+        <Link
+          href="/events"
+          className="home-events-strip flex items-center gap-3 rounded-2xl border border-violet-400/30 bg-gradient-to-r from-violet-950 to-fuchsia-950 p-4"
         >
-          <MobileLink icon={Home} label="Home" href="/" active />
-          <MobileLink icon={Compass} label="Explore" href="/explore" />
-          <Link
-            href="/sell"
-            prefetch
-            className="flex touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium text-white"
-          >
-            <span className="grid size-9 place-items-center rounded-full border border-white/15 bg-[#121327]">
-              <span className="grid size-6 place-items-center rounded-full bg-gradient-to-br from-[#ff4ca6] to-[#824ff6]">
-                <ShoppingBag className="size-3.5" />
-              </span>
+          <CalendarDays className="size-7 shrink-0 text-pink-300" />
+          <span className="flex-1">
+            <b className="block text-base">Eventi in Europa</b>
+            <span className="text-sm text-white/75">
+              Fiere, festival e incontri
             </span>
-            Sell
-          </Link>
-          <MobileLink icon={Inbox} label="Inbox" href="/inbox" />
-          <MobileLink
-            icon={UserRound}
-            label="Profile"
-            href="/profile/stardust-atelier"
-          />
-        </nav>
+          </span>
+          <ChevronRight className="size-5" />
+        </Link>
       </div>
-    </main>
-  );
-}
-
-function MobileLink({
-  icon: Icon,
-  label,
-  active,
-  href,
-}: {
-  icon: typeof Home;
-  label: string;
-  active?: boolean;
-  href: string;
-}) {
-  return (
-    <Link
-      href={href}
-      prefetch
-      className={`flex touch-manipulation flex-col items-center justify-center gap-1 text-[11px] font-medium ${active ? 'text-fuchsia-300' : 'text-white/60'}`}
-    >
-      <Icon className="size-5" />
-      <span>{label}</span>
-    </Link>
+      <MobileNav active="home" />
+    </MobileShell>
   );
 }

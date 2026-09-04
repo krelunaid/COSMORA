@@ -1,37 +1,237 @@
 'use client';
-
-import { useMemo, useState } from 'react';
+/* User-uploaded videos do not yet support caption-file uploads. */
+/* oxlint-disable jsx-a11y/media-has-caption */
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from '@/components/app-link';
-import { Bell, Flag, Heart, MessageCircle, MoreHorizontal, Search, Share2, UsersRound } from 'lucide-react';
-
-import { MobileNav, MobileShell } from '@/components/mobile-shell';
-import { communityPosts, squads } from '@/lib/community-data';
-
-const tabs = ['For You','Following','Cosplay','Collections','Creators','Events'] as const;
-
+import { MobileShell, MobileNav } from '@/components/mobile-shell';
+import { ShareButton } from '@/components/share-button';
+import { ReportButton } from '@/components/report-button';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { accountRequest } from '@/lib/account-client';
+type Post = {
+  id: string;
+  author_id: string;
+  author: string;
+  caption: string;
+  created_at: string;
+  link_label: string | null;
+  link_url: string | null;
+  media: { type: string; url: string }[];
+};
 export default function CommunityPage() {
-  const [tab, setTab] = useState<(typeof tabs)[number]>('For You');
-  const [country, setCountry] = useState('All Europe');
-  const [language, setLanguage] = useState('All languages');
-  const posts = useMemo(() => communityPosts.filter((post) => (country === 'All Europe' || post.country === country) && (language === 'All languages' || post.language === language) && (tab === 'For You' || tab === 'Following' || (tab === 'Cosplay' && post.category === 'Cosplay') || (tab === 'Collections' && post.category === 'Collection') || (tab === 'Creators' && ('creator' in post)) || (tab === 'Events' && ('event' in post)))), [country, language, tab]);
-
-  return <MobileShell className="flex flex-col"><header className="flex h-16 items-center justify-between px-4"><h1 className="text-xl font-semibold">Community</h1><div className="flex gap-4"><Search className="size-5" /><Bell className="size-5" /></div></header>
-    <div className="no-scrollbar flex overflow-x-auto border-b border-white/10 px-2 text-center text-[9px]">{tabs.map((item) => <button key={item} onClick={() => setTab(item)} className={`shrink-0 px-3 py-3 ${tab === item ? 'border-b-2 border-pink-400 text-pink-300' : 'text-white/50'}`}>{item}</button>)}</div>
-    <div className="grid grid-cols-2 gap-2 border-b border-white/8 p-2"><select value={country} onChange={(event) => setCountry(event.target.value)} className="h-9 rounded-xl border border-white/10 bg-[#111225] px-3 text-[9px]"><option>All Europe</option><option>Italy</option><option>France</option><option>Germany</option><option>Spain</option><option>Belgium</option><option>Netherlands</option><option>Other</option></select><select value={language} onChange={(event) => setLanguage(event.target.value)} className="h-9 rounded-xl border border-white/10 bg-[#111225] px-3 text-[9px]"><option>All languages</option><option>English</option><option>Italian</option><option>French</option><option>German</option><option>Spanish</option></select></div>
-    <div className="flex-1 space-y-3 bg-[#050611] p-2">{posts.map((post) => <Post key={post.id} post={post} />)}{(tab === 'For You' || tab === 'Events') && <SquadCard />}{!posts.length && <div className="py-20 text-center text-xs text-white/40">No posts match these filters.</div>}</div><MobileNav active="home" /></MobileShell>;
-}
-
-function Post({ post }: { post: (typeof communityPosts)[number] }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [hidden, setHidden] = useState(false);
-  if (hidden) return <div className="rounded-xl border border-white/8 p-4 text-center text-[9px] text-white/40">Post hidden.</div>;
-  return <article className="overflow-hidden rounded-2xl border border-white/8 bg-[#111225]"><div className="relative p-3"><div className="flex items-center gap-2"><span className="relative size-8 overflow-hidden rounded-full"><Image src={post.image} alt="" fill sizes="32px" className="object-cover" /></span><div><p className="text-[10px] font-medium">{post.author}</p><p className="text-[8px] text-white/45">2h · {post.category} · {post.country}</p></div><button onClick={() => setMenuOpen((value) => !value)} className="ml-auto"><MoreHorizontal className="size-4 text-white/60" /></button></div>{menuOpen && <div className="absolute right-3 top-11 z-10 w-36 rounded-xl border border-white/10 bg-[#1a1b31] p-1 text-[9px] shadow-xl"><button onClick={() => setHidden(true)} className="block w-full rounded-lg px-3 py-2 text-left hover:bg-white/5">Hide post</button><button className="block w-full rounded-lg px-3 py-2 text-left hover:bg-white/5">Mute user</button><button className="block w-full rounded-lg px-3 py-2 text-left hover:bg-white/5">Block user</button><button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-red-300 hover:bg-white/5"><Flag className="size-3" />Report</button></div>}<p className="mt-2 text-[10px] leading-4">{post.text}</p></div><div className="relative h-[260px]"><Image src={post.image} alt="Community post" fill sizes="414px" className="object-cover" /></div>
-    <div className="space-y-1 border-b border-white/8 p-3 text-[9px]">{'creator' in post && <Link href="/profile/stardust-atelier" className="block text-violet-300">Creator: @{post.creator}</Link>}{'event' in post && <Link href="/events/lucca-comics-2026" className="block text-pink-300">Event: {post.event}</Link>}{'product' in post && <Link href="/marketplace/raiden-shogun-cosplay" className="mt-2 grid h-9 place-items-center rounded-lg border border-pink-400/30 text-pink-300">View Product · {post.product}</Link>}{'collection' in post && <span className="block text-violet-300">Collection: {post.collection}</span>}</div>
-    <div className="flex items-center gap-4 p-3 text-[9px] text-white/65"><span className="flex items-center gap-1"><Heart className="size-4" />{post.likes}</span><span className="flex items-center gap-1"><MessageCircle className="size-4" />{post.comments}</span><Share2 className="ml-auto size-4" /></div></article>;
-}
-
-function SquadCard() {
-  const squad = squads[0];
-  return <Link href={`/squads/${squad.slug}`} className="block rounded-2xl border border-violet-400/20 bg-[#111225] p-3"><div className="flex items-center gap-3"><span className="relative size-12 overflow-hidden rounded-xl"><Image src={squad.cover} alt="" fill sizes="48px" className="object-cover" /></span><div className="min-w-0 flex-1"><p className="truncate text-[10px] font-medium">{squad.name}</p><p className="mt-1 text-[8px] text-white/45">{squad.type} · {squad.members}/{squad.maxMembers} members</p></div><span className="rounded-lg bg-gradient-to-r from-pink-500 to-violet-500 px-3 py-2 text-[9px]">View</span></div><p className="mt-3 flex items-center gap-2 text-[8px] text-violet-300"><UsersRound className="size-3" />Linked to Lucca Comics & Games 2026</p></Link>;
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [query, setQuery] = useState('');
+  const [offset, setOffset] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [more, setMore] = useState(false);
+  const [reload, setReload] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = setTimeout(
+      () => {
+        setLoading(true);
+        setError('');
+        void (async () => {
+          try {
+            const session = await getSupabaseBrowserClient()?.auth.getSession();
+            const token = session?.data.session?.access_token;
+            const r = await fetch(
+              '/api/community/posts?' +
+                new URLSearchParams({ q: query, offset: String(offset) }),
+              {
+                signal: controller.signal,
+                headers: token ? { Authorization: 'Bearer ' + token } : {},
+              },
+            );
+            const value = (await r.json()) as {
+              posts: Post[];
+              hasMore: boolean;
+              error?: string;
+            };
+            if (!r.ok) throw Error(value.error);
+            if (!controller.signal.aborted) {
+              setPosts((p) => (offset ? [...p, ...value.posts] : value.posts));
+              setMore(value.hasMore);
+            }
+          } catch (e) {
+            if (!controller.signal.aborted)
+              setError(
+                e instanceof Error ? e.message : 'Caricamento non riuscito.',
+              );
+          } finally {
+            if (!controller.signal.aborted) setLoading(false);
+          }
+        })();
+      },
+      query ? 250 : 0,
+    );
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query, offset, reload]);
+  return (
+    <MobileShell className="flex flex-col">
+      <header className="flex items-center justify-between p-5">
+        <h1 className="text-2xl font-semibold">Community</h1>
+        <Link
+          href="/community/create"
+          className="rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold"
+        >
+          Nuovo post
+        </Link>
+      </header>
+      <section className="flex-1 space-y-4 px-4 pb-5">
+        <div className="flex gap-3">
+          <Link
+            href="/squads"
+            className="flex min-h-11 items-center rounded-full border border-violet-400/30 px-4 text-sm text-violet-200"
+          >
+            Crew e incontri →
+          </Link>
+        </div>
+        <input
+          aria-label="Cerca nei post"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOffset(0);
+          }}
+          placeholder="Cerca nella community…"
+          className="checkout-input"
+        />
+        {error && (
+          <div role="alert">
+            <p>{error}</p>
+            <button
+              onClick={() => setReload(reload + 1)}
+              className="min-h-11 text-pink-300"
+            >
+              Riprova
+            </button>
+          </div>
+        )}
+        {!loading && !error && !posts.length && (
+          <div className="rounded-2xl border border-white/10 p-6 text-center">
+            <h2 className="text-xl font-semibold">
+              Il prossimo post può essere il tuo
+            </h2>
+            <p className="mt-3 text-base text-white/70">
+              Condividi un cosplay, una collezione o un momento a un evento.
+            </p>
+            <Link
+              href="/community/create"
+              className="mt-4 inline-block rounded-xl bg-violet-600 px-4 py-3"
+            >
+              Crea un post
+            </Link>
+          </div>
+        )}
+        {posts.map((post) => (
+          <article
+            key={post.id}
+            className="overflow-hidden rounded-2xl border border-white/15 bg-[#111225]"
+          >
+            <div className="p-4">
+              <Link
+                href={'/profile/' + post.author_id}
+                className="text-base font-semibold"
+              >
+                {post.author}
+              </Link>
+              <p className="mt-1 text-xs text-white/60">
+                {new Date(post.created_at).toLocaleString('it-IT')}
+              </p>
+              <p className="mt-3 whitespace-pre-wrap break-words text-base leading-relaxed">
+                {post.caption}
+              </p>
+            </div>
+            <div className="flex snap-x snap-mandatory overflow-x-auto">
+              {post.media.map((media, index) => (
+                <div key={index} className="w-full shrink-0 snap-center">
+                  {media.type === 'VIDEO' ? (
+                    <video
+                      src={media.url}
+                      controls
+                      playsInline
+                      preload="metadata"
+                      className="max-h-[480px] w-full"
+                    />
+                  ) : (
+                    <Image
+                      unoptimized
+                      width={800}
+                      height={800}
+                      src={media.url}
+                      alt={'Foto del post ' + (index + 1)}
+                      loading="lazy"
+                      className="max-h-[480px] w-full object-contain"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+            {post.media.length > 1 && (
+              <p className="p-3 text-sm text-white/65">
+                Scorri le {post.media.length} foto e video →
+              </p>
+            )}
+            {post.link_url &&
+              (/^\/(?!\/)/.test(post.link_url) ||
+                post.link_url.startsWith('https://')) && (
+                <a
+                  href={post.link_url}
+                  className="block p-4 text-sm text-pink-300"
+                >
+                  {post.link_label} →
+                </a>
+              )}
+            <div className="flex flex-wrap items-start justify-between gap-3 px-4">
+              <ShareButton title={post.caption.slice(0, 80)} url="/community" />
+              <ReportButton targetType="POST" targetId={post.id} />
+              <button
+                className="min-h-11 text-sm text-white/60"
+                onClick={async () => {
+                  try {
+                    await accountRequest('/api/blocks', {
+                      method: 'POST',
+                      body: JSON.stringify({
+                        userId: post.author_id,
+                        blocked: true,
+                      }),
+                    });
+                    setPosts((p) =>
+                      p.filter((item) => item.author_id !== post.author_id),
+                    );
+                  } catch (e) {
+                    setError(
+                      e instanceof Error
+                        ? e.message
+                        : 'Operazione non riuscita.',
+                    );
+                  }
+                }}
+              >
+                Blocca autore
+              </button>
+            </div>
+          </article>
+        ))}
+        {loading && (
+          <output className="py-4 text-white/70">Caricamento post…</output>
+        )}
+        {more && !loading && (
+          <button
+            onClick={() => setOffset(offset + 20)}
+            className="min-h-12 w-full rounded-xl border border-white/20"
+          >
+            Mostra altri post
+          </button>
+        )}
+      </section>
+      <MobileNav active="home" />
+    </MobileShell>
+  );
 }
