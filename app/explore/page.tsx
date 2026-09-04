@@ -137,17 +137,20 @@ function DiscoveryCard({ item }: { item: ExploreDiscovery }) {
       href={item.href}
       className="discovery-card flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/8 bg-[#111225] transition hover:border-pink-400/25"
     >
-      <div className="discovery-card-media relative aspect-[5/4] w-full shrink-0 overflow-hidden bg-[#17172b]">
+      <div
+        className={`discovery-card-media relative aspect-[5/4] w-full shrink-0 overflow-hidden bg-[#17172b] ${item.imageFit === 'contain' ? 'p-3' : ''}`}
+      >
         <Image
           src={item.image}
           alt={item.title}
           fill
           sizes="(max-width: 430px) 50vw, 215px"
           className={
-            item.imageFit === 'contain'
-              ? 'object-contain p-3'
-              : 'object-cover'
+            item.imageFit === 'contain' ? 'object-contain' : 'object-cover'
           }
+          style={{
+            objectFit: item.imageFit === 'contain' ? 'contain' : 'cover',
+          }}
         />
         <span className="absolute left-2 top-2 grid size-7 place-items-center rounded-lg border border-white/10 bg-[#090a18]/80 backdrop-blur">
           <Icon className="size-3.5 text-pink-300" />

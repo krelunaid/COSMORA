@@ -155,4 +155,5 @@ void test('shell and Explore markup no longer use the 480 / translate pair', () 
   assert.match(explore, /aspect-\[5\/4\]/);
   assert.match(explore, /bodyHeightClass/);
   assert.match(explore, /imageFit/);
+  assert.match(explore, /objectFit/);
 });
