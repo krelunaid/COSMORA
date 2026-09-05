@@ -130,7 +130,7 @@ export function MobileNav({
       )}
       <div
         aria-hidden="true"
-        className="h-[calc(64px+env(safe-area-inset-bottom))] shrink-0"
+        className="mobile-nav-spacer h-[calc(64px+env(safe-area-inset-bottom))] shrink-0"
       />
       <nav
         className={`mobile-nav-bar ${MOBILE_NAV_POSITION_CLASS} ${PHONE_SHELL_MAX_WIDTH_CLASS} fixed bottom-0 z-40 grid h-[calc(64px+env(safe-area-inset-bottom))] grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:bottom-3 sm:h-16 sm:rounded-b-[34px] sm:px-2 sm:pb-0`}

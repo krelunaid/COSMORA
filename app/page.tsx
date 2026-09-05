@@ -69,7 +69,7 @@ export default function HomePage() {
           <ChevronRight />
         </button>
       </form>
-      <div className="home-main-content px-4 pb-4">
+      <div className="home-main-content px-4 pb-2">
         <article className="home-event-hero relative overflow-hidden rounded-3xl border border-white/15">
           <Image
             src="/cosmora-hero-mobile.jpg"
@@ -80,7 +80,7 @@ export default function HomePage() {
             className="object-cover object-right"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#080918]/95 via-[#080918]/70 to-transparent" />
-          <div className="relative flex h-full flex-col items-start justify-center gap-3 p-5">
+          <div className="relative flex h-full flex-col items-start justify-center gap-2 p-4">
             <span className="rounded-full bg-fuchsia-500/25 px-3 py-1 text-xs font-semibold text-pink-200">
               IN EVIDENZA
             </span>

@@ -317,9 +317,13 @@ body {
 
 .home-main-content {
   display: grid;
-  grid-template-rows: minmax(260px, 1fr) auto minmax(80px, auto);
-  gap: 1rem;
-  flex: 1;
+  grid-template-rows: minmax(240px, 1.1fr) minmax(212px, 1fr) 72px;
+  gap: 0.5rem;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: none;
+  scrollbar-width: none;
 }
 
 .home-event-hero {
@@ -333,7 +337,7 @@ body {
 }
 
 .home-categories-grid {
-  min-height: 240px;
+  min-height: 156px;
   flex: 1;
   grid-template-rows: repeat(2, minmax(0, 1fr));
 }
@@ -349,9 +353,6 @@ body {
 }
 
 @media (max-height: 740px) {
-  .home-main-content {
-    grid-template-rows: 260px auto 80px;
-  }
   .category-copy {
     padding: 0.45rem;
   }
@@ -519,6 +520,35 @@ html.native-capacitor .mobile-nav-bar > * {
 
 html.native-capacitor .mobile-create-sheet {
   max-width: none;
+}
+
+/* Home owns a single, bounded scrolling region. Keep navigation in flow so
+   content never slides beneath it. Short screens / enlarged text may scroll
+   the content, but cannot move the header or the whole native web view. */
+.mobile-shell-frame.home-shell,
+html.native-capacitor .mobile-shell-frame.home-shell {
+  height: 100svh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.home-shell .mobile-nav-spacer {
+  display: none;
+}
+
+.home-shell .mobile-nav-bar,
+html.native-capacitor .home-shell .mobile-nav-bar {
+  position: relative;
+  flex-shrink: 0;
+  bottom: auto;
+  backdrop-filter: none;
+  background: #080918;
+}
+
+@media (min-width: 640px) {
+  html:not(.native-capacitor) .mobile-shell-frame.home-shell {
+    height: calc(100svh - 1.5rem);
+  }
 }
 
 .discovery-grid {
