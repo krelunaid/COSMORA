@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "vinext dev",
-    "build": "vinext build",
+    "build": "node scripts/check-public-env.mjs && vinext build && node scripts/check-client-secrets.mjs",
     "start": "wrangler dev --config dist/server/wrangler.json",
     "ios:sync": "cap sync ios",
     "ios:open": "cap open ios",

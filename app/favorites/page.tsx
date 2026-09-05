@@ -4,12 +4,12 @@ import {
   ScreenHeader,
 } from '@/components/mobile-shell';
 import { SavedItems } from '@/components/saved-items';
-export default function CartPage() {
+export default function FavoritesPage() {
   return (
     <MobileShell>
-      <ScreenHeader title="Il tuo carrello" back="/marketplace" />
-      <SavedItems kind="cart" />
-      <MobileNav active="explore" />
+      <ScreenHeader title="I tuoi preferiti" back="/profile/me" />
+      <SavedItems kind="favorite" />
+      <MobileNav active="profile" />
     </MobileShell>
   );
 }

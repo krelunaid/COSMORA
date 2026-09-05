@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from '@/components/app-link';
 import { ShareButton } from '@/components/share-button';
+import { SaveItem } from '@/components/saved-items';
 type Listing = {
   id: string;
   slug: string;
@@ -224,6 +225,10 @@ export function LiveListings({
                   Contatta il venditore
                 </Link>
                 <ShareButton title={listing.title} />
+                <SaveItem id={listing.id} kind="favorite" />
+                {listing.sale_mode !== 'rent' && (
+                  <SaveItem id={listing.id} kind="cart" />
+                )}
                 <p className="text-sm text-white/60">
                   Gli acquisti e i pagamenti in app saranno disponibili al
                   termine della fase di test.

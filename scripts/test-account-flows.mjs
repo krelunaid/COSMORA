@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createClient } from '@supabase/supabase-js';
+import Stripe from 'stripe';
 
 const base = process.env.TEST_APP_URL || 'http://localhost:3000';
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -9,6 +10,7 @@ const admin = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY, {
 const created = [];
 const uploaded = [];
 const communityUploaded = [];
+const testOrders = [];
 async function request(path, token, method = 'GET', body) {
   const response = await fetch(`${base}${path}`, {
     method,
@@ -141,6 +143,187 @@ try {
   );
   assert.equal(catalog.body.listings[0].seller_id, a.id);
   assert.equal(catalog.body.listings[0].images.length, 1);
+  const savedItem = { listingId: listingBody.listing.id, kind: 'cart' };
+  assert.equal((await request('/api/saved-items?kind=cart')).status, 401);
+  assert.equal(
+    (await request('/api/saved-items', b.token, 'POST', savedItem)).status,
+    200,
+  );
+  assert.equal(
+    (await request('/api/saved-items', b.token, 'POST', savedItem)).status,
+    200,
+  );
+  assert.equal(
+    (await request('/api/saved-items?kind=cart', b.token)).body.items.length,
+    1,
+  );
+  assert.equal(
+    (await request('/api/saved-items?kind=cart', c.token)).body.items.length,
+    0,
+  );
+  assert.equal(
+    (await request('/api/saved-items', a.token, 'POST', savedItem)).status,
+    409,
+  );
+  assert.equal(
+    (
+      await request('/api/saved-items', b.token, 'POST', {
+        ...savedItem,
+        kind: 'favorite',
+      })
+    ).status,
+    200,
+  );
+  assert.equal(
+    (await request('/api/saved-items', b.token, 'DELETE', savedItem)).status,
+    200,
+  );
+  assert.equal(
+    (await request('/api/saved-items?kind=cart', b.token)).body.items.length,
+    0,
+  );
+  assert.equal(
+    (await request('/api/saved-items?kind=favorite', b.token)).body.items
+      .length,
+    1,
+  );
+  assert.equal(
+    (await request('/api/stripe/checkout', null, 'POST', {})).status,
+    401,
+  );
+  assert.equal(
+    (
+      await request('/api/stripe/checkout', b.token, 'POST', {
+        listingId: listingBody.listing.id,
+        checkoutKey: crypto.randomUUID(),
+        amount: 1,
+      })
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await request('/api/stripe/checkout', a.token, 'POST', {
+        listingId: listingBody.listing.id,
+        checkoutKey: crypto.randomUUID(),
+      })
+    ).status,
+    409,
+  );
+  assert.equal(
+    (
+      await request('/api/stripe/checkout', b.token, 'POST', {
+        listingId: listingBody.listing.id,
+        checkoutKey: crypto.randomUUID(),
+      })
+    ).status,
+    409,
+  );
+  const orderId = crypto.randomUUID();
+  const fixture = await admin
+    .from('marketplace_orders')
+    .insert({
+      id: orderId,
+      buyer_id: b.id,
+      seller_id: a.id,
+      listing_id: listingBody.listing.id,
+      item_title: 'Temporary webhook test',
+      transaction_kind: 'sale',
+      amount_cents: 1000,
+      fee_rate_bps: 1000,
+      platform_fee_cents: 100,
+      seller_net_cents: 900,
+      is_test: true,
+      stripe_account_id: 'acct_cosmora_fixture',
+      stripe_checkout_session_id: 'cs_test_' + orderId,
+      status: 'pending',
+    });
+  if (fixture.error) throw fixture.error;
+  testOrders.push(orderId);
+  assert.equal((await request('/api/orders/' + orderId, c.token)).status, 404);
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  async function webhook(
+    paid,
+    overrides = {},
+    account = 'acct_cosmora_fixture',
+    type = 'checkout.session.completed',
+  ) {
+    const payload = JSON.stringify({
+      id: 'evt_' + crypto.randomUUID(),
+      object: 'event',
+      livemode: false,
+      type,
+      account,
+      data: {
+        object: {
+          id: 'cs_test_' + orderId,
+          object: 'checkout.session',
+          livemode: false,
+          metadata: { cosmora_order_id: orderId },
+          payment_status: paid ? 'paid' : 'unpaid',
+          status: type === 'checkout.session.expired' ? 'expired' : 'complete',
+          amount_total: 1000,
+          currency: 'eur',
+          payment_intent: 'pi_test_' + orderId,
+          ...overrides,
+        },
+      },
+    });
+    const signature = stripe.webhooks.generateTestHeaderString({
+      payload,
+      secret: process.env.STRIPE_WEBHOOK_SECRET,
+    });
+    return fetch(base + '/api/stripe/webhook', {
+      method: 'POST',
+      headers: {
+        'stripe-signature': signature,
+        'Content-Type': 'application/json',
+      },
+      body: payload,
+    });
+  }
+  assert.equal(
+    (await request('/api/stripe/webhook', null, 'POST', {})).status,
+    400,
+  );
+  assert.equal((await webhook(false)).status, 200);
+  assert.equal(
+    (
+      await admin
+        .from('marketplace_orders')
+        .select('status')
+        .eq('id', orderId)
+        .single()
+    ).data.status,
+    'pending',
+  );
+  assert.equal((await webhook(true, { amount_total: 1 })).status, 503);
+  assert.equal((await webhook(true, {}, 'acct_wrong')).status, 503);
+  assert.equal((await webhook(true)).status, 200);
+  assert.equal((await webhook(true)).status, 200);
+  assert.equal(
+    (
+      await webhook(
+        false,
+        {},
+        'acct_cosmora_fixture',
+        'checkout.session.expired',
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (await request('/api/orders/' + orderId, b.token)).body.order.status,
+    'paid',
+  );
+  assert.equal(
+    (await request('/api/listings?slug=' + listingBody.listing.slug)).body
+      .listings.length,
+    1,
+  );
+  console.log(
+    'PASS: saved cart/favorites isolation, checkout validation, signed test webhook payment/account/amount checks and replay safety. No real charge created.',
+  );
   assert.equal(
     (await request('/api/listings?category=Cards&seller=' + a.id)).body.listings
       .length,
@@ -387,6 +570,13 @@ try {
     'PASS: account, messages, isolation, orders, listing ownership/edit/pause/reactivation/conflict, blocked sender.',
   );
 } finally {
+  if (testOrders.length) {
+    const result = await admin
+      .from('marketplace_orders')
+      .delete()
+      .in('id', testOrders);
+    if (result.error) throw result.error;
+  }
   if (communityUploaded.length)
     await admin.storage.from('community-media').remove(communityUploaded);
   if (uploaded.length) {

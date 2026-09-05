@@ -17,6 +17,11 @@ Il contenitore iOS usa ancora l’interfaccia remota: questi interventi NON lo t
 - Dati amministrativi venditore persistenti e privati, distinti dal profilo pubblico. Paese e forma attività Stripe derivano dai dati salvati, non da valori predefiniti.
 - Mutazioni community/crew/segnalazioni riservate alle API autenticate per impedire l’aggiramento dei controlli applicativi.
 - Le chiavi Stripe live restano bloccate.
+- Carrello e preferiti persistenti, isolati per account; rimossi prodotti, totali e campi carta dimostrativi.
+- Checkout Stripe Connect solo TEST, un articolo per ordine, prezzo deciso dal server, chiave di idempotenza e dettaglio ordine accessibile ai partecipanti.
+- Webhook Connect di test configurato: firma, modalità, account, sessione, importo e valuta verificati prima di confermare il pagamento. Le ripetizioni non duplicano la conferma.
+- Gli ordini TEST non riservano disponibilità, non segnano venduti gli annunci e non avviano spedizioni.
+- Pubblicazione bloccata automaticamente se le variabili pubbliche o i file del client contengono credenziali private riconoscibili. Cache statica aggiornata.
 
 ## Verifiche
 - TypeScript, lint e test di regressione layout/media.
@@ -29,7 +34,8 @@ Il contenitore iOS usa ancora l’interfaccia remota: questi interventi NON lo t
 - Apple e Google OAuth: credenziali/provider configurati e ritorno all’app testato; email di conferma/recupero effettivamente recapitate.
 - Eliminazione account, preferenze privacy e flussi assistenza.
 - Ordini completi: articolo/quantità, checkout di beni reali, spedizione/tracking, resi, rimborsi, contestazioni e responsabilità Connect.
-- Carrello/preferiti persistenti. Le vecchie pagine carrello/checkout dimostrative non costituiscono un flusso commerciale verificato.
+- Checkout: test completo su Stripe con account venditore abilitato, carta di test, annullamento e ritorno all’app. Verificati per ora validazione API e webhook firmati sintetici, non una transazione end-to-end su Stripe.
+- Rinnovo delle credenziali amministrative e verifica delle configurazioni prima della validazione finale di sicurezza.
 - Chat: cronologia oltre 100 messaggi, allegati, stato lettura e notifiche push.
 - Community: commenti/like reali, moderazione operativa e sottotitoli dei video. La verifica automatica del testo è soltanto un primo filtro.
 - Crew: modifiche/annullamento, copertina personalizzata, notifiche ai partecipanti e calendario.

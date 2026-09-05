@@ -1,5 +1,5 @@
 // Cache immutable assets only. Documents, APIs and route payloads stay fresh.
-const CACHE_NAME = 'cosmora-assets-v13';
+const CACHE_NAME = 'cosmora-assets-v14';
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => {
   event.waitUntil(
