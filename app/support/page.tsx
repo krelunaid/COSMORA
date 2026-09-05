@@ -1,4 +1,5 @@
 import { Mail } from 'lucide-react';
+import Link from '@/components/app-link';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
 
 export const metadata = { title: 'Assistenza COSMORA', description: 'Contatta l’assistenza COSMORA per account, annunci e segnalazioni.' };
@@ -24,6 +25,7 @@ export default function SupportPage() {
         </div>
         <p className="text-white/75">Descrivi il problema e indica la sezione interessata e il modello del dispositivo. Puoi allegare uno screenshot, oscurando informazioni personali non necessarie.</p>
         <p className="rounded-2xl border border-amber-300/25 p-4 text-amber-100">Non inviare password, codici di accesso o dati completi della carta di pagamento.</p>
+        <Link href="/account/delete" className="block min-h-12 text-pink-300 underline">Elimina il tuo account e i contenuti associati</Link>
       </section>
     </MobileShell>
   );

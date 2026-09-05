@@ -5,6 +5,7 @@ import Link from '@/components/app-link';
 import { MobileNav, MobileShell } from '@/components/mobile-shell';
 import { accountRequest } from '@/lib/account-client';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { paymentsEnabled } from '@/lib/release-features';
 
 export default function MyProfilePage() {
   const [profile, setProfile] = useState({
@@ -87,6 +88,7 @@ export default function MyProfilePage() {
         {ready && (
           <>
             <p className="break-all text-base text-white/75">{profile.email}</p>
+            <p className="text-sm text-white/70">La tua email è privata. Scegli un nome pubblico, anche di fantasia, per presentarti nella community.</p>
             <form onSubmit={save} className="space-y-4">
               <label className="block text-base">
                 Nome pubblico
@@ -96,6 +98,7 @@ export default function MyProfilePage() {
                     setProfile({ ...profile, displayName: event.target.value })
                   }
                   required
+                  placeholder="Come vuoi essere chiamato?"
                   minLength={2}
                   maxLength={80}
                   className="mt-2 w-full rounded-xl border border-white/20 bg-[#111225] p-3"
@@ -105,6 +108,7 @@ export default function MyProfilePage() {
                 Paese
                 <input
                   value={profile.country}
+                  placeholder="Es. Italia (facoltativo)"
                   onChange={(event) =>
                     setProfile({ ...profile, country: event.target.value })
                   }
@@ -131,12 +135,12 @@ export default function MyProfilePage() {
               >
                 I miei preferiti
               </Link>
-              <Link
+              {paymentsEnabled && <Link
                 className="block rounded-xl border border-white/15 p-4"
                 href="/cart"
               >
                 Il mio carrello
-              </Link>
+              </Link>}
               <Link
                 className="block rounded-xl border border-white/15 p-4"
                 href="/seller"
@@ -168,6 +172,7 @@ export default function MyProfilePage() {
             >
               Esci dall’account
             </button>
+            <Link href="/account/delete" className="block min-h-12 rounded-xl border border-rose-400/40 p-3 text-center text-base text-rose-300">Elimina il mio account</Link>
           </>
         )}
       </section>

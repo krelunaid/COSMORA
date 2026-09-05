@@ -10,7 +10,7 @@ export function getSupabaseAdmin() {
   });
 }
 
-export async function requireAuthenticatedUser(request: Request) {
+export async function requireAuthenticatedUser(request: Request, allowDeleting = false) {
   const admin = getSupabaseAdmin();
   const authorization = request.headers.get('authorization');
   const token = authorization?.startsWith('Bearer ')
@@ -20,5 +20,6 @@ export async function requireAuthenticatedUser(request: Request) {
   if (!admin || !token) return null;
   const { data, error } = await admin.auth.getUser(token);
   if (error || !data.user) return null;
+  if (data.user.app_metadata?.deletion_pending && !allowDeleting) return null;
   return { admin, user: data.user };
 }

@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { signInOnIOS } from '@/lib/supabase/native-auth';
 
 type SocialProvider = 'google' | 'apple';
 const schema = z.object({
@@ -78,6 +79,10 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
     try {
       const client = getSupabaseBrowserClient();
       if (!client) throw new Error('Accesso momentaneamente non disponibile.');
+      if (await signInOnIOS(provider, client)) {
+        window.location.assign('/profile/me');
+        return;
+      }
       const { error } = await client.auth.signInWithOAuth({
         provider,
         options: { redirectTo: authDestination },
