@@ -1,4 +1,5 @@
 'use client';
+import { rentalsEnabled } from '@/lib/release-features';
 
 import { useEffect, useId, useState } from 'react';
 import Image from 'next/image';
@@ -197,9 +198,9 @@ export default function SellPage() {
           </select>
         </div>
         <div>
-          <p className="mb-2 text-xs text-white/55">Available for</p>
+          <p className="mb-2 text-sm text-white/70">{rentalsEnabled ? 'Disponibile per' : 'Annuncio di vendita · pagamenti in app non disponibili'}</p>
           <div className="grid grid-cols-3 gap-2">
-            {(['buy', 'rent', 'both'] as const).map((mode) => (
+            {(rentalsEnabled ? (['buy', 'rent', 'both'] as const) : []).map((mode) => (
               <button
                 type="button"
                 onClick={() => setSaleMode(mode)}

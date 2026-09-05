@@ -1,4 +1,5 @@
 'use client';
+import { paymentsEnabled } from '@/lib/release-features';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from '@/components/app-link';
@@ -26,6 +27,7 @@ export default function CheckoutPage() {
   const params = useSearchParams(),
     slug = params.get('listing'),
     orderId = params.get('order');
+  if (!paymentsEnabled && !orderId) return <MobileShell><ScreenHeader title="Pagamenti non disponibili" back="/marketplace" /><section className="space-y-4 p-5"><p>In questa versione puoi esplorare gli annunci e contattare i venditori. Acquisti, cauzioni e noleggi non sono attivi.</p><Link href="/marketplace" className="block rounded-xl bg-violet-600 p-3 text-center">Torna agli annunci</Link></section><MobileNav active="explore" /></MobileShell>;
   return (
     <CheckoutContent key={slug + ':' + orderId} slug={slug} orderId={orderId} />
   );

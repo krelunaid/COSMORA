@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { paymentsEnabled } from '@/lib/release-features';
 import { z } from 'zod';
 import { calculateMarketplaceQuote } from '@/lib/monetization';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
@@ -7,6 +8,7 @@ const schema = z
   .object({ listingId: z.uuid(), checkoutKey: z.uuid() })
   .strict();
 export async function POST(request: Request) {
+  if (!paymentsEnabled) return NextResponse.json({ error: 'I pagamenti non sono disponibili in questa versione di COSMORA.' }, { status: 403 });
   const auth = await requireAuthenticatedUser(request);
   if (!auth)
     return NextResponse.json(

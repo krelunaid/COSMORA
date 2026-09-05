@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { rentalsEnabled } from '@/lib/release-features';
 
 import {
   getSupabaseAdmin,
@@ -25,6 +26,7 @@ export async function GET(request: Request) {
       'id, slug, seller_id, title, description, category, condition, sale_mode, sale_price_cents, rental_price_cents, rental_days, deposit_cents, listing_images(storage_path,position)',
     )
     .eq('status', 'active');
+  if (!rentalsEnabled) query = query.in('sale_mode', ['buy', 'both']);
   if (slug) query = query.eq('slug', slug);
   const category = params.get('category');
   const mode = params.get('mode');
@@ -81,7 +83,7 @@ const listingSchema = z.object({
   description: z.string().trim().min(10).max(5000),
   category: z.string().trim().min(2).max(60),
   condition: z.string().trim().min(2).max(30),
-  saleMode: z.enum(['buy', 'rent', 'both']),
+  saleMode: z.enum(['buy', 'rent', 'both']).refine((mode) => rentalsEnabled || mode === 'buy', 'Il noleggio non è disponibile in questa versione.'),
   salePrice: z.coerce.number().min(0).optional(),
   rentalPrice: z.coerce.number().min(0).optional(),
   rentalDays: z.coerce.number().int().min(1).optional(),

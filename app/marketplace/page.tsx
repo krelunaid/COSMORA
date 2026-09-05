@@ -5,6 +5,7 @@ import Link from '@/components/app-link';
 import { Search, SlidersHorizontal, Plus } from 'lucide-react';
 import { MobileNav, MobileShell } from '@/components/mobile-shell';
 import { LiveListings } from '@/components/live-listings';
+import { rentalsEnabled } from '@/lib/release-features';
 
 const categories = [
   ['Cosplay', 'Cosplay'],
@@ -62,7 +63,7 @@ export default function MarketplacePage() {
             <SlidersHorizontal className="size-5" />
           </button>
         </div>
-        <div className="my-4 grid grid-cols-2 border-b border-white/15">
+        {rentalsEnabled ? <div className="my-4 grid grid-cols-2 border-b border-white/15">
           {[
             ['buy', 'Compra'],
             ['rent', 'Noleggia'],
@@ -77,6 +78,7 @@ export default function MarketplacePage() {
             </button>
           ))}
         </div>
+        : <p className="my-4 text-sm text-white/70">Esplora gli annunci e contatta i venditori. Pagamenti e noleggi non disponibili in questa versione.</p>}
         <div className="flex gap-2 overflow-x-auto pb-2" aria-label="Categorie">
           {categories.map(([value, label]) => (
             <button

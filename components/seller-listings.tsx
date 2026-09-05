@@ -1,4 +1,5 @@
 'use client';
+import { rentalsEnabled } from '@/lib/release-features';
 import { useEffect, useState } from 'react';
 import Link from '@/components/app-link';
 import { Button } from '@/components/ui/button';
@@ -55,7 +56,7 @@ export function SellerListings() {
   return <section className="space-y-4 text-base" aria-label="I miei annunci">
     {loading ? <output>Caricamento annunci…</output> : error ? <div className="space-y-3"><p role="alert" className="text-amber-200">{error}</p><Button onClick={() => { setLoading(true); setError(''); setRetry((n) => n + 1); }} className="min-h-12 text-base">Riprova</Button><Link href="/auth/login" className="block text-pink-300">Accedi al tuo account</Link></div> : <>
       {!page.listings.length && <p className="rounded-2xl border border-white/15 p-5 text-white/75">Non ci sono annunci in questa pagina. Pubblica il tuo primo oggetto per iniziare.</p>}
-      {page.listings.map((listing) => <ListingEditor key={listing.id} listing={listing} onSaved={(saved) => setPage((current) => ({ ...current, listings: current.listings.map((item) => item.id === saved.id ? saved : item) }))} />)}
+      {page.listings.map((listing) => !rentalsEnabled && listing.sale_mode !== 'buy' ? <article key={listing.id} className="rounded-xl border border-white/15 p-4"><h2 className="text-lg">{listing.title}</h2><p className="mt-2 text-sm text-white/70">Noleggio e modifica temporaneamente sospesi. I dati dell’annuncio sono conservati.</p></article> : <ListingEditor key={listing.id} listing={listing} onSaved={(saved) => setPage((current) => ({ ...current, listings: current.listings.map((item) => item.id === saved.id ? saved : item) }))} />)}
       <div className="flex justify-between gap-3">{offset > 0 && <Button variant="outline" className="min-h-12 text-base" onClick={() => navigate(Math.max(0, offset - 20))}>Precedenti</Button>}{page.hasMore && <Button variant="outline" className="min-h-12 text-base" onClick={() => navigate(offset + 20)}>Successivi</Button>}</div>
     </>}
   </section>;

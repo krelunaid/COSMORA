@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { rentalsEnabled } from '@/lib/release-features';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
 
 const fields = 'id,slug,title,description,status,sale_mode,sale_price_cents,rental_price_cents,updated_at';
@@ -32,6 +33,7 @@ export async function PATCH(request: Request) {
   const current = await auth.admin.from('listings').select('sale_mode,status').eq('id', input.id).eq('seller_id', auth.user.id).maybeSingle();
   if (current.error) return NextResponse.json({ error: 'Servizio non disponibile.' }, { status: 503 });
   if (!current.data) return NextResponse.json({ error: 'Annuncio non trovato.' }, { status: 404 });
+  if (!rentalsEnabled && current.data.sale_mode !== 'buy') return NextResponse.json({ error: 'La modifica degli annunci con noleggio è sospesa in questa versione. I dati sono conservati.' }, { status: 403 });
   if (!['active', 'paused'].includes(current.data.status)) return NextResponse.json({ error: 'Questo annuncio non può essere modificato.' }, { status: 409 });
   if ((current.data.sale_mode !== 'rent' && input.salePriceCents === null) || (current.data.sale_mode !== 'buy' && input.rentalPriceCents === null)) return NextResponse.json({ error: 'Inserisci il prezzo previsto per questo annuncio.' }, { status: 400 });
   const { data, error } = await auth.admin.from('listings').update({

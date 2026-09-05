@@ -1,4 +1,5 @@
 'use client';
+import { paymentsEnabled } from '@/lib/release-features';
 import { useEffect, useState } from 'react';
 import Link from '@/components/app-link';
 import Image from 'next/image';
@@ -169,7 +170,7 @@ export function SavedItems({ kind }: { kind: 'cart' | 'favorite' }) {
             </div>
           </Link>
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            {kind === 'cart' &&
+            {paymentsEnabled && kind === 'cart' &&
               item.status === 'active' &&
               item.sale_mode !== 'rent' && (
                 <Link

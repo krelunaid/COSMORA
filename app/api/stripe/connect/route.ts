@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
+import { paymentsEnabled } from '@/lib/release-features';
 
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
 import { getAppUrl, getStripe } from '@/lib/stripe/server';
 
 export async function POST(request: Request) {
+  if (!paymentsEnabled) return NextResponse.json({ error: 'I pagamenti non sono disponibili in questa versione di COSMORA.' }, { status: 403 });
   const stripe = getStripe();
   const authenticated = await requireAuthenticatedUser(request);
   if (!stripe || !authenticated) {

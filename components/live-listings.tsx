@@ -1,4 +1,5 @@
 'use client';
+import { paymentsEnabled, rentalsEnabled } from '@/lib/release-features';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from '@/components/app-link';
@@ -178,7 +179,7 @@ export function LiveListings({
                     {euro(listing.sale_price_cents)}
                   </p>
                 )}
-                {listing.rental_price_cents !== null && (
+                {rentalsEnabled && listing.rental_price_cents !== null && (
                   <p className="mt-1 text-sm text-violet-200">
                     Noleggio {euro(listing.rental_price_cents)} /{' '}
                     {listing.rental_days} giorni
@@ -226,12 +227,11 @@ export function LiveListings({
                 </Link>
                 <ShareButton title={listing.title} />
                 <SaveItem id={listing.id} kind="favorite" />
-                {listing.sale_mode !== 'rent' && (
+                {paymentsEnabled && listing.sale_mode !== 'rent' && (
                   <SaveItem id={listing.id} kind="cart" />
                 )}
                 <p className="text-sm text-white/60">
-                  Gli acquisti e i pagamenti in app saranno disponibili al
-                  termine della fase di test.
+                  Pagamenti e noleggi non sono disponibili in questa versione.
                 </p>
               </div>
             )}

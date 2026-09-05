@@ -1,4 +1,5 @@
 'use client';
+import { paymentsEnabled } from '@/lib/release-features';
 import { useState, useEffect } from 'react';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
 import { accountRequest } from '@/lib/account-client';
@@ -238,14 +239,14 @@ export default function Onboarding() {
                 >
                   Crea un annuncio
                 </Link>
-                <button
+                {paymentsEnabled && <button
                   type="button"
                   disabled={busy}
                   onClick={connect}
                   className="min-h-11 text-violet-300 underline"
                 >
                   Collega Stripe in modalità test
-                </button>
+                </button>}
               </div>
             )}
           </form>
