@@ -67,6 +67,9 @@ export default function MyProfilePage() {
     <MobileShell>
       <section className="space-y-5 px-5 py-6 pb-28">
         <h1 className="text-2xl font-semibold">Il mio profilo</h1>
+        <Link href="/support" className="block rounded-xl border border-white/15 p-4 text-base text-pink-300">
+          Assistenza COSMORA
+        </Link>
         {loading && <p>Caricamento del tuo account…</p>}
         {error && (
           <output className="block rounded-xl border border-amber-300/30 p-4 text-base text-amber-100">
