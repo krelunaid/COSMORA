@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 import { getSupabaseAdmin } from '@/lib/supabase/server';
 import { getStripe } from '@/lib/stripe/server';
-import { reconcileCheckout } from '@/lib/stripe/reconcile';
+import { reconcileCheckout, reconcileRefund } from '@/lib/stripe/reconcile';
 export async function POST(request: Request) {
   const stripe = getStripe(),
     admin = getSupabaseAdmin();
@@ -53,6 +53,7 @@ export async function POST(request: Request) {
       [
         'checkout.session.completed',
         'checkout.session.async_payment_succeeded',
+        'checkout.session.async_payment_failed',
         'checkout.session.expired',
       ].includes(event.type) &&
       event.account
@@ -60,7 +61,10 @@ export async function POST(request: Request) {
       await reconcileCheckout(
         event.data.object as Stripe.Checkout.Session,
         event.account,
+        event.type === 'checkout.session.async_payment_failed',
       );
+    if (event.type === 'charge.refunded' && event.account)
+      await reconcileRefund(event.data.object, event.account);
   } catch {
     return NextResponse.json(
       { error: 'Aggiornamento non completato. Riprovare.' },

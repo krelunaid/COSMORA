@@ -324,6 +324,33 @@ try {
   console.log(
     'PASS: saved cart/favorites isolation, checkout validation, signed test webhook payment/account/amount checks and replay safety. No real charge created.',
   );
+  async function refund(amount, account = 'acct_cosmora_fixture') {
+    const payload = JSON.stringify({
+      id: 'evt_' + crypto.randomUUID(), object: 'event', livemode: false,
+      type: 'charge.refunded', account,
+      data: { object: {
+        id: 'ch_test_' + orderId, object: 'charge', livemode: false, paid: true,
+        metadata: { cosmora_order_id: orderId },
+        payment_intent: 'pi_test_' + orderId, amount: 1000,
+        amount_refunded: amount, currency: 'eur',
+      } },
+    });
+    return fetch(base + '/api/stripe/webhook', {
+      method: 'POST', headers: { 'Content-Type': 'application/json',
+        'stripe-signature': stripe.webhooks.generateTestHeaderString({ payload, secret: process.env.STRIPE_WEBHOOK_SECRET }) },
+      body: payload,
+    });
+  }
+  assert.equal((await refund(1000, 'acct_wrong')).status, 503);
+  assert.equal((await refund(1001)).status, 503);
+  assert.equal((await refund(250)).status, 200);
+  assert.equal((await request('/api/orders/' + orderId, b.token)).body.order.status, 'partially_refunded');
+  assert.equal((await refund(1000)).status, 200);
+  assert.equal((await refund(250)).status, 200);
+  assert.equal((await webhook(true)).status, 200);
+  assert.equal((await request('/api/orders/' + orderId, b.token)).body.order.status, 'refunded');
+  assert.equal((await request('/api/orders/' + orderId, c.token)).status, 404);
+  console.log('PASS: signed refund validation, partial/full status and delayed-event safety. No real refund created.');
   assert.equal(
     (await request('/api/listings?category=Cards&seller=' + a.id)).body.listings
       .length,
@@ -440,6 +467,7 @@ try {
     .from('post_media')
     .select('storage_path')
     .eq('post_id', postBody.post.id);
+  if (postMedia.error) throw postMedia.error;
   communityUploaded.push(...postMedia.data.map((row) => row.storage_path));
   const feed = await request(
     '/api/community/posts?q=Temporary%20test%20post',

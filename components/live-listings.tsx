@@ -231,7 +231,7 @@ export function LiveListings({
                   <SaveItem id={listing.id} kind="cart" />
                 )}
                 <p className="text-sm text-white/60">
-                  Pagamenti e noleggi non sono disponibili in questa versione.
+                  {paymentsEnabled ? 'Checkout solo di prova: nessun acquisto, spedizione o rimborso reale. Non pagare fuori dall’app pensando di avere una protezione COSMORA.' : 'Pagamenti e noleggi non sono disponibili in questa versione.'}
                 </p>
               </div>
             )}

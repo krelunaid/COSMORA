@@ -44,8 +44,11 @@ export async function GET(
           { stripeAccount: order.stripe_account_id },
         );
         await reconcileCheckout(session, order.stripe_account_id);
-        if (session.payment_status === 'paid') order.status = 'paid';
-        else if (session.status === 'expired') order.status = 'expired';
+        // Read persisted state: a concurrent refund must not be shown as paid.
+        const current = await auth.admin.from('marketplace_orders')
+          .select('status').eq('id', order.id).single();
+        if (current.error) throw current.error;
+        order.status = current.data.status;
       } catch {
         return NextResponse.json(
           {

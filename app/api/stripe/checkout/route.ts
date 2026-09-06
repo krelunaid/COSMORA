@@ -32,12 +32,14 @@ export async function POST(request: Request) {
     );
   const { admin, user } = auth;
   try {
-    let { data: order } = await admin
+    const previous = await admin
       .from('marketplace_orders')
       .select('*')
       .eq('buyer_id', user.id)
       .eq('checkout_key', parsed.data.checkoutKey)
       .maybeSingle();
+    if (previous.error) throw previous.error;
+    let order = previous.data;
     if (!order) {
       const { data: listing } = await admin
         .from('listings')
@@ -68,7 +70,7 @@ export async function POST(request: Request) {
       const connected = await stripe.accounts.retrieve(
         account.stripe_account_id,
       );
-      if (!connected.charges_enabled)
+      if (!connected.charges_enabled || !connected.payouts_enabled || !connected.details_submitted)
         return NextResponse.json(
           {
             error:

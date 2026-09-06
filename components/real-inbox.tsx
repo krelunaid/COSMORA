@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from '@/components/app-link';
 import { MobileNav, MobileShell } from '@/components/mobile-shell';
 import { accountRequest } from '@/lib/account-client';
+import { orderStatusLabel } from '@/lib/order-status';
 type Item = { id: string; label: string; detail: string };
 export default function RealInbox() {
   const params = useSearchParams();
@@ -33,7 +34,7 @@ export default function RealInbox() {
               }) => ({
                 id: order.id,
                 label: order.item_title || `Ordine ${order.id.slice(0, 8)}`,
-                detail: `${order.is_test ? 'TEST · ' : ''}${order.status === 'paid' ? 'Pagato' : order.status === 'expired' ? 'Scaduto' : 'In attesa'} · ${new Intl.NumberFormat('it-IT', { style: 'currency', currency: order.currency }).format(order.amount_cents / 100)}`,
+                detail: `${order.is_test ? 'TEST · ' : ''}${orderStatusLabel(order.status)} · ${new Intl.NumberFormat('it-IT', { style: 'currency', currency: order.currency }).format(order.amount_cents / 100)}`,
               }),
             ),
           );

@@ -10,6 +10,7 @@ import {
 } from '@/components/mobile-shell';
 import { accountRequest } from '@/lib/account-client';
 import { cents } from '@/lib/monetization';
+import { orderStatusLabel } from '@/lib/order-status';
 type Listing = {
   id: string;
   title: string;
@@ -46,6 +47,11 @@ function CheckoutContent({
     [loading, setLoading] = useState(true),
     [retry, setRetry] = useState(0);
   const key = useRef<string | null>(null);
+  function retryVerification() {
+    setError('');
+    setLoading(true);
+    setRetry((value) => value + 1);
+  }
   useEffect(() => {
     let active = true;
     const task = orderId
@@ -91,7 +97,7 @@ function CheckoutContent({
             <p>{error}</p>
             <button
               className="min-h-12 text-pink-300"
-              onClick={() => setRetry(retry + 1)}
+              onClick={retryVerification}
             >
               Riprova la verifica
             </button>
@@ -107,17 +113,14 @@ function CheckoutContent({
             </h2>
             <p>{cents(order.amount_cents)}</p>
             <p className="text-lg text-pink-200">
-              {order.status === 'paid'
-                ? 'Pagamento di test confermato'
-                : order.status === 'expired'
-                  ? 'Sessione scaduta'
-                  : 'Pagamento non ancora confermato'}
+              {orderStatusLabel(order.status)}{order.is_test ? ' · TEST' : ''}
             </p>
             <p className="break-all text-sm text-white/60">Ordine {order.id}</p>
+            <a className="block min-h-12 py-3 text-pink-300 underline" href={'mailto:info@kreluna.it?subject=' + encodeURIComponent('COSMORA · Assistenza ordine ' + order.id)}>Segnala un problema con questo ordine</a>
             {order.status === 'pending' && (
               <button
                 className="min-h-12 rounded-xl border border-white/20 px-4"
-                onClick={() => setRetry(retry + 1)}
+                onClick={retryVerification}
               >
                 Aggiorna stato
               </button>

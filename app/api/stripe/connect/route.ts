@@ -4,11 +4,12 @@ import { paymentsEnabled } from '@/lib/release-features';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
 import { getAppUrl, getStripe } from '@/lib/stripe/server';
 
-export async function POST(request: Request) {
+async function createConnection(request: Request) {
   if (!paymentsEnabled) return NextResponse.json({ error: 'I pagamenti non sono disponibili in questa versione di COSMORA.' }, { status: 403 });
   const stripe = getStripe();
   const authenticated = await requireAuthenticatedUser(request);
-  if (!stripe || !authenticated) {
+  if (!authenticated) return NextResponse.json({ error: 'Accedi per continuare.' }, { status: 401 });
+  if (!stripe) {
     return NextResponse.json(
       { error: 'Autenticazione o Stripe non configurati.' },
       { status: 503 },
@@ -94,10 +95,11 @@ export async function POST(request: Request) {
   return NextResponse.json({ url: accountLink.url });
 }
 
-export async function GET(request: Request) {
+async function readConnection(request: Request) {
   const stripe = getStripe();
   const authenticated = await requireAuthenticatedUser(request);
-  if (!stripe || !authenticated) {
+  if (!authenticated) return NextResponse.json({ error: 'Accedi per continuare.' }, { status: 401 });
+  if (!stripe) {
     return NextResponse.json({ configured: false }, { status: 503 });
   }
   const { admin, user } = authenticated;
@@ -106,11 +108,12 @@ export async function GET(request: Request) {
     .select('stripe_account_id')
     .eq('user_id', user.id)
     .maybeSingle();
+  if (stored.error) throw stored.error;
   if (!stored.data?.stripe_account_id) {
     return NextResponse.json({ configured: true, connected: false });
   }
   const account = await stripe.accounts.retrieve(stored.data.stripe_account_id);
-  await admin
+  const saved = await admin
     .from('seller_payment_accounts')
     .update({
       details_submitted: account.details_submitted,
@@ -119,6 +122,7 @@ export async function GET(request: Request) {
       updated_at: new Date().toISOString(),
     })
     .eq('user_id', user.id);
+  if (saved.error) throw saved.error;
   return NextResponse.json({
     configured: true,
     connected: account.details_submitted,
@@ -126,3 +130,17 @@ export async function GET(request: Request) {
     payoutsEnabled: account.payouts_enabled,
   });
 }
+
+async function safely(request: Request, action: (request: Request) => Promise<NextResponse>) {
+  try {
+    const response = await action(request);
+    response.headers.set('Cache-Control', 'private, no-store');
+    return response;
+  } catch {
+    return NextResponse.json({ error: 'Verifica Stripe non disponibile. Riprova senza creare un altro account.' }, {
+      status: 503, headers: { 'Cache-Control': 'private, no-store' },
+    });
+  }
+}
+export async function POST(request: Request) { return safely(request, createConnection); }
+export async function GET(request: Request) { return safely(request, readConnection); }
