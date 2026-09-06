@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { rentalsEnabled } from '@/lib/release-features';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
+import { shippingSchema } from '@/lib/shipping';
 
-const fields = 'id,slug,title,description,status,sale_mode,sale_price_cents,rental_price_cents,updated_at';
+const fields = 'id,slug,title,description,status,sale_mode,sale_price_cents,rental_price_cents,updated_at,shipping_mode,shipping_method,shipping_cost_cents,shipping_time';
 const privateHeaders = { 'Cache-Control': 'private, no-store' };
 export async function GET(request: Request) {
   const auth = await requireAuthenticatedUser(request);
@@ -22,6 +23,7 @@ const changeSchema = z.object({
   status: z.enum(['active', 'paused']),
   salePriceCents: z.number().int().min(0).max(100000000).nullable(),
   rentalPriceCents: z.number().int().min(1).max(100000000).nullable(),
+  shipping: shippingSchema.optional(),
 }).strict();
 
 export async function PATCH(request: Request) {
@@ -41,6 +43,8 @@ export async function PATCH(request: Request) {
     sale_price_cents: current.data.sale_mode === 'rent' ? null : input.salePriceCents,
     rental_price_cents: current.data.sale_mode === 'buy' ? null : input.rentalPriceCents,
     updated_at: new Date().toISOString(),
+    ...(input.shipping ? { shipping_mode: input.shipping.shippingMode, shipping_method: input.shipping.shippingMethod,
+      shipping_cost_cents: Math.round(input.shipping.shippingCost * 100), shipping_time: input.shipping.shippingTime } : {}),
   }).eq('id', input.id).eq('seller_id', auth.user.id).eq('updated_at', input.updatedAt).in('status', ['active', 'paused']).select(fields).maybeSingle();
   if (error) return NextResponse.json({ error: 'Salvataggio non riuscito. Riprova.' }, { status: 503 });
   if (!data) return NextResponse.json({ error: 'Annuncio modificato in un’altra sessione. Aggiorna la pagina prima di salvare.' }, { status: 409 });

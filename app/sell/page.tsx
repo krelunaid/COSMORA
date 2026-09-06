@@ -212,6 +212,14 @@ export default function SellPage() {
             ))}
           </div>
         </div>
+        <fieldset className="space-y-3 rounded-2xl border border-white/15 p-4 text-base">
+          <legend className="px-2 text-lg font-semibold">Consegna decisa da te</legend>
+          <p className="text-white/70">Scegli modalità, costo e tempi. L’acquirente li leggerà nell’annuncio. COSMORA non effettua la spedizione.</p>
+          <label className="block">Modalità<select name="shippingMode" className="checkout-input mt-1"><option value="courier">Spedizione</option><option value="pickup">Ritiro a mano gratuito</option></select></label>
+          <label className="block">Corriere o modalità di ritiro<input name="shippingMethod" required minLength={2} maxLength={120} placeholder="Corriere scelto da te oppure luogo pubblico di ritiro" className="checkout-input mt-1" /></label>
+          <label className="block">Costo di consegna (€)<input name="shippingCost" required type="number" min="0" max="10000" step="0.01" placeholder="0 per consegna gratuita o ritiro" className="checkout-input mt-1" /></label>
+          <label className="block">Tempi e destinazioni servite<input name="shippingTime" required minLength={2} maxLength={200} placeholder="Indica i tuoi tempi e dove puoi spedire" className="checkout-input mt-1" /></label>
+        </fieldset>
         <div className="grid grid-cols-2 gap-2">
           {saleMode !== 'rent' && (
             <input

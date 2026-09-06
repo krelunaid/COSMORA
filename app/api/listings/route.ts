@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { rentalsEnabled } from '@/lib/release-features';
+import { parseShipping } from '@/lib/shipping';
 
 import {
   getSupabaseAdmin,
@@ -23,7 +24,7 @@ export async function GET(request: Request) {
   let query = admin
     .from('listings')
     .select(
-      'id, slug, seller_id, title, description, category, condition, sale_mode, sale_price_cents, rental_price_cents, rental_days, deposit_cents, listing_images(storage_path,position)',
+      'id, slug, seller_id, title, description, category, condition, sale_mode, sale_price_cents, rental_price_cents, rental_days, deposit_cents, shipping_mode, shipping_method, shipping_cost_cents, shipping_time, listing_images(storage_path,position)',
     )
     .eq('status', 'active');
   if (!rentalsEnabled) query = query.in('sale_mode', ['buy', 'both']);
@@ -117,6 +118,9 @@ export async function POST(request: Request) {
   }
 
   const form = await request.formData();
+  let shipping;
+  try { shipping = parseShipping(form); }
+  catch (error) { return NextResponse.json({ error: (error as Error).message }, { status: 400 }); }
   const parsed = listingSchema.safeParse({
     title: form.get('title'),
     description: form.get('description'),
@@ -204,6 +208,7 @@ export async function POST(request: Request) {
       rental_days: data.saleMode === 'buy' ? null : data.rentalDays,
       deposit_cents: data.saleMode === 'buy' ? 0 : (cents(data.deposit) ?? 0),
       status: 'draft',
+      ...shipping,
     })
     .select('id, slug')
     .single();

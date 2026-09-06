@@ -16,6 +16,10 @@ type Listing = {
   title: string;
   sale_price_cents: number | null;
   sale_mode: string;
+  shipping_mode: string | null;
+  shipping_method: string | null;
+  shipping_cost_cents: number | null;
+  shipping_time: string | null;
 };
 type Order = {
   id: string;
@@ -144,14 +148,14 @@ function CheckoutContent({
             <p>Quantità: 1</p>
             <p className="text-2xl text-pink-300">
               {listing.sale_price_cents !== null
-                ? cents(listing.sale_price_cents)
+                ? cents(listing.sale_price_cents + (listing.shipping_cost_cents ?? 0))
                 : 'Solo noleggio'}
             </p>
             <p className="text-base text-white/70">
-              Il noleggio non è incluso in questo checkout. Nessun costo di
-              spedizione viene richiesto nella prova.
+              {listing.shipping_cost_cents !== null ? <>Consegna: {cents(listing.shipping_cost_cents)} · {listing.shipping_method}. {listing.shipping_time}. Il totale include la consegna dichiarata dal venditore, ma questa prova non produce acquisti o spedizioni reali.</> : 'Il venditore non ha ancora indicato le condizioni di consegna: il checkout non è disponibile.'}
             </p>
             {listing.sale_mode !== 'rent' &&
+              listing.shipping_cost_cents !== null &&
               listing.sale_price_cents !== null && (
                 <button
                   disabled={busy}

@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     if (!order) {
       const { data: listing } = await admin
         .from('listings')
-        .select('id,seller_id,title,sale_price_cents,status,sale_mode')
+        .select('id,seller_id,title,sale_price_cents,status,sale_mode,shipping_mode,shipping_method,shipping_cost_cents,shipping_time')
         .eq('id', parsed.data.listingId)
         .single();
       if (
@@ -57,6 +57,8 @@ export async function POST(request: Request) {
           { error: 'Articolo non acquistabile.' },
           { status: 409 },
         );
+      if (!listing.shipping_mode || listing.shipping_cost_cents === null || !listing.shipping_method || !listing.shipping_time)
+        return NextResponse.json({ error: 'Il venditore deve indicare modalità, costo e tempi della consegna prima del checkout.' }, { status: 409 });
       const { data: account } = await admin
         .from('seller_payment_accounts')
         .select('stripe_account_id')
@@ -90,10 +92,14 @@ export async function POST(request: Request) {
           listing_id: listing.id,
           item_title: listing.title,
           transaction_kind: 'sale',
-          amount_cents: listing.sale_price_cents,
+          amount_cents: listing.sale_price_cents + listing.shipping_cost_cents,
+          shipping_cost_cents: listing.shipping_cost_cents,
+          shipping_mode: listing.shipping_mode,
+          shipping_method: listing.shipping_method,
+          shipping_time: listing.shipping_time,
           fee_rate_bps: quote.rateBps,
           platform_fee_cents: quote.platformFeeCents,
-          seller_net_cents: quote.sellerNetCents,
+          seller_net_cents: quote.sellerNetCents + listing.shipping_cost_cents,
           is_test: true,
           checkout_key: parsed.data.checkoutKey,
           stripe_account_id: account.stripe_account_id,

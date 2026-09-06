@@ -43,6 +43,19 @@ completo attraverso l'interfaccia Stripe.
 
 ## Prima di vendite reali
 
+### Condizioni di spedizione implementate
+
+- Creazione e modifica annuncio: il venditore sceglie spedizione/ritiro, modalità,
+  costo e testo sui tempi/destinazioni. Ritiro a mano gratuito; nessuna tariffa/tempo
+  imposti da COSMORA. Gli annunci precedenti restano senza condizioni, senza inventare valori.
+- Catalogo e dettaglio mostrano condizioni e totale articolo più consegna.
+- Checkout TEST bloccato se mancano condizioni; snapshot delle condizioni nell'ordine,
+  importo Stripe comprensivo della consegna e commissione di prova calcolata solo sull'articolo.
+- 26 test unitari, typecheck, lint, build e suite account integrata superati;
+  persistenza e lettura pubblica delle condizioni confermate con annuncio temporaneo.
+- Rimangono da implementare indirizzo di consegna, disponibilità atomica e pratica
+  di reso concordata fra le parti. Non attivare live per la sola presenza dei nuovi campi.
+
 ### Avanzamento successivo, 6 settembre
 
 - Aggiunti inserimento corriere/tracking del venditore, conferma ricezione dell'acquirente

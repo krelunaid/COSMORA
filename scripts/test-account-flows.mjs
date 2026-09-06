@@ -111,6 +111,10 @@ try {
     condition: 'New',
     saleMode: 'buy',
     salePrice: '10',
+    shippingMode: 'courier',
+    shippingMethod: 'Temporary test carrier',
+    shippingCost: '4.95',
+    shippingTime: 'Italia, tempi scelti dal venditore',
   }))
     form.set(key, value);
   form.append(
@@ -342,6 +346,9 @@ try {
     });
   }
   const shipAction = { action: 'ship', version: 0, carrier: 'Test carrier', trackingNumber: 'TEST123456' };
+  const listingTerms = (await request('/api/listings?slug=' + listingBody.listing.slug)).body.listings[0];
+  assert.equal(listingTerms.shipping_cost_cents, 495);
+  assert.equal(listingTerms.shipping_method, 'Temporary test carrier');
   assert.equal((await request('/api/orders/' + orderId, c.token, 'PATCH', shipAction)).status, 404);
   assert.equal((await request('/api/orders/' + orderId, b.token, 'PATCH', shipAction)).status, 409);
   assert.equal((await request('/api/orders/' + orderId, a.token, 'PATCH', shipAction)).status, 200);

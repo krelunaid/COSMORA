@@ -19,6 +19,10 @@ type Listing = {
   rental_price_cents: number | null;
   rental_days: number | null;
   deposit_cents: number;
+  shipping_mode: string | null;
+  shipping_method: string | null;
+  shipping_cost_cents: number | null;
+  shipping_time: string | null;
 };
 const euro = (value: number) =>
   new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(
@@ -226,6 +230,14 @@ export function LiveListings({
                   Contatta il venditore
                 </Link>
                 <ShareButton title={listing.title} />
+                <section className="space-y-2 rounded-xl border border-white/15 p-3 text-base">
+                  <h3 className="font-semibold">Consegna del venditore</h3>
+                  {listing.shipping_mode && listing.shipping_cost_cents !== null ? <>
+                    <p>{listing.shipping_mode === 'pickup' ? 'Ritiro a mano' : 'Spedizione'} · {euro(listing.shipping_cost_cents)}</p>
+                    <p>{listing.shipping_method}</p><p>{listing.shipping_time}</p>
+                    {listing.sale_price_cents !== null && <p className="font-semibold text-pink-200">Articolo e consegna: {euro(listing.sale_price_cents + listing.shipping_cost_cents)}</p>}
+                  </> : <p>Condizioni non ancora indicate: chiedile al venditore prima di acquistare.</p>}
+                </section>
                 <SaveItem id={listing.id} kind="favorite" />
                 {paymentsEnabled && listing.sale_mode !== 'rent' && (
                   <SaveItem id={listing.id} kind="cart" />

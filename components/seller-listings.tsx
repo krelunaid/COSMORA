@@ -5,7 +5,7 @@ import Link from '@/components/app-link';
 import { Button } from '@/components/ui/button';
 import { accountRequest } from '@/lib/account-client';
 
-type Listing = { id: string; slug: string; title: string; description: string; status: string; sale_mode: string; sale_price_cents: number | null; rental_price_cents: number | null; updated_at: string };
+type Listing = { id: string; slug: string; title: string; description: string; status: string; sale_mode: string; sale_price_cents: number | null; rental_price_cents: number | null; updated_at: string; shipping_mode: string | null; shipping_method: string | null; shipping_cost_cents: number | null; shipping_time: string | null };
 type Page = { listings: Listing[]; hasMore: boolean };
 const statusLabels: Record<string, string> = { active: 'Pubblicato', paused: 'Sospeso', draft: 'Bozza', sold: 'Venduto' };
 const field = 'mt-2 w-full rounded-xl border border-white/20 bg-[#111225] p-3 text-base';
@@ -21,7 +21,7 @@ function ListingEditor({ listing, onSaved }: { listing: Listing; onSaved: (value
     setBusy(true); setError(''); setNotice('');
     try {
       const price = (key: string) => form.has(key) ? Math.round(Number(form.get(key)) * 100) : null;
-      const result = await accountRequest<{ listing: Listing }>('/api/seller/listings', { method: 'PATCH', body: JSON.stringify({ id: listing.id, updatedAt: listing.updated_at, title: form.get('title'), description: form.get('description'), status: form.get('paused') ? 'paused' : 'active', salePriceCents: price('salePrice'), rentalPriceCents: price('rentalPrice') }) });
+      const result = await accountRequest<{ listing: Listing }>('/api/seller/listings', { method: 'PATCH', body: JSON.stringify({ id: listing.id, updatedAt: listing.updated_at, title: form.get('title'), description: form.get('description'), status: form.get('paused') ? 'paused' : 'active', salePriceCents: price('salePrice'), rentalPriceCents: price('rentalPrice'), shipping: { shippingMode: form.get('shippingMode'), shippingMethod: form.get('shippingMethod'), shippingCost: form.get('shippingCost'), shippingTime: form.get('shippingTime') } }) });
       onSaved(result.listing); setEditing(false); setNotice('Modifiche salvate.');
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Salvataggio non riuscito.'); }
     finally { setBusy(false); }
@@ -32,6 +32,12 @@ function ListingEditor({ listing, onSaved }: { listing: Listing; onSaved: (value
     {editing ? <form onSubmit={save} className="space-y-4">
       <label className="block">Titolo<input name="title" defaultValue={listing.title} required minLength={3} maxLength={120} className={field} /></label>
       <label className="block">Descrizione<textarea name="description" defaultValue={listing.description} required minLength={10} maxLength={5000} rows={5} className={field} /></label>
+      <fieldset className="space-y-3 rounded-xl border border-white/15 p-3"><legend>Consegna scelta da te</legend>
+        <label className="block">Modalità<select name="shippingMode" defaultValue={listing.shipping_mode ?? 'courier'} className={field}><option value="courier">Spedizione</option><option value="pickup">Ritiro a mano gratuito</option></select></label>
+        <label className="block">Corriere o modalità di ritiro<input name="shippingMethod" defaultValue={listing.shipping_method ?? ''} required minLength={2} maxLength={120} className={field} /></label>
+        <label className="block">Costo (€), zero per ritiro<input name="shippingCost" type="number" defaultValue={listing.shipping_cost_cents === null ? '' : listing.shipping_cost_cents / 100} required min="0" max="10000" step="0.01" className={field} /></label>
+        <label className="block">Tempi e destinazioni servite<input name="shippingTime" defaultValue={listing.shipping_time ?? ''} required minLength={2} maxLength={200} className={field} /></label>
+      </fieldset>
       {listing.sale_mode !== 'rent' && <label className="block">Prezzo di vendita (€)<input name="salePrice" type="number" defaultValue={(listing.sale_price_cents ?? 0) / 100} min="0" max="1000000" step="0.01" required className={field} /></label>}
       {listing.sale_mode !== 'buy' && <label className="block">Prezzo di noleggio (€)<input name="rentalPrice" type="number" defaultValue={(listing.rental_price_cents ?? 0) / 100} min="0.01" max="1000000" step="0.01" required className={field} /></label>}
       <label className="flex min-h-12 items-center gap-3"><input name="paused" type="checkbox" defaultChecked={listing.status === 'paused'} className="size-5 accent-pink-500" />Sospendi l’annuncio</label><p className="text-sm text-white/70">Gli annunci sospesi non sono visibili nel catalogo. Puoi riattivarli in qualsiasi momento.</p>
