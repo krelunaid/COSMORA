@@ -1,6 +1,18 @@
 # COSMORA — preparazione App Store
 
-Aggiornamento: 5 settembre 2026. Bozza, NON inviata ad App Review.
+Aggiornamento: 6 settembre 2026. Bozza, NON inviata ad App Review.
+
+## Stato corrente e cambio account
+
+- Nuova iscrizione annuale Apple Developer acquistata; pagina Apple di conferma ordine osservata. Attivazione non ancora verificata: il portale Developer richiede un nuovo accesso.
+- L'acquisto del nuovo abbonamento non trasferisce COSMORA dal precedente account. Prima di intervenire su identificatori, firma o trasferimenti, verificare l'attivazione e il percorso consentito da Apple per l'app esistente.
+- Build 23 caricata con esito positivo il 5 settembre; elaborazione Apple successiva non verificata. Ultima associazione osservata nella versione Store: build 22.
+- Screenshot iPhone e iPad catturati il 6 settembre e conservati in outputs/app-store-screenshots-2026-09-06 nella directory di lavoro esterna al repository; non ancora caricati in App Store Connect. Ricatturarli se vengono sostituiti gli asset.
+- Restano da completare: account dedicato al revisore, privacy pubblica coerente con i trattamenti reali, verifica/sostituzione degli asset di terzi, prova finale dei flussi e caricamento materiali.
+- Non inserire credenziali, dati della carta o indirizzo privato in Git o nelle pagine pubbliche senza uno scopo e un'autorizzazione specifici.
+- Partita IVA non inserita nel checkout. Per fattura con partita IVA Apple indica il numero 800 915 911: https://www.apple.com/it/shop/help/payments. La possibilità di correggere l'ordine già effettuato va confermata da Apple; non ripetere l'acquisto.
+
+Le sezioni seguenti conservano le verifiche precedenti e non attestano una nuova verifica sul nuovo account.
 
 ## Verificato e preparato in App Store Connect
 

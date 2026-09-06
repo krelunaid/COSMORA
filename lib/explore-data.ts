@@ -21,7 +21,7 @@ export const exploreDiscoveries: ExploreDiscovery[] = [
   {
     section: 'Prodotti',
     title: 'Cosplay e accessori',
-    meta: 'Compra oppure noleggia',
+    meta: 'Esplora gli annunci e contatta i venditori',
     image: '/mobile-category-cosplay.jpg',
     href: '/marketplace?category=Cosplay',
     icon: 'bag',

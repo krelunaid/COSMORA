@@ -25,6 +25,13 @@ import {
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
+void test('Explore does not advertise checkout or rentals in the listings-only release', () => {
+  const cosplay = exploreDiscoveries.find((card) => card.title === 'Cosplay e accessori');
+  assert.ok(cosplay);
+  assert.equal(cosplay.meta, 'Esplora gli annunci e contatta i venditori');
+  assert.doesNotMatch(cosplay.meta, /compra|noleggia/i);
+});
+
 void test('keeps one 430px shell width and inset-centered nav', () => {
   assert.equal(PHONE_SHELL_MAX_WIDTH_PX, 430);
   assert.equal(PHONE_SHELL_MAX_WIDTH_CLASS, 'max-w-[430px]');

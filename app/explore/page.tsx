@@ -111,10 +111,10 @@ export default function ExplorePage() {
               <h2 className="mt-2 text-lg font-semibold">
                 Trova il tuo prossimo cosplay
               </h2>
-              <p className="mt-1 text-xs leading-4 text-white/55">
+              <p className="mt-1 text-sm leading-5 text-white/75">
                 Prodotti, creator e community nello stesso universo.
               </p>
-              <span className="mt-3 flex items-center text-xs text-pink-300">
+              <span className="mt-3 flex items-center text-sm text-pink-300">
                 Esplora Cosplay <ChevronRight className="size-3" />
               </span>
             </div>
@@ -150,7 +150,7 @@ export default function ExplorePage() {
             {!visible.length && section !== 'Prodotti' && (
               <div className="py-20 text-center">
                 <Search className="mx-auto size-8 text-white/20" />
-                <p className="mt-3 text-xs text-white/65">
+                <p className="mt-3 text-base text-white/75">
                   Nessun risultato trovato.
                 </p>
                 <button
@@ -158,7 +158,7 @@ export default function ExplorePage() {
                     setQuery('');
                     setSection('Per te');
                   }}
-                  className="mt-3 text-xs text-pink-300"
+                  className="mt-3 min-h-11 px-3 text-sm text-pink-300"
                 >
                   Azzera ricerca
                 </button>
