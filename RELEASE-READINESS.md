@@ -4,6 +4,12 @@
 Versione di test, non pronta per pagamenti reali o lancio commerciale.
 Il contenitore iOS usa ancora l’interfaccia remota: questi interventi NON lo trasformano in un’app offline o in un’interfaccia Swift nativa.
 
+## Correzioni locali del 6 settembre — non ancora distribuite
+- Esplora: descrizione degli annunci coerente con pagamenti/noleggi disabilitati e testi principali più leggibili.
+- Richieste account: timeout HTTP di 20 secondi e messaggi leggibili per rete assente o risposte non JSON. Nessun reinvio automatico delle mutazioni. Il timeout riguarda HTTP, non il recupero iniziale della sessione.
+- Chat: stato isolato per destinatario, indicazione del caricamento iniziale e polling sospeso mentre il documento non è visibile.
+- Test HTTP eseguiti con risposte simulate; la prova completa su iPhone e con account reali resta necessaria. Non confondere questa verifica con una distribuzione TestFlight.
+
 ## Interventi implementati
 - Home e pagine interne usano la stessa navigazione: Home, Esplora, Crea, Messaggi, Profilo personale.
 - Home con titolo e pulsante evento leggibili; categorie senza contatori inventati. Scorrimento consentito sui dispositivi piccoli per non tagliare contenuti.

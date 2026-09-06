@@ -1,4 +1,5 @@
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { accountHttp } from '@/lib/account-http';
 
 type AccountResponse = {
   email: string;
@@ -32,13 +33,9 @@ export async function accountRequest<T = AccountResponse>(
   headers.set('Authorization', `Bearer ${data.session.access_token}`);
   if (options.body && !(options.body instanceof FormData))
     headers.set('Content-Type', 'application/json');
-  const response = await fetch(path, {
+  return accountHttp<T>(path, {
     ...options,
     headers,
     cache: 'no-store',
   });
-  const result = (await response.json()) as T & { error?: string };
-  if (!response.ok)
-    throw new Error(result.error || 'Operazione non riuscita. Riprova.');
-  return result;
 }
