@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.kreluna.cosmora',
+  appId: 'it.kreluna.cosmora',
   appName: 'COSMORA',
   webDir: 'dist/client',
   backgroundColor: '#050617',

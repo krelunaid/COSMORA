@@ -1,5 +1,13 @@
 # Preparazione rilascio — 6 settembre 2026
 
+## Nuovo account iOS — avanzamento
+- Scheda creata: COSMORA: Eventi e Cosplay, Apple ID 6809232374, stato In preparazione per l’invio.
+- App ID registrato: it.kreluna.cosmora; team KMQA59LC4T; Sign in with Apple abilitato sul portale.
+- Configurazione locale aggiornata al nuovo team, build 24. Vecchia scheda non rimossa.
+- Archivio tentato: fallito perché manca il profilo iOS App Development e il team non ha dispositivi registrati. Nessun upload effettuato.
+- Xcode mostra account krelunaid@gmail.com con ruolo Admin; nel pannello certificati una chiave risulta Not in Keychain, creazione Apple Distribution disabilitata. Verificare autorizzazioni/certificato e creare profilo App Store prima di riprovare.
+- Callback OAuth mantiene lo schema precedente: prima della distribuzione verificare collisione con la vecchia app installata e accesso Apple sul nuovo team. Non dichiarare questa build pronta alla revisione.
+
 ## Verificato
 - cosmora.kreluna.it: DNS e HTTPS attivi; Home pubblica risponde 200.
 - Google abilitato in Supabase. Accesso dell'account del proprietario completato e sessione persistente dopo ricaricamento sul dominio precedente.
