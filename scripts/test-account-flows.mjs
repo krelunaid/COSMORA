@@ -341,6 +341,21 @@ try {
       body: payload,
     });
   }
+  const shipAction = { action: 'ship', version: 0, carrier: 'Test carrier', trackingNumber: 'TEST123456' };
+  assert.equal((await request('/api/orders/' + orderId, c.token, 'PATCH', shipAction)).status, 404);
+  assert.equal((await request('/api/orders/' + orderId, b.token, 'PATCH', shipAction)).status, 409);
+  assert.equal((await request('/api/orders/' + orderId, a.token, 'PATCH', shipAction)).status, 200);
+  assert.equal((await request('/api/orders/' + orderId, a.token, 'PATCH', shipAction)).status, 409);
+  assert.equal((await request('/api/orders/' + orderId, b.token, 'PATCH', { action: 'received', version: 0 })).status, 409);
+  assert.equal((await request('/api/orders/' + orderId, b.token, 'PATCH', { action: 'received', version: 1 })).status, 200);
+  assert.equal((await request('/api/orders/' + orderId, b.token, 'PATCH', { action: 'report', version: 2, reason: 'Temporary problem report for integration test' })).status, 200);
+  const delivery = (await request('/api/orders/' + orderId, b.token)).body.order;
+  assert.equal(delivery.fulfillment_status, 'delivered');
+  assert.equal(delivery.fulfillment_version, 3);
+  assert.ok(delivery.issue_opened_at);
+  assert.equal((await request('/api/orders/' + orderId + '/refund', b.token, 'POST', { confirmFullRefund: true })).status, 403);
+  assert.equal((await request('/api/orders/' + orderId + '/refund', c.token, 'POST', { confirmFullRefund: true })).status, 404);
+  console.log('PASS: shipment ownership, receipt, issue reporting, stale-write rejection and refund authorization.');
   assert.equal((await refund(1000, 'acct_wrong')).status, 503);
   assert.equal((await refund(1001)).status, 503);
   assert.equal((await refund(250)).status, 200);

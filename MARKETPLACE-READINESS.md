@@ -27,6 +27,25 @@ completo attraverso l'interfaccia Stripe.
 
 ## Prima di vendite reali
 
+### Avanzamento successivo, 6 settembre
+
+- Aggiunti inserimento corriere/tracking del venditore, conferma ricezione dell'acquirente
+  e segnalazione persistente di un problema, con controllo versione contro modifiche concorrenti.
+- Aggiunto comando venditore di rimborso completo TEST con conferma esplicita,
+  verifica PaymentIntent e chiave idempotente per ordine. L'esecuzione Stripe completa
+  non è ancora stata provata con un addebito test reale: verificati autorizzazioni
+  dell'endpoint e webhook firmati simulati, non dichiarare il rimborso end-to-end validato.
+- Migrazioni applicate al database; rimossi anche privilegi TRUNCATE/TRIGGER/REFERENCES
+  dei ruoli client sugli ordini. Solo SELECT autenticato con policy partecipanti.
+- 24 test unitari e suite account integrata passati, incluse spedizione, ricezione,
+  segnalazione, conflitto versione, divieto di rimborso da acquirente/estraneo.
+- Advisor sicurezza: nessun nuovo avviso sulla tabella ordini. Rimane l'avviso
+  preesistente sulla protezione password compromesse disabilitata:
+  https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+- Il tracking è dichiarato dal venditore, non verificato dal corriere. Mancano ancora
+  indirizzo/costi di spedizione, disponibilità atomica, gestione resi/contestazioni,
+  notifiche operative e validazione Stripe completa prima dell'abilitazione live.
+
 1. Decidere il modello commerciale e responsabilità di Kreluna e venditori:
    commissione, costi Stripe, resi, spedizione, contestazioni, saldo negativo.
    Le percentuali già nel codice sono parametri di prova, non una policy approvata.

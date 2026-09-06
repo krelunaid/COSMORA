@@ -23,6 +23,13 @@ type Order = {
   status: string;
   is_test: boolean;
   amount_cents: number;
+  role: 'buyer' | 'seller';
+  fulfillment_status: string;
+  fulfillment_version: number;
+  carrier: string | null;
+  tracking_number: string | null;
+  issue_reason: string | null;
+  issue_opened_at: string | null;
 };
 export default function CheckoutPage() {
   const params = useSearchParams(),
@@ -116,6 +123,7 @@ function CheckoutContent({
               {orderStatusLabel(order.status)}{order.is_test ? ' · TEST' : ''}
             </p>
             <p className="break-all text-sm text-white/60">Ordine {order.id}</p>
+            <OrderFulfillment order={order} refresh={retryVerification} />
             <a className="block min-h-12 py-3 text-pink-300 underline" href={'mailto:info@kreluna.it?subject=' + encodeURIComponent('COSMORA · Assistenza ordine ' + order.id)}>Segnala un problema con questo ordine</a>
             {order.status === 'pending' && (
               <button
@@ -197,4 +205,53 @@ function CheckoutContent({
       <MobileNav active="explore" />
     </MobileShell>
   );
+}
+
+function formText(form: FormData, name: string) {
+  const value = form.get(name);
+  return typeof value === 'string' ? value : '';
+}
+function OrderFulfillment({ order, refresh }: { order: Order; refresh: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  async function act(action: Record<string, string>) {
+    setBusy(true); setError('');
+    try {
+      await accountRequest('/api/orders/' + order.id, { method: 'PATCH', body: JSON.stringify({ ...action, version: order.fulfillment_version }) });
+      refresh();
+    } catch (e) { setError(e instanceof Error ? e.message : 'Operazione non riuscita.'); }
+    finally { setBusy(false); }
+  }
+  if (!order.is_test || order.status !== 'paid') return null;
+  return <div className="space-y-4 border-t border-white/15 pt-4 text-base">
+    <h3 className="text-lg font-semibold">Consegna di prova</h3>
+    <p>{order.fulfillment_status === 'delivered' ? 'Ricezione confermata dall’acquirente' : order.fulfillment_status === 'shipped' ? 'Spedizione registrata dal venditore' : 'In attesa di spedizione'}</p>
+    {order.tracking_number && <p className="break-words">{order.carrier} · {order.tracking_number}</p>}
+    {order.issue_opened_at && <div className="rounded-xl border border-amber-300/40 p-3"><p className="font-semibold">Problema segnalato</p><p className="whitespace-pre-wrap break-words">{order.issue_reason}</p><p className="mt-2">La segnalazione non esegue un rimborso. Contatta l’assistenza tramite il collegamento qui sotto.</p></div>}
+    {order.role === 'seller' && order.fulfillment_status === 'awaiting_shipment' && !order.issue_opened_at && <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); const form = new FormData(event.currentTarget); void act({ action: 'ship', carrier: formText(form, 'carrier'), trackingNumber: formText(form, 'tracking') }); }}>
+      <label className="block">Corriere<input name="carrier" required minLength={2} maxLength={80} className="mt-1 block min-h-12 w-full rounded-xl border border-white/20 bg-white/5 p-3" /></label>
+      <label className="block">Codice di tracking<input name="tracking" required minLength={3} maxLength={120} className="mt-1 block min-h-12 w-full rounded-xl border border-white/20 bg-white/5 p-3" /></label>
+      <button disabled={busy} className="min-h-12 rounded-xl bg-violet-600 px-4 disabled:opacity-50">Registra spedizione di prova</button>
+    </form>}
+    {order.role === 'buyer' && order.fulfillment_status === 'shipped' && <button disabled={busy} onClick={() => void act({ action: 'received' })} className="min-h-12 rounded-xl bg-violet-600 px-4 disabled:opacity-50">Conferma ricezione di prova</button>}
+    {order.role === 'buyer' && !order.issue_opened_at && <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); const form = new FormData(event.currentTarget); void act({ action: 'report', reason: formText(form, 'reason') }); }}>
+      <label className="block">Segnala un problema<textarea name="reason" required minLength={10} maxLength={2000} rows={3} placeholder="Descrivi cosa è successo, senza inserire dati della carta." className="mt-1 block w-full rounded-xl border border-white/20 bg-white/5 p-3" /></label>
+      <button disabled={busy} className="min-h-12 rounded-xl border border-pink-300/50 px-4 text-pink-200 disabled:opacity-50">Invia segnalazione</button>
+    </form>}
+    {order.role === 'seller' && <form className="space-y-3 rounded-xl border border-white/20 p-3" onSubmit={async (event) => {
+      event.preventDefault(); setBusy(true); setError(''); setNotice('');
+      try {
+        const result = await accountRequest<{ status: string }>('/api/orders/' + order.id + '/refund', { method: 'POST', body: JSON.stringify({ confirmFullRefund: true }) });
+        setNotice(result.status === 'succeeded' ? 'Rimborso di prova completato.' : 'Rimborso non ancora completato: stato Stripe ' + result.status + '. Contatta l’assistenza se non cambia.');
+        refresh();
+      } catch (e) { setError(e instanceof Error ? e.message : 'Rimborso non riuscito.'); }
+      finally { setBusy(false); }
+    }}>
+      <label className="flex items-start gap-3"><input type="checkbox" required className="mt-1 size-5 shrink-0" />Confermo il rimborso completo di prova, inclusa la commissione COSMORA. Nessun denaro reale viene movimentato.</label>
+      <button disabled={busy} className="min-h-12 rounded-xl border border-pink-300/50 px-4 text-pink-200 disabled:opacity-50">Esegui rimborso di prova</button>
+    </form>}
+    {notice && <output>{notice}</output>}
+    {busy && <output>Salvataggio…</output>}{error && <p role="alert" className="text-rose-300">{error}</p>}
+  </div>;
 }
