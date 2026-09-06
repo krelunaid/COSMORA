@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { signInOnIOS } from '@/lib/supabase/native-auth';
+import { authRedirect } from '@/lib/supabase/auth-redirect';
 
 type SocialProvider = 'google' | 'apple';
 const schema = z.object({
@@ -31,8 +32,6 @@ const schema = z.object({
     .max(80)
     .optional(),
 });
-const authDestination =
-  'https://cosmora-app.andreagadducci.chatgpt.site/profile/me';
 
 export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
@@ -85,7 +84,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       }
       const { error } = await client.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: authDestination },
+        options: { redirectTo: authRedirect(window.location.origin, '/profile/me') },
       });
       if (error)
         throw new Error(
@@ -120,7 +119,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
           email: result.data.email,
           password: result.data.password,
           options: {
-            emailRedirectTo: authDestination,
+            emailRedirectTo: authRedirect(window.location.origin, '/profile/me'),
             data: { display_name: result.data.displayName, role: 'buyer' },
           },
         });

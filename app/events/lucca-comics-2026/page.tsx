@@ -1,13 +1,39 @@
-import Image from 'next/image';
 import Link from '@/components/app-link';
-import { Camera, Heart, MapPin, ShieldAlert, ShoppingBag, UsersRound } from 'lucide-react';
-
+import { ArrowUpRight, UsersRound } from 'lucide-react';
 import { MobileNav, MobileShell, ScreenHeader } from '@/components/mobile-shell';
 
-export default function LuccaEventPage() {
-  return <MobileShell className="flex flex-col"><ScreenHeader title="Lucca Comics & Games 2026" back="/events" action={<Heart className="size-5" />} /><div className="flex-1"><div className="grid grid-cols-4 border-b border-white/10 text-center text-[9px]"><span className="border-b-2 border-pink-400 py-3 text-pink-300">Map</span><span className="py-3 text-white/50">Schedule</span><span className="py-3 text-white/50">Info</span><Link href="/community" className="py-3 text-white/50">Community</Link></div><div className="relative h-[300px]"><Image src="/lucca-map.png" alt="Lucca event map" fill priority sizes="430px" className="object-cover" /></div><div className="space-y-2 px-4 py-3"><h2 className="text-xs font-semibold">Nearby</h2><Nearby icon={ShoppingBag} title="Sellers" meta="42 nearby" images={['/hd-category-cosplay.png','/hd-category-manga.png','/hd-category-cards.png']} /><Nearby icon={Camera} title="Photographers" meta="18 nearby" images={['/category-artist.png','/cosmora-hero.png']} />
-    <section className="mt-4"><div className="flex items-center justify-between"><h2 className="text-xs font-semibold">Squads & Meetups</h2><Link href="/squads/create" className="text-[9px] text-pink-300">Create</Link></div><div className="mt-2 grid grid-cols-3 gap-2">{[['48','Cosplay Squads'],['22','Meetups'],['9','Photo Meetups']].map(([count,label]) => <div key={label} className="rounded-xl border border-violet-400/15 bg-violet-400/5 p-2 text-center"><b className="block text-sm text-violet-200">{count}</b><span className="text-[7px] text-white/45">{label}</span></div>)}</div><Link href="/squads/one-piece-crew-lucca-2026" className="mt-2 flex items-center rounded-xl border border-white/8 bg-[#111225] p-2.5"><UsersRound className="mr-3 size-4 text-pink-400" /><div className="flex-1"><p className="text-[10px]">One Piece Crew — Lucca 2026</p><p className="text-[8px] text-white/45">8 / 12 · Looking for characters</p></div><span className="text-white/35">›</span></Link></section>
-    <a href="https://www.luccacomicsandgames.com/" target="_blank" rel="noreferrer" className="mt-3 flex h-10 w-full items-center justify-center rounded-xl border border-pink-400/40 text-[10px] text-pink-300">Official site & tickets ↗</a><button className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 text-xs"><ShieldAlert className="size-4" />SOS Cosplay — Get help or assistance</button></div></div><MobileNav active="explore" /></MobileShell>;
-}
+import { EventLiveMap } from '@/components/event-live-map';
 
-function Nearby({ icon: Icon, title, meta, images }: { icon: typeof MapPin; title: string; meta: string; images: string[] }) { return <div className="flex items-center rounded-xl border border-white/8 bg-[#111225] p-2.5"><Icon className="mr-3 size-4 text-pink-400" /><div className="flex-1"><p className="text-[10px]">{title}</p><p className="text-[8px] text-white/45">{meta}</p></div><div className="flex -space-x-2">{images.map((src) => <span key={src} className="relative size-7 overflow-hidden rounded-full border-2 border-[#111225]"><Image src={src} alt="" fill sizes="28px" className="object-cover" /></span>)}</div></div>; }
+const officialSite = 'https://lucca2026.luccacomicsandgames.com/it/home';
+const resources = [
+  { title: 'Sito ufficiale e aggiornamenti', description: 'Programma, espositori e mappe quando disponibili.', href: officialSite },
+  { title: 'Biglietti ufficiali', description: 'Consulta le opzioni sul sito dell’organizzatore.', href: 'https://lucca2026.luccacomicsandgames.com/it/biglietti' },
+  { title: 'Informazioni e assistenza evento', description: 'Le risposte degli organizzatori alle domande frequenti.', href: 'https://luccacrea.zendesk.com/' },
+];
+
+export default function LuccaEventPage() {
+  return (
+    <MobileShell className="flex flex-col">
+      <ScreenHeader title="Lucca 2026" back="/events" />
+      <div className="flex-1 space-y-4 px-4 pb-5 pt-2">
+        <header className="px-1 pb-1">
+          <h1 className="text-2xl font-bold leading-tight">Lucca Comics <span className="text-pink-300">&amp; Games</span></h1>
+          <p className="mt-2 text-sm text-violet-200">28 ottobre – 1 novembre 2026 · Lucca</p>
+        </header>
+        <EventLiveMap />
+        <details className="rounded-2xl border border-white/10 p-4">
+          <summary className="cursor-pointer text-base font-semibold">Programma, biglietti e informazioni ↗</summary>
+          <div className="mt-3 space-y-3">{resources.map(({ title, description, href }) => (
+            <a key={title} href={href} target="_blank" rel="noopener noreferrer" className="flex min-h-14 items-center gap-3 rounded-2xl border border-white/15 bg-[#111225] p-4 focus-visible:outline-2 focus-visible:outline-pink-300">
+              <div className="min-w-0 flex-1"><h3 className="text-base font-semibold">{title}</h3><p className="mt-1 text-sm leading-relaxed text-white/75">{description}</p></div><ArrowUpRight aria-hidden="true" className="size-5 shrink-0 text-white/70" />
+            </a>
+          ))}</div>
+          <p className="mt-3 text-sm text-white/65">I collegamenti esterni aprono i siti degli organizzatori.</p>
+        </details>
+        <Link href="/community" className="flex min-h-14 items-center gap-3 rounded-2xl border border-fuchsia-400/25 bg-violet-950/40 p-4"><UsersRound aria-hidden="true" className="size-6 shrink-0 text-pink-300" /><div><h2 className="text-base font-semibold">Community COSMORA</h2><p className="mt-1 text-sm text-white/75">Esplora i post della community, non il programma ufficiale.</p></div></Link>
+        <p className="px-1 text-xs leading-relaxed text-white/60">Guida indipendente di COSMORA, non affiliata né approvata dagli organizzatori. Nessuno stand ufficiale ancora collegato.</p>
+      </div>
+      <MobileNav active="explore" />
+    </MobileShell>
+  );
+}

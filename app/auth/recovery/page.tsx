@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from '@/components/app-link';
 import { Button } from '@/components/ui/button';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { authRedirect } from '@/lib/supabase/auth-redirect';
 
 export default function RecoveryPage() {
   const [ready, setReady] = useState(false);
@@ -41,7 +42,7 @@ export default function RecoveryPage() {
       } else {
         const email = form.get('email');
         if (typeof email !== 'string') throw new Error('Inserisci un indirizzo email.');
-        const { error } = await client.auth.resetPasswordForEmail(email.trim(), { redirectTo: 'https://cosmora-app.andreagadducci.chatgpt.site/auth/recovery' });
+        const { error } = await client.auth.resetPasswordForEmail(email.trim(), { redirectTo: authRedirect(window.location.origin, '/auth/recovery') });
         if (error) throw new Error('Invio non riuscito. Attendi qualche minuto e riprova.');
         setMessage('Se l’indirizzo è associato a un account, riceverai un collegamento per scegliere una nuova password. Controlla anche la posta indesiderata.');
       }
