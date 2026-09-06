@@ -1,7 +1,12 @@
 'use client';
 import { rentalsEnabled } from '@/lib/release-features';
 
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import {
+  canUseNativePhotoPicker,
+  pickNativeCommunityPhotos,
+  renderFileAsJpeg,
+} from '@/lib/community-media-client';
 import Image from 'next/image';
 import Link from '@/components/app-link';
 import { useRouter } from 'next/navigation';
@@ -31,6 +36,7 @@ export default function SellPage() {
   const [listingPhotos, setListingPhotos] = useState<ListingPhoto[]>([]);
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState('');
+  const [preparingPhotos, setPreparingPhotos] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -102,6 +108,8 @@ export default function SellPage() {
       <form
         onSubmit={async (event) => {
           event.preventDefault();
+          const form = event.currentTarget;
+          if (preparingPhotos || publishing) return;
           if (!photoCount) {
             setPhotoError('Aggiungi almeno una foto del prodotto.');
             return;
@@ -115,50 +123,59 @@ export default function SellPage() {
           }
           setPublishing(true);
           setPublishError('');
-          const session = await supabase.auth.getSession();
-          const token = session.data.session?.access_token;
-          if (!token) {
-            router.push('/auth/login');
-            return;
-          }
-          const body = new FormData(event.currentTarget);
-          body.set('saleMode', saleMode);
-          for (const [index, photo] of listingPhotos.entries()) {
-            if (photo.processedUrl) {
-              const blob = await fetch(photo.processedUrl).then((response) =>
-                response.blob(),
-              );
-              body.append(
-                'photos',
-                new File(
-                  [blob],
-                  `${photo.file.name.replace(/\.[^.]+$/, '')}-cutout.png`,
-                  { type: 'image/png' },
-                ),
-              );
-              body.set(`photoProcessed:${index}`, 'true');
-            } else {
-              body.append('photos', photo.file);
+          try {
+            const session = await supabase.auth.getSession();
+            const token = session.data.session?.access_token;
+            if (!token) {
+              router.push('/auth/login');
+              return;
             }
+            const body = new FormData(form);
+            body.set('saleMode', saleMode);
+            for (const [index, photo] of listingPhotos.entries()) {
+              if (photo.processedUrl) {
+                const blob = await fetch(photo.processedUrl).then((response) =>
+                  response.blob(),
+                );
+                body.append(
+                  'photos',
+                  new File(
+                    [blob],
+                    `${photo.file.name.replace(/\.[^.]+$/, '')}-cutout.png`,
+                    { type: 'image/png' },
+                  ),
+                );
+                body.set(`photoProcessed:${index}`, 'true');
+              } else {
+                body.append('photos', photo.file);
+              }
+            }
+            const response = await fetch('/api/listings', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}` },
+              body,
+            });
+            const result = (await response.json().catch(() => null)) as {
+              error?: string;
+            } | null;
+            setPublishing(false);
+            if (!response.ok) {
+              setPublishError(result?.error ?? 'Pubblicazione non riuscita.');
+              return;
+            }
+            setPublished(true);
+          } catch {
+            setPublishError(
+              'Pubblicazione non riuscita. Controlla la connessione e riprova: le foto sono ancora qui.',
+            );
+          } finally {
+            setPublishing(false);
           }
-          const response = await fetch('/api/listings', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
-            body,
-          });
-          const result = (await response.json().catch(() => null)) as {
-            error?: string;
-          } | null;
-          setPublishing(false);
-          if (!response.ok) {
-            setPublishError(result?.error ?? 'Pubblicazione non riuscita.');
-            return;
-          }
-          setPublished(true);
         }}
         className="flex-1 space-y-4 px-4 py-5"
       >
         <ListingPhotoUploader
+          onBusyChange={setPreparingPhotos}
           onPhotosChange={setListingPhotos}
           onCountChange={(count) => {
             setPhotoCount(count);
@@ -198,27 +215,76 @@ export default function SellPage() {
           </select>
         </div>
         <div>
-          <p className="mb-2 text-sm text-white/70">{rentalsEnabled ? 'Disponibile per' : 'Annuncio di vendita · pagamenti in app non disponibili'}</p>
+          <p className="mb-2 text-sm text-white/70">
+            {rentalsEnabled
+              ? 'Disponibile per'
+              : 'Annuncio di vendita · pagamenti in app non disponibili'}
+          </p>
           <div className="grid grid-cols-3 gap-2">
-            {(rentalsEnabled ? (['buy', 'rent', 'both'] as const) : []).map((mode) => (
-              <button
-                type="button"
-                onClick={() => setSaleMode(mode)}
-                key={mode}
-                className={`h-10 rounded-xl border text-xs uppercase ${saleMode === mode ? 'border-pink-400 bg-pink-400/10 text-pink-300' : 'border-white/10 text-white/50'}`}
-              >
-                {mode === 'both' ? 'Buy + Rent' : mode}
-              </button>
-            ))}
+            {(rentalsEnabled ? (['buy', 'rent', 'both'] as const) : []).map(
+              (mode) => (
+                <button
+                  type="button"
+                  onClick={() => setSaleMode(mode)}
+                  key={mode}
+                  className={`h-10 rounded-xl border text-xs uppercase ${saleMode === mode ? 'border-pink-400 bg-pink-400/10 text-pink-300' : 'border-white/10 text-white/50'}`}
+                >
+                  {mode === 'both' ? 'Buy + Rent' : mode}
+                </button>
+              ),
+            )}
           </div>
         </div>
         <fieldset className="space-y-3 rounded-2xl border border-white/15 p-4 text-base">
-          <legend className="px-2 text-lg font-semibold">Consegna decisa da te</legend>
-          <p className="text-white/70">Scegli modalità, costo e tempi. L’acquirente li leggerà nell’annuncio. COSMORA non effettua la spedizione.</p>
-          <label className="block">Modalità<select name="shippingMode" className="checkout-input mt-1"><option value="courier">Spedizione</option><option value="pickup">Ritiro a mano gratuito</option></select></label>
-          <label className="block">Corriere o modalità di ritiro<input name="shippingMethod" required minLength={2} maxLength={120} placeholder="Corriere scelto da te oppure luogo pubblico di ritiro" className="checkout-input mt-1" /></label>
-          <label className="block">Costo di consegna (€)<input name="shippingCost" required type="number" min="0" max="10000" step="0.01" placeholder="0 per consegna gratuita o ritiro" className="checkout-input mt-1" /></label>
-          <label className="block">Tempi e destinazioni servite<input name="shippingTime" required minLength={2} maxLength={200} placeholder="Indica i tuoi tempi e dove puoi spedire" className="checkout-input mt-1" /></label>
+          <legend className="px-2 text-lg font-semibold">
+            Consegna decisa da te
+          </legend>
+          <p className="text-white/70">
+            Scegli modalità, costo e tempi. L’acquirente li leggerà
+            nell’annuncio. COSMORA non effettua la spedizione.
+          </p>
+          <label className="block">
+            Modalità
+            <select name="shippingMode" className="checkout-input mt-1">
+              <option value="courier">Spedizione</option>
+              <option value="pickup">Ritiro a mano gratuito</option>
+            </select>
+          </label>
+          <label className="block">
+            Corriere o modalità di ritiro
+            <input
+              name="shippingMethod"
+              required
+              minLength={2}
+              maxLength={120}
+              placeholder="Corriere scelto da te oppure luogo pubblico di ritiro"
+              className="checkout-input mt-1"
+            />
+          </label>
+          <label className="block">
+            Costo di consegna (€)
+            <input
+              name="shippingCost"
+              required
+              type="number"
+              min="0"
+              max="10000"
+              step="0.01"
+              placeholder="0 per consegna gratuita o ritiro"
+              className="checkout-input mt-1"
+            />
+          </label>
+          <label className="block">
+            Tempi e destinazioni servite
+            <input
+              name="shippingTime"
+              required
+              minLength={2}
+              maxLength={200}
+              placeholder="Indica i tuoi tempi e dove puoi spedire"
+              className="checkout-input mt-1"
+            />
+          </label>
         </fieldset>
         <div className="grid grid-cols-2 gap-2">
           {saleMode !== 'rent' && (
@@ -302,7 +368,7 @@ export default function SellPage() {
           </p>
         )}
         <button
-          disabled={publishing}
+          disabled={publishing || preparingPhotos}
           className="h-12 w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 text-sm font-medium disabled:opacity-60"
         >
           {publishing ? 'Pubblicazione…' : 'Publish Listing'}
@@ -325,27 +391,81 @@ type ListingPhoto = {
 function ListingPhotoUploader({
   onCountChange,
   onPhotosChange,
+  onBusyChange,
 }: {
   onCountChange: (count: number) => void;
   onPhotosChange: (photos: ListingPhoto[]) => void;
+  onBusyChange: (busy: boolean) => void;
 }) {
   const inputId = useId();
   const [photos, setPhotos] = useState<ListingPhoto[]>([]);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
+  const photosRef = useRef<ListingPhoto[]>([]);
+  useEffect(() => {
+    photosRef.current = photos;
+  }, [photos]);
+  useEffect(() => {
+    onBusyChange(busy);
+  }, [busy, onBusyChange]);
+  useEffect(
+    () => () => {
+      for (const photo of photosRef.current) {
+        URL.revokeObjectURL(photo.originalUrl);
+        if (photo.processedUrl) URL.revokeObjectURL(photo.processedUrl);
+      }
+    },
+    [],
+  );
+
+  async function openPicker() {
+    if (busyRef.current) return;
+    if (!canUseNativePhotoPicker()) {
+      document.getElementById(inputId)?.click();
+      return;
+    }
+    busyRef.current = true;
+    setBusy(true);
+    setError('');
+    try {
+      const files = await pickNativeCommunityPhotos(8 - photos.length, true);
+      if (files?.length) await addFiles(files);
+    } catch {
+      setError(
+        'Non riesco a leggere la foto dalla libreria. Prova il pulsante “Scegli da File”.',
+      );
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
+  }
 
   useEffect(() => {
     onPhotosChange(photos);
   }, [photos, onPhotosChange]);
 
-  function addFiles(files: FileList | File[]) {
-    const accepted = Array.from(files).filter(
-      (file) =>
-        ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) &&
-        file.size <= 10 * 1024 * 1024,
-    );
+  async function addFiles(files: FileList | File[]) {
+    const incoming = Array.from(files);
+    const accepted: File[] = [];
+    let failed = 0;
+    setBusy(true);
+    for (const file of incoming.slice(0, Math.max(0, 8 - photos.length))) {
+      try {
+        if (file.size > 40 * 1024 * 1024) throw new Error('too large');
+        const normalized = await renderFileAsJpeg(file);
+        if (normalized.size > 10 * 1024 * 1024) throw new Error('too large');
+        accepted.push(normalized);
+      } catch {
+        failed++;
+      }
+    }
+    setBusy(false);
     if (!accepted.length) {
-      setError('Usa foto JPG, PNG o WebP fino a 10 MB.');
+      setError(
+        'Foto non leggibile o troppo grande. Prova una copia JPG o scegli da File.',
+      );
       return;
     }
     setPhotos((current) => {
@@ -358,11 +478,20 @@ function ListingPhotoUploader({
           originalUrl: URL.createObjectURL(file),
         })),
       ];
-      onCountChange(next.length);
       return next;
     });
-    setError(accepted.length > 8 ? 'Puoi inserire al massimo 8 foto.' : '');
+    setError(
+      failed
+        ? 'Alcune foto non sono leggibili o sono troppo grandi.'
+        : incoming.length > 8 - photos.length
+          ? 'Puoi inserire al massimo 8 foto.'
+          : '',
+    );
   }
+
+  useEffect(() => {
+    onCountChange(photos.length);
+  }, [photos.length, onCountChange]);
 
   function removePhoto(id: string) {
     setPhotos((current) => {
@@ -372,7 +501,6 @@ function ListingPhotoUploader({
         if (removed.processedUrl) URL.revokeObjectURL(removed.processedUrl);
       }
       const next = current.filter((photo) => photo.id !== id);
-      onCountChange(next.length);
       return next;
     });
   }
@@ -440,7 +568,8 @@ function ListingPhotoUploader({
         <button
           type="button"
           aria-label="Aggiungi fino a 8 foto del prodotto"
-          onClick={() => document.getElementById(inputId)?.click()}
+          onClick={() => void openPicker()}
+          disabled={busy}
           onDragEnter={(event) => {
             event.preventDefault();
             setDragging(true);
@@ -458,25 +587,38 @@ function ListingPhotoUploader({
             <span className="mx-auto mb-3 grid size-12 place-items-center rounded-2xl border border-violet-300/20 bg-violet-400/10">
               <ImagePlus className="size-6 text-violet-200" />
             </span>
-            <b className="block text-sm text-white">Aggiungi le foto</b>
+            <b className="block text-sm text-white">
+              {busy ? 'Preparazione foto…' : 'Aggiungi le foto'}
+            </b>
             <span className="mt-1 block">
               Tocca oppure trascina qui · massimo 8
             </span>
             <span className="mt-1 block text-xs text-white/30">
-              JPG, PNG o WebP · 10 MB per foto
+              Foto iPhone, JPG, PNG o WebP · ottimizzazione automatica
             </span>
           </span>
         </button>
         <input
           id={inputId}
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/*,.heic,.heif"
           multiple
-          onChange={(event) =>
-            event.target.files && addFiles(event.target.files)
-          }
+          disabled={busy}
+          onChange={(event) => {
+            const files = Array.from(event.target.files ?? []);
+            event.target.value = '';
+            if (files.length) void addFiles(files);
+          }}
           className="sr-only"
         />
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => document.getElementById(inputId)?.click()}
+          className="mt-3 min-h-11 text-base text-pink-300"
+        >
+          Scegli da File
+        </button>
         {error && (
           <p role="alert" className="mt-2 text-xs text-rose-300">
             {error}
@@ -552,23 +694,37 @@ function ListingPhotoUploader({
           </article>
         ))}
       </div>
-      <label
-        htmlFor={inputId}
-        className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-violet-400/30 text-xs text-violet-200"
-      >
+      <div className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-violet-400/30 text-xs text-violet-200">
         <ImagePlus className="size-4" />
-        Aggiungi altre foto
+        <button
+          type="button"
+          disabled={busy || photos.length >= 8}
+          onClick={() => void openPicker()}
+        >
+          {busy ? 'Preparazione foto…' : 'Aggiungi altre foto'}
+        </button>
         <input
           id={inputId}
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/*,.heic,.heif"
           multiple
-          onChange={(event) =>
-            event.target.files && addFiles(event.target.files)
-          }
+          disabled={busy}
+          onChange={(event) => {
+            const files = Array.from(event.target.files ?? []);
+            event.target.value = '';
+            if (files.length) void addFiles(files);
+          }}
           className="sr-only"
         />
-      </label>
+      </div>
+      <button
+        type="button"
+        disabled={busy || photos.length >= 8}
+        onClick={() => document.getElementById(inputId)?.click()}
+        className="min-h-11 text-base text-pink-300"
+      >
+        Scegli da File
+      </button>
       <p className="flex items-start gap-2 rounded-xl border border-white/8 p-3 text-xs leading-3 text-white/40">
         <Sparkles className="mt-0.5 size-3 shrink-0 text-pink-300" />
         Lo scontorno è facoltativo e può sbagliare su capelli, trasparenze o

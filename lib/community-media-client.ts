@@ -60,7 +60,7 @@ function loadHtmlImage(url: string) {
   });
 }
 
-async function renderFileAsJpeg(file: File) {
+export async function renderFileAsJpeg(file: File) {
   const objectUrl = URL.createObjectURL(file);
   try {
     let source: CanvasImageSource;
@@ -81,11 +81,12 @@ async function renderFileAsJpeg(file: File) {
     }
     if (!width || !height) throw new Error('Immagine vuota.');
     const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
+    const scale = Math.min(1, 2048 / Math.max(width, height));
+    canvas.width = Math.round(width * scale);
+    canvas.height = Math.round(height * scale);
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Anteprima non disponibile.');
-    context.drawImage(source, 0, 0, width, height);
+    context.drawImage(source, 0, 0, canvas.width, canvas.height);
     close?.();
     const blob = await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob(
@@ -140,7 +141,10 @@ async function filesFromGalleryResults(
   return files;
 }
 
-export async function pickNativeCommunityPhotos(limit: number) {
+export async function pickNativeCommunityPhotos(
+  limit: number,
+  photosOnly = false,
+) {
   if (limit <= 0 || !canUseNativePhotoPicker()) return null;
   const camera = await import('@capacitor/camera');
   const { Camera, MediaType, MediaTypeSelection } = camera;
@@ -154,16 +158,7 @@ export async function pickNativeCommunityPhotos(limit: number) {
 
   try {
     return await choose({
-      mediaType: MediaTypeSelection.All,
-      allowMultipleSelection: true,
-      limit,
-    });
-  } catch (error) {
-    if (isNativePickerCancel(error)) return [];
-  }
-
-  try {
-    return await choose({
+      mediaType: photosOnly ? MediaTypeSelection.Photo : MediaTypeSelection.All,
       allowMultipleSelection: true,
       limit,
     });

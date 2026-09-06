@@ -115,8 +115,10 @@ export function CommunityMediaPicker({
       }
     } catch (error) {
       if (shouldFallbackToHtmlFilePicker({ error })) {
-        onError('');
-        openHtmlFileInput();
+        onError(
+          'Non riesco a leggere la foto. Riprova selezionandola da File.',
+        );
+        skipNativeRef.current = true;
       }
     } finally {
       setBusy(false);
