@@ -2,6 +2,22 @@
 
 ## Confine della versione
 
+## Decisioni confermate dal titolare — 6 settembre 2026
+
+- COSMORA mette in contatto utenti: gli articoli sono venduti dai venditori, non da Kreluna.
+- Il venditore sceglie e dichiara modalità, costo e tempi di spedizione nell'annuncio;
+  l'acquirente deve vedere il totale prima di pagare. COSMORA non spedisce gli articoli.
+- Acquirente e venditore gestiscono inizialmente resi e problemi nella conversazione
+  collegata all'ordine. Il venditore può accettare il reso e autorizzare il rimborso.
+- L'app deve registrare richiesta, risposte e stato della pratica e offrire un percorso
+  di segnalazione all'assistenza quando le parti non trovano un accordo.
+- Non sono ancora stabiliti commissione COSMORA, termini dei resi, costi del reso,
+  tempi di risposta o responsabilità sulle contestazioni: non inventarli né considerarli approvati.
+- Queste sono decisioni di prodotto, non condizioni legali definitive né attestazione
+  che i relativi flussi siano già implementati o pubblicati.
+
+## Modalità corrente
+
 Solo modalità Stripe TEST. `getStripe()` rifiuta chiavi live; gli ordini di prova
 non riservano merce e non comportano spedizioni. Non esiste una garanzia acquisti
 COSMORA, un servizio escrow o una copertura assicurativa. Non presentarli come attivi.
