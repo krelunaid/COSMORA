@@ -11,7 +11,12 @@
 	<key>signingCertificate</key>
 	<string>Apple Distribution</string>
 	<key>signingStyle</key>
-	<string>automatic</string>
+	<string>manual</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>it.kreluna.cosmora</key>
+		<string>COSMORA Kreluna App Store</string>
+	</dict>
 	<key>stripSwiftSymbols</key>
 	<true/>
 	<key>teamID</key>
