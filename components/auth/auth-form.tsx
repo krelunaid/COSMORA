@@ -213,7 +213,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                   variant="outline"
                   onClick={() => signInWithSocial(provider)}
                   disabled={status === 'loading' || !providers[provider]}
-                  className={`h-auto min-h-14 w-full gap-3 rounded-xl px-4 py-3 text-base disabled:opacity-65 ${provider === 'google' ? 'border-white/20 bg-white text-[#161622] hover:bg-white/90' : 'border-white/25 bg-black text-white hover:bg-white/10'}`}
+                  className={`h-auto min-h-14 w-full gap-3 rounded-xl px-4 py-3 text-base disabled:opacity-65 ${provider === 'google' ? 'border-white/20 bg-white text-[#161622] hover:bg-white/90 hover:text-[#161622] dark:bg-white dark:text-[#161622] dark:hover:bg-white/90 dark:hover:text-[#161622]' : 'border-white/25 bg-black text-white hover:bg-white/10 dark:bg-black dark:text-white dark:hover:bg-white/10'}`}
                 >
                   {provider === 'google' ? (
                     <span
