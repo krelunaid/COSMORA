@@ -77,7 +77,7 @@ export default function CommunityPage() {
       <header className="flex items-center justify-between p-5">
         <h1 className="text-2xl font-semibold">Community</h1>
         <Link
-          href="/community/create"
+          href="/community/post/new"
           className="rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold"
         >
           Nuovo post
@@ -122,7 +122,7 @@ export default function CommunityPage() {
               Condividi un cosplay, una collezione o un momento a un evento.
             </p>
             <Link
-              href="/community/create"
+              href="/community/post/new"
               className="mt-4 inline-block rounded-xl bg-violet-600 px-4 py-3"
             >
               Crea un post

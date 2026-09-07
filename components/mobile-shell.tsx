@@ -93,7 +93,7 @@ export function MobileNav({
             </div>
             <div className="space-y-2">
               <CreateAction
-                href="/community/create"
+                href="/community/post/new"
                 icon={Camera}
                 title="Post"
                 description="Condividi cosplay, collezioni e momenti."
