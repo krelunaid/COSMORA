@@ -3,11 +3,7 @@ import { useI18n } from '@/components/i18n-provider';
 import { saleText, type SaleKey } from '@/lib/i18n/sale';
 
 import { useEffect, useId, useRef, useState } from 'react';
-import {
-  canUseNativePhotoPicker,
-  pickNativeCommunityPhotos,
-  renderFileAsJpeg,
-} from '@/lib/community-media-client';
+import { renderFileAsJpeg } from '@/lib/community-media-client';
 import Image from 'next/image';
 import Link from '@/components/app-link';
 import { useRouter } from 'next/navigation';
@@ -368,7 +364,6 @@ function ListingPhotoUploader({
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const busyRef = useRef(false);
   const photosRef = useRef<ListingPhoto[]>([]);
   useEffect(() => {
     photosRef.current = photos;
@@ -386,24 +381,9 @@ function ListingPhotoUploader({
     [],
   );
 
-  async function openPicker() {
-    if (busyRef.current) return;
-    if (!canUseNativePhotoPicker()) {
-      document.getElementById(inputId)?.click();
-      return;
-    }
-    busyRef.current = true;
-    setBusy(true);
-    setError('');
-    try {
-      const files = await pickNativeCommunityPhotos(8 - photos.length, true);
-      if (files?.length) await addFiles(files);
-    } catch {
-      setError(t('photoFail'));
-    } finally {
-      busyRef.current = false;
-      setBusy(false);
-    }
+  function openPicker() {
+    if (busy || photos.length >= 8) return;
+    document.getElementById(inputId)?.click();
   }
 
   useEffect(() => {

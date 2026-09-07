@@ -30,3 +30,9 @@ test('image conversion bounds output dimensions for iPhone photos', () => {
   assert.match(media, /2048 \/ Math.max\(width, height\)/);
   assert.match(media, /canvas.width, canvas.height/);
 });
+
+test('forms receive files directly without intercepting the iOS system picker', () => {
+  assert.doesNotMatch(community, /onClick=\{onInputClick\}|pickNativeCommunityPhotos/);
+  assert.doesNotMatch(sell, /pickNativeCommunityPhotos/);
+  assert.match(community, /Array.from\(event.target.files \?\? \[\]\)/);
+});

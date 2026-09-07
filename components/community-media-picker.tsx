@@ -1,21 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ImagePlus, Trash2, Video } from 'lucide-react';
 import Image from 'next/image';
 
-import {
-  canUseNativePhotoPicker,
-  normalizeCommunityMediaFile,
-  pickNativeCommunityPhotos,
-} from '@/lib/community-media-client';
+import { normalizeCommunityMediaFile } from '@/lib/community-media-client';
 import {
   COMMUNITY_MEDIA_ACCEPT,
   COMMUNITY_MEDIA_LIMIT_ERROR,
   MAX_COMMUNITY_MEDIA_FILES,
   isAllowedCommunityMediaFile,
   isVideoMedia,
-  shouldFallbackToHtmlFilePicker,
 } from '@/lib/community-media';
 
 type SelectedMedia = {
@@ -35,7 +30,6 @@ export function CommunityMediaPicker({
   onError: (message: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const skipNativeRef = useRef(false);
   const itemsRef = useRef<SelectedMedia[]>([]);
   const [items, setItems] = useState<SelectedMedia[]>([]);
   const [busy, setBusy] = useState(false);
@@ -84,42 +78,10 @@ export function CommunityMediaPicker({
         })),
       ]);
       onError(incoming.length > remaining ? COMMUNITY_MEDIA_LIMIT_ERROR : '');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  function openHtmlFileInput() {
-    skipNativeRef.current = true;
-    inputRef.current?.click();
-  }
-
-  async function onInputClick(event: MouseEvent<HTMLInputElement>) {
-    if (skipNativeRef.current || items.length >= MAX_COMMUNITY_MEDIA_FILES) {
-      return;
-    }
-    if (!canUseNativePhotoPicker()) return;
-    event.preventDefault();
-    setBusy(true);
-    try {
-      const native = await pickNativeCommunityPhotos(
-        MAX_COMMUNITY_MEDIA_FILES - items.length,
+    } catch {
+      onError(
+        'Impossibile preparare questa foto. Prova una copia JPG oppure un’altra immagine.',
       );
-      if (native?.length) {
-        await addFiles(native);
-        return;
-      }
-      if (shouldFallbackToHtmlFilePicker({ nativeResult: native })) {
-        onError('');
-        openHtmlFileInput();
-      }
-    } catch (error) {
-      if (shouldFallbackToHtmlFilePicker({ error })) {
-        onError(
-          'Non riesco a leggere la foto. Riprova selezionandola da File.',
-        );
-        skipNativeRef.current = true;
-      }
     } finally {
       setBusy(false);
     }
@@ -141,10 +103,10 @@ export function CommunityMediaPicker({
       multiple
       disabled={busy || !canAddMore}
       aria-label="Foto o video"
-      onClick={onInputClick}
       onChange={(event) => {
-        if (event.target.files) void addFiles(event.target.files);
+        const files = Array.from(event.target.files ?? []);
         event.target.value = '';
+        if (files.length) void addFiles(files);
       }}
       className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-wait"
       style={{ fontSize: 16 }}
