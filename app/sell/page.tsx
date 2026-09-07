@@ -106,6 +106,33 @@ export default function SellPage() {
           event.preventDefault();
           const form = event.currentTarget;
           if (preparingPhotos || publishing) return;
+          for (const control of Array.from(form.elements)) {
+            if (
+              control instanceof HTMLInputElement ||
+              control instanceof HTMLTextAreaElement
+            ) {
+              control.setCustomValidity('');
+              if (
+                control.type === 'text' ||
+                control instanceof HTMLTextAreaElement
+              ) {
+                control.value = control.value.trim();
+                if (
+                  control.required &&
+                  control.value.length < Math.max(1, control.minLength)
+                ) {
+                  control.setCustomValidity(t('invalid'));
+                }
+              }
+            }
+          }
+          if (!form.checkValidity()) {
+            setPublishError(t('invalid'));
+            const invalid = form.querySelector<HTMLElement>(':invalid');
+            invalid?.focus();
+            invalid?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            return;
+          }
           if (!photoCount) {
             setPhotoError(t('requiredPhoto'));
             return;
@@ -164,10 +191,7 @@ export default function SellPage() {
             setPublishing(false);
           }
         }}
-        onInvalid={(event) => {
-          event.preventDefault();
-          setPublishError(t('invalid'));
-        }}
+        noValidate
         className="flex-1 space-y-5 px-4 py-5 text-base"
       >
         <p className="text-base text-white/75">{t('intro')}</p>
@@ -211,7 +235,15 @@ export default function SellPage() {
           </label>
           <label className="block">
             {t('category')}
-            <select name="category" className="checkout-input mt-2">
+            <select
+              name="category"
+              required
+              defaultValue=""
+              className="checkout-input mt-2"
+            >
+              <option value="" disabled>
+                {t('choose')}
+              </option>
               {(
                 [
                   ['Cosplay', 'cosplay'],
@@ -230,7 +262,15 @@ export default function SellPage() {
           </label>
           <label className="block">
             {t('condition')}
-            <select name="condition" className="checkout-input mt-2">
+            <select
+              name="condition"
+              required
+              defaultValue=""
+              className="checkout-input mt-2"
+            >
+              <option value="" disabled>
+                {t('choose')}
+              </option>
               {(
                 [
                   ['New', 'new'],
