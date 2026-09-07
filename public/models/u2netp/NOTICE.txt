@@ -1,0 +1,15 @@
+COSMORA optional, on-device background removal
+
+U2-Net portable model by Xuebin Qin, Zichen Zhang, Chenyang Huang,
+Masood Dehghan, Osmar R. Zaiane and Martin Jagersand.
+U2-Net: Going Deeper with Nested U-Structure for Salient Object Detection.
+Pattern Recognition 106 (2020), 107404.
+https://github.com/xuebinqin/U-2-Net — Apache-2.0 (LICENSE alongside).
+Unmodified ONNX export distributed by https://github.com/danielgatis/rembg
+Mirror: https://huggingface.co/edgetools/u2netp
+Revision: 25dee37ab19c5b6ad64ba6578eba63f1ae07720c
+SHA256: 309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8
+
+ONNX Runtime Web 1.22.0, Microsoft Corporation, MIT license
+(ONNX-RUNTIME-LICENSE alongside). https://github.com/microsoft/onnxruntime
+The photo is processed locally. No model files are requested before consent.

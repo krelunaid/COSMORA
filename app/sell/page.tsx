@@ -1,6 +1,15 @@
 'use client';
 import { useI18n } from '@/components/i18n-provider';
 import { saleText, type SaleKey } from '@/lib/i18n/sale';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
+  AlertDialogFooter,
+} from '@/components/ui/alert-dialog';
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { renderFileAsJpeg } from '@/lib/community-media-client';
@@ -405,6 +414,11 @@ function ListingPhotoUploader({
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const photosRef = useRef<ListingPhoto[]>([]);
+  const [cutRequest, setCutRequest] = useState<string | null>(null);
+  const [cutPhase, setCutPhase] = useState<'cutDownload' | 'cutting'>(
+    'cutDownload',
+  );
+  const cutJob = useRef<AbortController | null>(null);
   useEffect(() => {
     photosRef.current = photos;
   }, [photos]);
@@ -413,6 +427,7 @@ function ListingPhotoUploader({
   }, [busy, photos, onBusyChange]);
   useEffect(
     () => () => {
+      cutJob.current?.abort();
       for (const photo of photosRef.current) {
         URL.revokeObjectURL(photo.originalUrl);
         if (photo.processedUrl) URL.revokeObjectURL(photo.processedUrl);
@@ -489,26 +504,27 @@ function ListingPhotoUploader({
 
   async function removeBackground(id: string) {
     const photo = photos.find((item) => item.id === id);
-    if (!photo) return;
+    if (!photo || cutJob.current) return;
+    const controller = new AbortController();
+    cutJob.current = controller;
+    setCutRequest(null);
+    setCutPhase('cutDownload');
     setPhotos((current) =>
       current.map((item) =>
         item.id === id ? { ...item, processing: true, error: undefined } : item,
       ),
     );
-    const body = new FormData();
-    body.append('image', photo.file);
     try {
-      const response = await fetch('/api/images/remove-background', {
-        method: 'POST',
-        body,
-      });
-      if (!response.ok) {
-        const result = (await response.json().catch(() => null)) as {
-          error?: string;
-        } | null;
-        throw new Error(result?.error ?? t('cutFail'));
-      }
-      const processedUrl = URL.createObjectURL(await response.blob());
+      // No AI code or model is loaded until the confirmation action above.
+      const { removeBackgroundLocally } =
+        await import('@/lib/background-removal-client');
+      const blob = await removeBackgroundLocally(
+        photo.file,
+        controller.signal,
+        setCutPhase,
+      );
+      controller.signal.throwIfAborted();
+      const processedUrl = URL.createObjectURL(blob);
       setPhotos((current) =>
         current.map((item) => {
           if (item.id !== id) return item;
@@ -523,11 +539,13 @@ function ListingPhotoUploader({
             ? {
                 ...item,
                 processing: false,
-                error: t('cutFail'),
+                error: controller.signal.aborted ? undefined : t('cutFail'),
               }
             : item,
         ),
       );
+    } finally {
+      cutJob.current = null;
     }
   }
 
@@ -606,6 +624,32 @@ function ListingPhotoUploader({
 
   return (
     <section className="space-y-3">
+      <AlertDialog
+        open={cutRequest !== null}
+        onOpenChange={(open) => {
+          if (!open) setCutRequest(null);
+        }}
+      >
+        <AlertDialogContent className="border border-violet-400/30 bg-[#111225] text-white">
+          <AlertDialogTitle>{t('cutConsent')}</AlertDialogTitle>
+          <AlertDialogDescription className="text-base text-white/80">
+            {t('cutDownloadInfo')}
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+            <AlertDialogCancel type="button">
+              {t('cutCancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              type="button"
+              onClick={() => {
+                if (cutRequest) void removeBackground(cutRequest);
+              }}
+            >
+              {t('cutStart')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <p aria-live="polite" className="text-base text-white/75">
         {t('preview')} · {photos.length}/8
       </p>
@@ -632,6 +676,7 @@ function ListingPhotoUploader({
               <button
                 type="button"
                 onClick={() => removePhoto(photo.id)}
+                disabled={photo.processing}
                 aria-label={t('remove')}
                 className="absolute right-2 top-2 grid size-11 place-items-center rounded-full bg-black/65"
               >
@@ -651,8 +696,8 @@ function ListingPhotoUploader({
               ) : (
                 <button
                   type="button"
-                  disabled={photo.processing}
-                  onClick={() => removeBackground(photo.id)}
+                  disabled={photos.some((item) => item.processing)}
+                  onClick={() => setCutRequest(photo.id)}
                   className="flex min-h-11 w-full items-center justify-center gap-1 rounded-lg border border-violet-400/25 bg-violet-400/8 text-sm text-violet-200 disabled:opacity-60"
                 >
                   {photo.processing ? (
@@ -660,7 +705,16 @@ function ListingPhotoUploader({
                   ) : (
                     <Scissors className="size-3" />
                   )}
-                  {photo.processing ? t('cutting') : t('cut')}
+                  {photo.processing ? t(cutPhase) : t('cut')}
+                </button>
+              )}
+              {photo.processing && (
+                <button
+                  type="button"
+                  className="min-h-11 w-full text-sm text-pink-300"
+                  onClick={() => cutJob.current?.abort()}
+                >
+                  {t('cutCancel')}
                 </button>
               )}
               {photo.error && (

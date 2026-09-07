@@ -1,5 +1,34 @@
 import type { Locale } from './config';
 export const saleCopy = {
+  cutConsent: [
+    'Scontorno sul dispositivo',
+    'On-device background removal',
+    'Détourage sur cet appareil',
+    'Hintergrund lokal entfernen',
+    'Recorte en este dispositivo',
+  ],
+  cutDownloadInfo: [
+    'Solo se confermi, carichiamo lo strumento: circa 17 MB se non è già nella cache. Meglio usare il Wi-Fi. La foto resta sul dispositivo durante lo scontorno. Il risultato può richiedere tempo e va controllato; puoi mantenere l’originale.',
+    'Only if you confirm, we load the tool: about 17 MB unless already cached. Wi-Fi is recommended. The photo stays on your device during processing. Results may take time and should be checked; you can keep the original.',
+    'Uniquement après confirmation, nous chargeons l’outil : environ 17 Mo si absent du cache. Wi-Fi conseillé. La photo reste sur votre appareil pendant le détourage. Vérifiez le résultat ; vous pouvez garder l’original.',
+    'Erst nach Bestätigung laden wir das Werkzeug: etwa 17 MB, falls nicht im Cache. WLAN empfohlen. Das Foto bleibt beim Freistellen auf deinem Gerät. Prüfe das Ergebnis; du kannst das Original behalten.',
+    'Solo al confirmar cargamos la herramienta: unos 17 MB si no está en caché. Mejor con Wi-Fi. La foto permanece en tu dispositivo durante el recorte. Revisa el resultado; puedes conservar el original.',
+  ],
+  cutStart: [
+    'Carica e rimuovi sfondo',
+    'Load and remove background',
+    'Charger et détourer',
+    'Laden und freistellen',
+    'Cargar y quitar fondo',
+  ],
+  cutCancel: ['Annulla', 'Cancel', 'Annuler', 'Abbrechen', 'Cancelar'],
+  cutDownload: [
+    'Caricamento strumento…',
+    'Loading tool…',
+    'Chargement de l’outil…',
+    'Werkzeug wird geladen…',
+    'Cargando herramienta…',
+  ],
   payoutSetup: [
     'Configura gli incassi',
     'Set up payouts',
