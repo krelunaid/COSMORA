@@ -566,25 +566,26 @@ function ListingPhotoUploader({
 
   return (
     <section className="space-y-3">
+      <p aria-live="polite" className="text-base text-white/75">
+        {t('preview')} · {photos.length}/8
+      </p>
       <div className="grid grid-cols-2 gap-2">
         {photos.map((photo, index) => (
           <article
             key={photo.id}
-            className={`${index === 0 ? 'col-span-2' : ''} overflow-hidden rounded-2xl border border-white/10 bg-[#111225]`}
+            className="overflow-hidden rounded-2xl border border-white/10 bg-[#111225]"
           >
-            <div
-              className={`${index === 0 ? 'h-64' : 'h-36'} relative bg-[linear-gradient(45deg,#17172b_25%,transparent_25%),linear-gradient(-45deg,#17172b_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#17172b_75%),linear-gradient(-45deg,transparent_75%,#17172b_75%)] bg-[length:18px_18px] bg-[position:0_0,0_9px,9px_-9px,-9px_0px]`}
-            >
+            <div className="relative aspect-square bg-[#17172b]">
               <Image
                 src={photo.processedUrl ?? photo.originalUrl}
                 alt={`${t('preview')} ${index + 1}`}
                 fill
                 unoptimized
-                sizes={index === 0 ? '398px' : '190px'}
+                sizes="190px"
                 className="object-contain"
               />
               {index === 0 && (
-                <span className="absolute left-2 top-2 rounded-full bg-pink-500 px-2 py-1 text-sm font-semibold">
+                <span className="absolute bottom-2 left-2 rounded-full bg-pink-500 px-2 py-1 text-sm font-semibold">
                   {t('cover')}
                 </span>
               )}
@@ -630,6 +631,17 @@ function ListingPhotoUploader({
             </div>
           </article>
         ))}
+        {photos.length < 8 && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={openPicker}
+            className="grid aspect-square content-center justify-items-center gap-3 rounded-2xl border border-dashed border-pink-400/50 bg-violet-500/10 p-3 text-base text-violet-200 disabled:opacity-60"
+          >
+            <ImagePlus className="size-8" />
+            {busy ? t('preparing') : t('more')}
+          </button>
+        )}
       </div>
       <div className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-violet-400/30 text-sm text-violet-200">
         <ImagePlus className="size-4" />

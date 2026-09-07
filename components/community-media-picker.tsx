@@ -114,24 +114,35 @@ export function CommunityMediaPicker({
   );
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
+      <p aria-live="polite" className="text-base text-white/75">
+        Foto o video · {items.length}/{MAX_COMMUNITY_MEDIA_FILES}
+      </p>
       <div className="relative min-h-44 overflow-hidden rounded-2xl border border-dashed border-violet-400/40 bg-violet-500/5">
         {items.length === 0 ? (
-          <div className="relative grid h-44 place-items-center">
-            <span className="pointer-events-none text-center text-[10px] text-white/55">
-              <ImagePlus className="mx-auto mb-2 size-7 text-violet-300" />
-              <b className="block text-xs text-white">Foto o video</b>
-              <small>Puoi selezionare più foto o un video breve</small>
-              {busy && (
-                <small className="mt-2 block text-violet-200">
-                  Preparazione anteprima…
-                </small>
-              )}
-            </span>
-            {fileInput}
+          <div className="grid grid-cols-2 gap-3 p-3">
+            <div className="relative grid aspect-square place-items-center rounded-xl border border-dashed border-pink-400/50">
+              <span className="pointer-events-none text-center text-sm text-white/75">
+                <ImagePlus className="mx-auto mb-2 size-7 text-violet-300" />
+                <b className="block text-base text-white">Aggiungi</b>
+                <span>Foto o video</span>
+                {busy && (
+                  <small className="mt-2 block text-violet-200">
+                    Preparazione anteprima…
+                  </small>
+                )}
+              </span>
+              {fileInput}
+            </div>
+            <div
+              aria-hidden="true"
+              className="grid aspect-square place-items-center rounded-xl border border-white/15 bg-white/[0.025] text-sm text-white/60"
+            >
+              Le tue anteprime
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-1.5 p-2">
+          <div className="grid grid-cols-2 gap-3 p-3">
             {items.map((item) => (
               <figure
                 key={item.id}
@@ -161,17 +172,17 @@ export function CommunityMediaPicker({
                   type="button"
                   aria-label={`Rimuovi ${item.file.name || 'file'}`}
                   onClick={() => removeItem(item.id)}
-                  className="absolute right-1 top-1 z-20 grid size-6 place-items-center rounded-full bg-black/70"
+                  className="absolute right-1 top-1 z-20 grid size-11 place-items-center rounded-full bg-black/70"
                 >
                   <Trash2 className="size-3" />
                 </button>
               </figure>
             ))}
             {canAddMore && (
-              <div className="relative grid aspect-square place-items-center rounded-xl border border-dashed border-violet-400/35 text-[8px] text-violet-200">
+              <div className="relative grid aspect-square place-items-center rounded-xl border border-dashed border-pink-400/50 bg-violet-500/10 text-base text-violet-200">
                 <span className="pointer-events-none text-center">
-                  <ImagePlus className="mx-auto mb-1 size-4" />
-                  Aggiungi
+                  <ImagePlus className="mx-auto mb-2 size-8" />
+                  {busy ? 'Preparazione…' : 'Aggiungi altre'}
                 </span>
                 {fileInput}
               </div>
@@ -180,7 +191,7 @@ export function CommunityMediaPicker({
         )}
       </div>
       {error && (
-        <p role="alert" className="text-[9px] text-rose-300">
+        <p role="alert" className="text-sm text-rose-300">
           {error}
         </p>
       )}
