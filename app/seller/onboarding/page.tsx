@@ -27,6 +27,7 @@ export default function Onboarding() {
         if (active && d.profile) {
           setType(d.profile.seller_type);
           setValues(d.profile.details);
+          setSaved(true);
         }
       })
       .catch(() => {
@@ -243,14 +244,23 @@ export default function Onboarding() {
                   {t('title')}
                 </Link>
                 {paymentsEnabled && (
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={connect}
-                    className="min-h-11 text-violet-300 underline"
-                  >
-                    {t('stripe')}
-                  </button>
+                  <section className="space-y-3 rounded-xl border border-violet-400/25 bg-violet-500/10 p-4">
+                    <h2 className="text-lg font-semibold">
+                      {t('payoutSetup')}
+                    </h2>
+                    <p className="text-base text-white/80">
+                      {t('payoutExplanation')}
+                    </p>
+                    <p className="text-sm text-amber-200">{t('payoutTest')}</p>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={connect}
+                      className="min-h-11 text-violet-300 underline"
+                    >
+                      {busy ? t('wait') : t('payoutSetup')}
+                    </button>
+                  </section>
                 )}
               </div>
             )}

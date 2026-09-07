@@ -1,5 +1,26 @@
 import type { Locale } from './config';
 export const saleCopy = {
+  payoutSetup: [
+    'Configura gli incassi',
+    'Set up payouts',
+    'Configurer les versements',
+    'Auszahlungen einrichten',
+    'Configurar cobros',
+  ],
+  payoutExplanation: [
+    'Anche se vendi come privato, non serve una carta di credito. Stripe ti guida nella verifica dei dati e nell’aggiunta del conto per ricevere gli accrediti. Non inserire IBAN o documenti nella descrizione pubblica.',
+    'Private sellers do not need a credit card. Stripe guides you through verification and adding a bank account to receive payouts. Do not put bank details or identity documents in your public description.',
+    'Les vendeurs particuliers n’ont pas besoin de carte de crédit. Stripe vous guide pour vérifier vos données et ajouter un compte bancaire pour les versements. Ne publiez pas votre IBAN ni vos documents d’identité dans la description.',
+    'Auch Privatverkäufer brauchen keine Kreditkarte. Stripe führt durch die Datenprüfung und das Hinzufügen eines Bankkontos für Auszahlungen. Veröffentliche keine Bankdaten oder Ausweisdokumente in der Beschreibung.',
+    'Los vendedores particulares no necesitan tarjeta de crédito. Stripe te guía para verificar tus datos y añadir una cuenta bancaria para recibir los cobros. No publiques tu IBAN ni documentos de identidad en la descripción.',
+  ],
+  payoutTest: [
+    'Modalità test: usa solo i dati di prova previsti da Stripe, non coordinate bancarie reali. Nessun accredito reale. Commissione e regole di sblocco sono ancora da definire.',
+    'Test mode: use only Stripe test data, not real bank details. No real payouts. Commission and release rules are still to be defined.',
+    'Mode test : utilisez uniquement les données de test Stripe, pas de coordonnées bancaires réelles. Aucun versement réel. Commission et règles de déblocage restent à définir.',
+    'Testmodus: Verwende nur Stripe-Testdaten, keine echten Bankdaten. Keine echten Auszahlungen. Provision und Freigaberegeln sind noch festzulegen.',
+    'Modo de prueba: usa solo datos de prueba de Stripe, no datos bancarios reales. No hay cobros reales. La comisión y las reglas de liberación aún están por definir.',
+  ],
   title: [
     'Crea annuncio',
     'Create listing',
