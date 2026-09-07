@@ -1,10 +1,15 @@
 'use client';
+import { useI18n } from '@/components/i18n-provider';
+import { saleText, type SaleKey } from '@/lib/i18n/sale';
 import { paymentsEnabled } from '@/lib/release-features';
 import { useState, useEffect } from 'react';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
 import { accountRequest } from '@/lib/account-client';
 import Link from '@/components/app-link';
 export default function Onboarding() {
+  const { locale } = useI18n();
+  const t = (key: SaleKey) => saleText(locale, key);
+
   const [type, setType] = useState('private');
   const [values, setValues] = useState<Record<string, string>>({
     country: 'IT',
@@ -24,8 +29,8 @@ export default function Onboarding() {
           setValues(d.profile.details);
         }
       })
-      .catch((e) => {
-        if (active) setError(e.message);
+      .catch(() => {
+        if (active) setError('failed');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -49,8 +54,8 @@ export default function Onboarding() {
         }),
       });
       setSaved(true);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Salvataggio non riuscito.');
+    } catch {
+      setError('failed');
     } finally {
       setBusy(false);
     }
@@ -63,48 +68,50 @@ export default function Onboarding() {
         method: 'POST',
       });
       window.location.assign(r.url);
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : 'Collegamento non disponibile.',
-      );
+    } catch {
+      setError('failed');
       setBusy(false);
     }
   }
   const fields = [
-    ['displayName', 'Nome pubblico'],
-    ['email', 'Email di contatto'],
-    ['phone', 'Telefono'],
-    ['description', 'Descrizione'],
+    ['displayName', t('publicName')],
+    ['email', t('email')],
+    ['phone', t('phone')],
+    ['description', t('bio')],
     ...(type === 'shop'
       ? [
-          ['legalName', 'Ragione sociale'],
-          ['vatNumber', 'Partita IVA / VAT'],
-          ['registrationNumber', 'Numero di registrazione (facoltativo)'],
-          ['registeredAddress', 'Sede legale'],
-          ['legalRepresentative', 'Rappresentante legale'],
-          ['billingAddress', 'Indirizzo di fatturazione'],
-          ['shippingPolicy', 'Condizioni di spedizione'],
-          ['returnsPolicy', 'Condizioni di reso'],
+          ['legalName', t('legalName')],
+          ['vatNumber', t('vat')],
+          ['registrationNumber', t('registration')],
+          ['registeredAddress', t('address')],
+          ['legalRepresentative', t('representative')],
+          ['billingAddress', t('billing')],
+          ['shippingPolicy', t('shippingPolicy')],
+          ['returnsPolicy', t('returns')],
         ]
       : []),
   ];
   return (
     <MobileShell>
-      <ScreenHeader title="Profilo venditore" back="/seller" />
+      <ScreenHeader title={t('profile')} back="/seller" />
       <div className="p-5 pb-12">
         {loading ? (
-          <output>Caricamento profilo…</output>
+          <output>{t('loadingProfile')}</output>
         ) : (
-          <form onSubmit={save} className="space-y-5">
-            <h1 className="text-2xl font-semibold">Vendi su COSMORA</h1>
-            <p className="text-white/70">
-              Scegli se vendere come privato o negozio. I dati amministrativi
-              non vengono mostrati nel profilo pubblico.
-            </p>
+          <form
+            onInvalid={(event) => {
+              event.preventDefault();
+              setError('invalid');
+            }}
+            onSubmit={save}
+            className="space-y-5"
+          >
+            <h1 className="text-2xl font-semibold">{t('sellCosmora')}</h1>
+            <p className="text-white/70">{t('profileHint')}</p>
             <div className="grid grid-cols-2 gap-3">
               {[
-                ['private', 'Privato'],
-                ['shop', 'Negozio'],
+                ['private', t('private')],
+                ['shop', t('shop')],
               ].map(([v, l]) => (
                 <button
                   type="button"
@@ -127,7 +134,7 @@ export default function Onboarding() {
             </div>
             {type === 'shop' && (
               <label className="block">
-                Forma dell’attività
+                {t('business')}
                 <select
                   required
                   value={values.businessType || ''}
@@ -137,11 +144,9 @@ export default function Onboarding() {
                   }}
                   className="checkout-input mt-2"
                 >
-                  <option value="">Seleziona</option>
-                  <option value="individual">
-                    Ditta individuale / professionista
-                  </option>
-                  <option value="company">Società</option>
+                  <option value="">{t('choose')}</option>
+                  <option value="individual">{t('individual')}</option>
+                  <option value="company">{t('company')}</option>
                 </select>
               </label>
             )}
@@ -174,7 +179,7 @@ export default function Onboarding() {
               </label>
             ))}
             <label className="block">
-              Paese
+              {t('country')}
               <select
                 value={values.country || 'IT'}
                 onChange={(e) => {
@@ -203,59 +208,59 @@ export default function Onboarding() {
                   RO: 'Romania',
                   HU: 'Ungheria',
                   CH: 'Svizzera',
-                }).map(([code, label]) => (
+                }).map(([code]) => (
                   <option key={code} value={code}>
-                    {label}
+                    {new Intl.DisplayNames([locale], { type: 'region' }).of(
+                      code,
+                    )}
                   </option>
                 ))}
               </select>
             </label>
             <p className="rounded-xl bg-amber-500/10 p-4 text-sm text-amber-100">
-              I pagamenti sono ancora in fase di test. Non inserire documenti
-              d’identità o dati bancari qui: la verifica avviene su Stripe.
+              {t('sensitive')}
             </p>
             <label className="flex gap-3">
               <input type="checkbox" required className="size-5 shrink-0" />
-              Confermo che i dati sono corretti e di essere autorizzato a
-              vendere.
+              {t('confirmProfile')}
             </label>
             <button
               disabled={busy}
               className="min-h-12 w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 font-semibold disabled:opacity-50"
             >
-              {busy ? 'Attendi…' : 'Salva profilo'}
+              {busy ? t('wait') : t('saveProfile')}
             </button>
             {saved && (
               <div
                 aria-live="polite"
                 className="space-y-3 rounded-xl border border-emerald-400/25 p-4"
               >
-                <p className="text-emerald-300">
-                  Profilo salvato nel tuo account.
-                </p>
+                <p className="text-emerald-300">{t('savedProfile')}</p>
                 <Link
                   href="/sell"
                   className="block min-h-11 py-2 text-pink-300 underline"
                 >
-                  Crea un annuncio
+                  {t('title')}
                 </Link>
-                {paymentsEnabled && <button
-                  type="button"
-                  disabled={busy}
-                  onClick={connect}
-                  className="min-h-11 text-violet-300 underline"
-                >
-                  Collega Stripe in modalità test
-                </button>}
+                {paymentsEnabled && (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={connect}
+                    className="min-h-11 text-violet-300 underline"
+                  >
+                    {t('stripe')}
+                  </button>
+                )}
               </div>
             )}
           </form>
         )}
         {error && (
           <p role="alert" className="mt-4 text-rose-300">
-            {error}{' '}
+            {t(error === 'invalid' ? 'invalid' : 'error')}{' '}
             <Link href="/auth/login" className="underline">
-              Accedi
+              {t('login')}
             </Link>
           </p>
         )}

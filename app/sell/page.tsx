@@ -1,5 +1,6 @@
 'use client';
-import { rentalsEnabled } from '@/lib/release-features';
+import { useI18n } from '@/components/i18n-provider';
+import { saleText, type SaleKey } from '@/lib/i18n/sale';
 
 import { useEffect, useId, useRef, useState } from 'react';
 import {
@@ -29,8 +30,11 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export default function SellPage() {
   const router = useRouter();
+  const { locale } = useI18n();
+  const t = (key: SaleKey) => saleText(locale, key);
+  const [shippingMode, setShippingMode] = useState('courier');
   const [published, setPublished] = useState(false);
-  const [saleMode, setSaleMode] = useState<'buy' | 'rent' | 'both'>('buy');
+  const saleMode = 'buy';
   const [photoCount, setPhotoCount] = useState(0);
   const [photoError, setPhotoError] = useState('');
   const [listingPhotos, setListingPhotos] = useState<ListingPhoto[]>([]);
@@ -56,32 +60,28 @@ export default function SellPage() {
         if (active && response.ok && !result.profile)
           router.replace('/seller/onboarding');
         else if (active && !response.ok)
-          setPublishError(
-            'Non riesco a verificare il profilo venditore. Riprova.',
-          );
+          setPublishError(saleText(locale, 'error'));
       } catch {
-        if (active) setPublishError('Connessione non disponibile. Riprova.');
+        if (active) setPublishError(saleText(locale, 'error'));
       }
     }
     void checkSeller();
     return () => {
       active = false;
     };
-  }, [router]);
+  }, [router, locale]);
   if (published)
     return (
       <MobileShell className="flex flex-col">
         <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
           <CheckCircle2 className="size-16 text-emerald-300" />
-          <h1 className="mt-5 text-2xl font-semibold">Listing published</h1>
-          <p className="mt-3 text-sm text-white/50">
-            Your item is now visible in the COSMORA marketplace.
-          </p>
+          <h1 className="mt-5 text-2xl font-semibold">{t('published')}</h1>
+          <p className="mt-3 text-sm text-white/50">{t('visible')}</p>
           <Link
             href="/seller"
             className="mt-6 grid h-11 w-full place-items-center rounded-xl bg-gradient-to-r from-pink-500 to-violet-500"
           >
-            Open Seller Dashboard
+            {t('dashboard')}
           </Link>
         </div>
         <MobileNav active="sell" />
@@ -91,18 +91,18 @@ export default function SellPage() {
   return (
     <MobileShell className="flex flex-col">
       <ScreenHeader
-        title="Create Listing"
+        title={t('title')}
         back="/"
         action={
-          <Link href="/seller" className="text-xs text-pink-300">
-            Dashboard
+          <Link href="/seller" className="text-sm text-pink-300">
+            {t('dashboard')}
           </Link>
         }
       />
-      <div className="mx-4 mt-4 flex items-center justify-between rounded-xl border border-violet-400/20 bg-violet-400/5 px-3 py-2 text-xs">
-        <span>Publishing with your seller profile</span>
+      <div className="mx-4 mt-4 flex items-center justify-between rounded-xl border border-violet-400/20 bg-violet-400/5 px-3 py-2 text-sm">
+        <span>{t('profile')}</span>
         <Link href="/seller/onboarding" className="text-pink-300">
-          Edit profile
+          {t('edit')}
         </Link>
       </div>
       <form
@@ -111,14 +111,12 @@ export default function SellPage() {
           const form = event.currentTarget;
           if (preparingPhotos || publishing) return;
           if (!photoCount) {
-            setPhotoError('Aggiungi almeno una foto del prodotto.');
+            setPhotoError(t('requiredPhoto'));
             return;
           }
           const supabase = getSupabaseBrowserClient();
           if (!supabase) {
-            setPublishError(
-              'Il collegamento al database non è ancora configurato.',
-            );
+            setPublishError(t('error'));
             return;
           }
           setPublishing(true);
@@ -155,25 +153,29 @@ export default function SellPage() {
               headers: { Authorization: `Bearer ${token}` },
               body,
             });
-            const result = (await response.json().catch(() => null)) as {
-              error?: string;
-            } | null;
+
             setPublishing(false);
             if (!response.ok) {
-              setPublishError(result?.error ?? 'Pubblicazione non riuscita.');
+              setPublishError(
+                response.status === 400 ? t('invalid') : t('error'),
+              );
               return;
             }
             setPublished(true);
           } catch {
-            setPublishError(
-              'Pubblicazione non riuscita. Controlla la connessione e riprova: le foto sono ancora qui.',
-            );
+            setPublishError(t('error'));
           } finally {
             setPublishing(false);
           }
         }}
-        className="flex-1 space-y-4 px-4 py-5"
+        onInvalid={(event) => {
+          event.preventDefault();
+          setPublishError(t('invalid'));
+        }}
+        className="flex-1 space-y-5 px-4 py-5 text-base"
       >
+        <p className="text-base text-white/75">{t('intro')}</p>
+        <h2 className="text-xl font-semibold">{t('photos')} *</h2>
         <ListingPhotoUploader
           onBusyChange={setPreparingPhotos}
           onPhotosChange={setListingPhotos}
@@ -183,187 +185,145 @@ export default function SellPage() {
           }}
         />
         {photoError && (
-          <p role="alert" className="-mt-2 text-xs text-rose-300">
+          <p role="alert" className="-mt-2 text-sm text-rose-300">
             {photoError}
           </p>
         )}
-        <input
-          name="title"
-          required
-          placeholder="Listing title"
-          className="checkout-input"
-        />
-        <textarea
-          name="description"
-          required
-          placeholder="Describe your item, condition and what is included"
-          className="checkout-input min-h-28 resize-none py-3"
-        />
-        <div className="grid grid-cols-2 gap-2">
-          <select name="category" className="checkout-input">
-            <option>Cosplay</option>
-            <option>Comics & Manga</option>
-            <option>Figures & Collectibles</option>
-            <option>Trading Cards</option>
-            <option>Gaming</option>
-            <option>Artist Alley</option>
-          </select>
-          <select name="condition" className="checkout-input">
-            <option>New</option>
-            <option>Like New</option>
-            <option>Used</option>
-          </select>
-        </div>
-        <div>
-          <p className="mb-2 text-sm text-white/70">
-            {rentalsEnabled
-              ? 'Disponibile per'
-              : 'Annuncio di vendita · pagamenti in app non disponibili'}
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            {(rentalsEnabled ? (['buy', 'rent', 'both'] as const) : []).map(
-              (mode) => (
-                <button
-                  type="button"
-                  onClick={() => setSaleMode(mode)}
-                  key={mode}
-                  className={`h-10 rounded-xl border text-xs uppercase ${saleMode === mode ? 'border-pink-400 bg-pink-400/10 text-pink-300' : 'border-white/10 text-white/50'}`}
-                >
-                  {mode === 'both' ? 'Buy + Rent' : mode}
-                </button>
-              ),
-            )}
-          </div>
-        </div>
-        <fieldset className="space-y-3 rounded-2xl border border-white/15 p-4 text-base">
-          <legend className="px-2 text-lg font-semibold">
-            Consegna decisa da te
-          </legend>
-          <p className="text-white/70">
-            Scegli modalità, costo e tempi. L’acquirente li leggerà
-            nell’annuncio. COSMORA non effettua la spedizione.
-          </p>
+        <fieldset className="space-y-4 rounded-2xl border border-white/15 p-4">
+          <legend className="px-2 text-xl font-semibold">{t('details')}</legend>
           <label className="block">
-            Modalità
-            <select name="shippingMode" className="checkout-input mt-1">
-              <option value="courier">Spedizione</option>
-              <option value="pickup">Ritiro a mano gratuito</option>
+            {t('name')}
+            <input
+              name="title"
+              required
+              minLength={3}
+              maxLength={120}
+              placeholder={t('nameHint')}
+              className="checkout-input mt-2"
+            />
+          </label>
+          <label className="block">
+            {t('description')}
+            <textarea
+              name="description"
+              required
+              minLength={10}
+              maxLength={5000}
+              placeholder={t('descriptionHint')}
+              className="checkout-input mt-2 min-h-36 py-3"
+            />
+          </label>
+          <label className="block">
+            {t('category')}
+            <select name="category" className="checkout-input mt-2">
+              {(
+                [
+                  ['Cosplay', 'cosplay'],
+                  ['Comics & Manga', 'comics'],
+                  ['Figures & Collectibles', 'figures'],
+                  ['Trading Cards', 'cards'],
+                  ['Gaming', 'gaming'],
+                  ['Artist Alley', 'artist'],
+                ] as const
+              ).map(([value, key]) => (
+                <option key={value} value={value}>
+                  {t(key)}
+                </option>
+              ))}
             </select>
           </label>
           <label className="block">
-            Corriere o modalità di ritiro
-            <input
-              name="shippingMethod"
-              required
-              minLength={2}
-              maxLength={120}
-              placeholder="Corriere scelto da te oppure luogo pubblico di ritiro"
-              className="checkout-input mt-1"
-            />
-          </label>
-          <label className="block">
-            Costo di consegna (€)
-            <input
-              name="shippingCost"
-              required
-              type="number"
-              min="0"
-              max="10000"
-              step="0.01"
-              placeholder="0 per consegna gratuita o ritiro"
-              className="checkout-input mt-1"
-            />
-          </label>
-          <label className="block">
-            Tempi e destinazioni servite
-            <input
-              name="shippingTime"
-              required
-              minLength={2}
-              maxLength={200}
-              placeholder="Indica i tuoi tempi e dove puoi spedire"
-              className="checkout-input mt-1"
-            />
+            {t('condition')}
+            <select name="condition" className="checkout-input mt-2">
+              {(
+                [
+                  ['New', 'new'],
+                  ['Like New', 'likeNew'],
+                  ['Used', 'used'],
+                ] as const
+              ).map(([value, key]) => (
+                <option key={value} value={value}>
+                  {t(key)}
+                </option>
+              ))}
+            </select>
           </label>
         </fieldset>
-        <div className="grid grid-cols-2 gap-2">
-          {saleMode !== 'rent' && (
+        <fieldset className="space-y-4 rounded-2xl border border-white/15 p-4">
+          <legend className="px-2 text-xl font-semibold">
+            {t('delivery')}
+          </legend>
+          <label className="block">
+            {t('price')}
             <input
               required
               name="salePrice"
               type="number"
               min="0"
               step="0.01"
-              placeholder="Sale price (€)"
-              className="checkout-input"
+              className="checkout-input mt-2"
             />
-          )}
-          {saleMode !== 'buy' && (
+          </label>
+          <p className="text-white/75">{t('shippingInfo')}</p>
+          <label className="block">
+            {t('method')}
+            <select
+              name="shippingMode"
+              value={shippingMode}
+              onChange={(event) => setShippingMode(event.target.value)}
+              className="checkout-input mt-2"
+            >
+              <option value="courier">{t('courier')}</option>
+              <option value="pickup">{t('pickup')}</option>
+            </select>
+          </label>
+          <label className="block">
+            {t('carrier')}
             <input
+              name="shippingMethod"
               required
-              name="rentalPrice"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="Rental price (€)"
-              className="checkout-input"
+              minLength={2}
+              maxLength={120}
+              className="checkout-input mt-2"
             />
+          </label>
+          {shippingMode === 'pickup' ? (
+            <input type="hidden" name="shippingCost" value="0" />
+          ) : (
+            <label className="block">
+              {t('cost')}
+              <input
+                name="shippingCost"
+                required
+                type="number"
+                min="0"
+                max="10000"
+                step="0.01"
+                className="checkout-input mt-2"
+              />
+            </label>
           )}
-          {saleMode !== 'buy' && (
+          <label className="block">
+            {t('time')}
             <input
+              name="shippingTime"
               required
-              name="rentalDays"
-              type="number"
-              min="1"
-              placeholder="Rental days"
-              className="checkout-input"
+              minLength={2}
+              maxLength={200}
+              placeholder={t('timeHint')}
+              className="checkout-input mt-2"
             />
-          )}
-          {saleMode !== 'buy' && (
-            <input
-              required
-              name="deposit"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="Deposit (€)"
-              className="checkout-input"
-            />
-          )}
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <input
-            placeholder="Size (e.g. M / EU 38)"
-            className="checkout-input"
-          />
-          <input placeholder="Brand / Fan-made" className="checkout-input" />
-        </div>
-        <input
-          placeholder="Measurements (bust, waist, height…)"
-          className="checkout-input"
-        />
-        <div className="grid grid-cols-2 gap-2">
-          <select className="checkout-input">
-            <option>Italy</option>
-            <option>France</option>
-            <option>Germany</option>
-            <option>Spain</option>
-            <option>Belgium</option>
-            <option>Netherlands</option>
-          </select>
-          <input placeholder="Estimated delivery" className="checkout-input" />
-        </div>
-        <label className="flex items-center gap-2 rounded-xl border border-white/8 p-3 text-xs">
-          <input type="checkbox" />
-          Local hand delivery at a public meeting point
-        </label>
-        <label className="flex items-start gap-2 rounded-xl border border-white/8 p-3 text-xs leading-4 text-white/55">
-          <input required type="checkbox" className="mt-0.5" />I confirm the
-          listing is accurate, legal, and clearly identifies official
-          merchandise or fan-made work.
+          </label>
+          <p className="rounded-xl bg-violet-500/10 p-3 text-sm text-violet-200">
+            {t('noPayments')}
+          </p>
+        </fieldset>
+        <label className="flex items-start gap-3 rounded-xl border border-white/15 p-4 text-base leading-relaxed">
+          <input required type="checkbox" className="mt-1 size-5 shrink-0" />
+          {t('confirm')}
         </label>
         {publishError && (
-          <p role="alert" className="text-xs text-rose-300">
+          <p role="alert" className="text-sm text-rose-300">
             {publishError}
           </p>
         )}
@@ -371,7 +331,11 @@ export default function SellPage() {
           disabled={publishing || preparingPhotos}
           className="h-12 w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 text-sm font-medium disabled:opacity-60"
         >
-          {publishing ? 'Pubblicazione…' : 'Publish Listing'}
+          {publishing
+            ? t('publishing')
+            : preparingPhotos
+              ? t('preparing')
+              : t('publish')}
         </button>
       </form>
       <MobileNav active="sell" />
@@ -397,6 +361,8 @@ function ListingPhotoUploader({
   onPhotosChange: (photos: ListingPhoto[]) => void;
   onBusyChange: (busy: boolean) => void;
 }) {
+  const { locale } = useI18n();
+  const t = (key: SaleKey) => saleText(locale, key);
   const inputId = useId();
   const [photos, setPhotos] = useState<ListingPhoto[]>([]);
   const [dragging, setDragging] = useState(false);
@@ -408,8 +374,8 @@ function ListingPhotoUploader({
     photosRef.current = photos;
   }, [photos]);
   useEffect(() => {
-    onBusyChange(busy);
-  }, [busy, onBusyChange]);
+    onBusyChange(busy || photos.some((photo) => photo.processing));
+  }, [busy, photos, onBusyChange]);
   useEffect(
     () => () => {
       for (const photo of photosRef.current) {
@@ -433,9 +399,7 @@ function ListingPhotoUploader({
       const files = await pickNativeCommunityPhotos(8 - photos.length, true);
       if (files?.length) await addFiles(files);
     } catch {
-      setError(
-        'Non riesco a leggere la foto dalla libreria. Prova il pulsante “Scegli da File”.',
-      );
+      setError(t('photoFail'));
     } finally {
       busyRef.current = false;
       setBusy(false);
@@ -463,9 +427,7 @@ function ListingPhotoUploader({
     }
     setBusy(false);
     if (!accepted.length) {
-      setError(
-        'Foto non leggibile o troppo grande. Prova una copia JPG o scegli da File.',
-      );
+      setError(t('photoFail'));
       return;
     }
     setPhotos((current) => {
@@ -482,9 +444,9 @@ function ListingPhotoUploader({
     });
     setError(
       failed
-        ? 'Alcune foto non sono leggibili o sono troppo grandi.'
+        ? t('someFail')
         : incoming.length > 8 - photos.length
-          ? 'Puoi inserire al massimo 8 foto.'
+          ? t('max')
           : '',
     );
   }
@@ -524,7 +486,7 @@ function ListingPhotoUploader({
         const result = (await response.json().catch(() => null)) as {
           error?: string;
         } | null;
-        throw new Error(result?.error ?? 'Scontorno non disponibile.');
+        throw new Error(result?.error ?? t('cutFail'));
       }
       const processedUrl = URL.createObjectURL(await response.blob());
       setPhotos((current) =>
@@ -534,17 +496,14 @@ function ListingPhotoUploader({
           return { ...item, processedUrl, processing: false };
         }),
       );
-    } catch (cause) {
+    } catch {
       setPhotos((current) =>
         current.map((item) =>
           item.id === id
             ? {
                 ...item,
                 processing: false,
-                error:
-                  cause instanceof Error
-                    ? cause.message
-                    : 'Scontorno non disponibile.',
+                error: t('cutFail'),
               }
             : item,
         ),
@@ -567,7 +526,7 @@ function ListingPhotoUploader({
       <div>
         <button
           type="button"
-          aria-label="Aggiungi fino a 8 foto del prodotto"
+          aria-label={t('add')}
           onClick={() => void openPicker()}
           disabled={busy}
           onDragEnter={(event) => {
@@ -579,22 +538,20 @@ function ListingPhotoUploader({
           onDrop={(event) => {
             event.preventDefault();
             setDragging(false);
-            addFiles(event.dataTransfer.files);
+            void addFiles(event.dataTransfer.files);
           }}
           className={`grid h-52 w-full cursor-pointer place-items-center overflow-hidden rounded-2xl border border-dashed transition sm:h-56 ${dragging ? 'border-pink-300 bg-pink-400/10' : 'border-violet-400/40 bg-[radial-gradient(circle_at_50%_35%,rgba(139,92,246,.16),transparent_55%)]'}`}
         >
-          <span className="text-center text-xs text-white/55">
+          <span className="text-center text-sm text-white/55">
             <span className="mx-auto mb-3 grid size-12 place-items-center rounded-2xl border border-violet-300/20 bg-violet-400/10">
               <ImagePlus className="size-6 text-violet-200" />
             </span>
             <b className="block text-sm text-white">
-              {busy ? 'Preparazione foto…' : 'Aggiungi le foto'}
+              {busy ? t('preparing') : t('add')}
             </b>
-            <span className="mt-1 block">
-              Tocca oppure trascina qui · massimo 8
-            </span>
-            <span className="mt-1 block text-xs text-white/30">
-              Foto iPhone, JPG, PNG o WebP · ottimizzazione automatica
+            <span className="mt-1 block">{t('drop')}</span>
+            <span className="mt-1 block text-sm text-white/65">
+              {t('formats')}
             </span>
           </span>
         </button>
@@ -617,10 +574,10 @@ function ListingPhotoUploader({
           onClick={() => document.getElementById(inputId)?.click()}
           className="mt-3 min-h-11 text-base text-pink-300"
         >
-          Scegli da File
+          {t('files')}
         </button>
         {error && (
-          <p role="alert" className="mt-2 text-xs text-rose-300">
+          <p role="alert" className="mt-2 text-sm text-rose-300">
             {error}
           </p>
         )}
@@ -640,22 +597,22 @@ function ListingPhotoUploader({
             >
               <Image
                 src={photo.processedUrl ?? photo.originalUrl}
-                alt={`Anteprima foto ${index + 1}`}
+                alt={`${t('preview')} ${index + 1}`}
                 fill
                 unoptimized
                 sizes={index === 0 ? '398px' : '190px'}
                 className="object-contain"
               />
               {index === 0 && (
-                <span className="absolute left-2 top-2 rounded-full bg-pink-500 px-2 py-1 text-xs font-semibold">
-                  COPERTINA
+                <span className="absolute left-2 top-2 rounded-full bg-pink-500 px-2 py-1 text-sm font-semibold">
+                  {t('cover')}
                 </span>
               )}
               <button
                 type="button"
                 onClick={() => removePhoto(photo.id)}
-                aria-label="Elimina foto"
-                className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-black/65"
+                aria-label={t('remove')}
+                className="absolute right-2 top-2 grid size-11 place-items-center rounded-full bg-black/65"
               >
                 <Trash2 className="size-3" />
               </button>
@@ -665,43 +622,43 @@ function ListingPhotoUploader({
                 <button
                   type="button"
                   onClick={() => restoreOriginal(photo.id)}
-                  className="flex h-8 w-full items-center justify-center gap-1 rounded-lg border border-white/10 text-xs text-white/60"
+                  className="flex min-h-11 w-full items-center justify-center gap-1 rounded-lg border border-white/10 text-sm text-white/60"
                 >
                   <Undo2 className="size-3" />
-                  Usa originale
+                  {t('original')}
                 </button>
               ) : (
                 <button
                   type="button"
                   disabled={photo.processing}
                   onClick={() => removeBackground(photo.id)}
-                  className="flex h-8 w-full items-center justify-center gap-1 rounded-lg border border-violet-400/25 bg-violet-400/8 text-xs text-violet-200 disabled:opacity-60"
+                  className="flex min-h-11 w-full items-center justify-center gap-1 rounded-lg border border-violet-400/25 bg-violet-400/8 text-sm text-violet-200 disabled:opacity-60"
                 >
                   {photo.processing ? (
                     <LoaderCircle className="size-3 animate-spin" />
                   ) : (
                     <Scissors className="size-3" />
                   )}
-                  {photo.processing ? 'Scontorno…' : 'Rimuovi sfondo · Beta'}
+                  {photo.processing ? t('cutting') : t('cut')}
                 </button>
               )}
               {photo.error && (
-                <p className="mt-2 text-xs leading-3 text-amber-200/70">
-                  {photo.error} L’originale è rimasto intatto.
+                <p className="mt-2 text-sm leading-relaxed text-amber-200/70">
+                  {photo.error}
                 </p>
               )}
             </div>
           </article>
         ))}
       </div>
-      <div className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-violet-400/30 text-xs text-violet-200">
+      <div className="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-violet-400/30 text-sm text-violet-200">
         <ImagePlus className="size-4" />
         <button
           type="button"
           disabled={busy || photos.length >= 8}
           onClick={() => void openPicker()}
         >
-          {busy ? 'Preparazione foto…' : 'Aggiungi altre foto'}
+          {busy ? t('preparing') : t('more')}
         </button>
         <input
           id={inputId}
@@ -723,16 +680,14 @@ function ListingPhotoUploader({
         onClick={() => document.getElementById(inputId)?.click()}
         className="min-h-11 text-base text-pink-300"
       >
-        Scegli da File
+        {t('files')}
       </button>
-      <p className="flex items-start gap-2 rounded-xl border border-white/8 p-3 text-xs leading-3 text-white/40">
+      <p className="flex items-start gap-2 rounded-xl border border-white/8 p-3 text-sm leading-relaxed text-white/65">
         <Sparkles className="mt-0.5 size-3 shrink-0 text-pink-300" />
-        Lo scontorno è facoltativo e può sbagliare su capelli, trasparenze o
-        oggetti simili allo sfondo. Controlla sempre l’anteprima; l’originale
-        non viene eliminato.
+        {t('cutHint')}
       </p>
       {error && (
-        <p role="alert" className="text-xs text-rose-300">
+        <p role="alert" className="text-sm text-rose-300">
           {error}
         </p>
       )}
