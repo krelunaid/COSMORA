@@ -1,6 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useI18n } from '@/components/i18n-provider';
+import { communityTranslator } from '@/lib/i18n/community';
+import { europeEvents } from '@/lib/events-data';
+import { formatEventDates } from '@/lib/event-selection';
+import { useEventDay } from '@/components/use-event-day';
 import Image from 'next/image';
 import Link from '@/components/app-link';
 import { useSearchParams } from 'next/navigation';
@@ -36,6 +41,9 @@ const discoveryIcons = {
 } as const;
 
 export default function ExplorePage() {
+  const { locale } = useI18n();
+  const t = communityTranslator(locale);
+  const today = useEventDay();
   const searchParams = useSearchParams();
   const [section, setSection] = useState<ExploreSection>(() =>
     exploreSections.includes(searchParams.get('section') as ExploreSection)
@@ -54,9 +62,35 @@ export default function ExplorePage() {
         : 'Per te',
     );
   }
+  const discoveries = useMemo(() => {
+    const cards = exploreDiscoveries
+      .filter((item) => item.section !== 'Eventi')
+      .map((item) => ({
+        ...item,
+        title: t(item.title),
+        meta: t(item.meta),
+      }));
+    const events: ExploreDiscovery[] = europeEvents
+      .filter((event) => event.end >= today)
+      .sort(
+        (a, b) =>
+          a.start.localeCompare(b.start) || a.name.localeCompare(b.name),
+      )
+      .slice(0, section === 'Eventi' || query.trim() ? undefined : 2)
+      .map((event) => ({
+        section: 'Eventi',
+        icon: 'calendar',
+        imageFit: 'contain',
+        title: event.name,
+        meta: `${event.city} · ${formatEventDates(event, locale)}`,
+        image: event.image,
+        href: event.internalUrl || event.url,
+      }));
+    return [...cards.slice(0, 3), ...events, ...cards.slice(3)];
+  }, [locale, t, today, section, query]);
   const visible = useMemo(
-    () => filterExploreDiscoveries(exploreDiscoveries, section, query),
-    [query, section],
+    () => filterExploreDiscoveries(discoveries, section, query, t),
+    [discoveries, query, section, t],
   );
 
   return (
@@ -64,16 +98,17 @@ export default function ExplorePage() {
       <div className="flex-1 px-3 pb-8 pt-5 sm:px-4">
         <div>
           <p className="text-xs font-medium uppercase tracking-[.2em] text-pink-300">
-            Scopri tutto COSMORA
+            {t('Scopri tutto COSMORA')}
           </p>
-          <h1 className="mt-1 text-[28px] font-semibold">Esplora</h1>
+          <h1 className="mt-1 text-[28px] font-semibold">{t('Esplora')}</h1>
         </div>
         <label className="relative mt-4 block">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/65" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Cerca prodotti, eventi, creator o crew"
+            placeholder={t('Cerca prodotti, eventi, persone o crew')}
+            aria-label={t('Cerca prodotti, eventi, persone o crew')}
             className="h-11 w-full rounded-xl border border-white/10 bg-[#17172b] pl-9 pr-3 text-base outline-none focus:border-pink-400/50"
           />
         </label>
@@ -85,7 +120,7 @@ export default function ExplorePage() {
               aria-pressed={section === item}
               className={`shrink-0 px-3 py-3 text-sm ${section === item ? 'border-b-2 border-pink-400 text-pink-300' : 'text-white/70'}`}
             >
-              {item}
+              {t(item)}
             </button>
           ))}
         </div>
@@ -97,7 +132,7 @@ export default function ExplorePage() {
           >
             <Image
               src="/cosmora-hero-mobile.jpg"
-              alt="COSMORA cosplay discovery"
+              alt={t('Esplora Cosplay')}
               fill
               priority
               sizes="(max-width: 430px) 100vw, 430px"
@@ -106,16 +141,17 @@ export default function ExplorePage() {
             <div className="absolute inset-0 bg-gradient-to-r from-[#09091b]/95 via-[#09091b]/65 to-transparent" />
             <div className="relative flex h-full max-w-[68%] flex-col justify-center p-4">
               <span className="text-xs font-semibold uppercase tracking-[.16em] text-pink-300">
-                In evidenza
+                {t('In evidenza')}
               </span>
               <h2 className="mt-2 text-lg font-semibold">
-                Trova il tuo prossimo cosplay
+                {t('Trova il tuo prossimo cosplay')}
               </h2>
               <p className="mt-1 text-sm leading-5 text-white/75">
-                Prodotti, creator e community nello stesso universo.
+                {t('Prodotti, persone e community nello stesso universo.')}
               </p>
               <span className="mt-3 flex items-center text-sm text-pink-300">
-                Esplora Cosplay <ChevronRight className="size-3" />
+                {t('Esplora Cosplay')}
+                <ChevronRight className="size-3" />
               </span>
             </div>
           </Link>
@@ -128,9 +164,9 @@ export default function ExplorePage() {
         ) : section === 'Crew' ? (
           <div className="mt-5">
             <Link href="/squads" className="mb-4 block text-pink-300">
-              Tutte le crew e gli incontri →
+              {t('Tutte le crew e gli incontri →')}
             </Link>
-            <CrewList />
+            <CrewList query={query} />
           </div>
         ) : (
           <>
@@ -142,28 +178,30 @@ export default function ExplorePage() {
             <div className="discovery-grid mb-2 mt-4 grid grid-cols-2 items-stretch gap-3">
               {visible.map((item) => (
                 <DiscoveryCard
-                  key={`${item.section}-${item.title}`}
+                  key={`${t(item.section)}-${item.title}`}
                   item={item}
                 />
               ))}
             </div>
-            {!visible.length && section !== 'Prodotti' && (
-              <div className="py-20 text-center">
-                <Search className="mx-auto size-8 text-white/20" />
-                <p className="mt-3 text-base text-white/75">
-                  Nessun risultato trovato.
-                </p>
-                <button
-                  onClick={() => {
-                    setQuery('');
-                    setSection('Per te');
-                  }}
-                  className="mt-3 min-h-11 px-3 text-sm text-pink-300"
-                >
-                  Azzera ricerca
-                </button>
-              </div>
-            )}
+            {!visible.length &&
+              section !== 'Prodotti' &&
+              !(section === 'Per te' && query) && (
+                <div className="py-20 text-center">
+                  <Search className="mx-auto size-8 text-white/20" />
+                  <p className="mt-3 text-base text-white/75">
+                    {t('Nessun risultato trovato.')}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setQuery('');
+                      setSection('Per te');
+                    }}
+                    className="mt-3 min-h-11 px-3 text-sm text-pink-300"
+                  >
+                    {t('Azzera ricerca')}
+                  </button>
+                </div>
+              )}
           </>
         )}
       </div>
@@ -173,10 +211,14 @@ export default function ExplorePage() {
 }
 
 function DiscoveryCard({ item }: { item: ExploreDiscovery }) {
+  const { locale } = useI18n();
+  const t = communityTranslator(locale);
   const Icon = discoveryIcons[item.icon];
   return (
     <Link
       href={item.href}
+      target={item.href.startsWith('https://') ? '_blank' : undefined}
+      rel={item.href.startsWith('https://') ? 'noopener noreferrer' : undefined}
       className="discovery-card flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/8 bg-[#111225] transition hover:border-pink-400/25"
     >
       <div
@@ -202,7 +244,7 @@ function DiscoveryCard({ item }: { item: ExploreDiscovery }) {
         className={`${DISCOVERY_CARD_CHROME.bodyHeightClass} flex shrink-0 flex-col p-3`}
       >
         <span className="shrink-0 text-xs font-medium uppercase tracking-[.12em] text-violet-300">
-          {item.section}
+          {t(item.section)}
         </span>
         <h2 className="mt-1 line-clamp-2 text-base font-medium leading-6">
           {item.title}

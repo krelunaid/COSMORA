@@ -1,4 +1,5 @@
 'use client';
+import { useCommerce } from '@/components/use-commerce';
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from '@/components/app-link';
@@ -7,15 +8,16 @@ import { MobileNav, MobileShell } from '@/components/mobile-shell';
 import { LiveListings } from '@/components/live-listings';
 import { rentalsEnabled } from '@/lib/release-features';
 
-const categories = [
-  ['Cosplay', 'Cosplay'],
-  ['Comics', 'Fumetti'],
-  ['Figures', 'Figure'],
-  ['Cards', 'Carte'],
-  ['Gaming', 'Gaming'],
-  ['All', 'Tutti'],
-];
 export default function MarketplacePage() {
+  const { t } = useCommerce();
+  const categories = [
+    'Cosplay',
+    'Comics',
+    'Figures',
+    'Cards',
+    'Gaming',
+    'All',
+  ] as const;
   const params = useSearchParams();
   const [category, setCategory] = useState(params.get('category') || 'All');
   const [mode, setMode] = useState('buy');
@@ -33,13 +35,13 @@ export default function MarketplacePage() {
   return (
     <MobileShell className="flex flex-col">
       <header className="flex items-center justify-between p-5">
-        <h1 className="text-2xl font-semibold">Marketplace</h1>
+        <h1 className="text-2xl font-semibold">{t('marketplace')}</h1>
         <Link
           href="/sell"
           className="flex min-h-11 items-center gap-1 rounded-xl bg-violet-500/20 px-3 text-sm text-pink-200"
         >
           <Plus className="size-4" />
-          Vendi
+          {t('sell')}
         </Link>
       </header>
       <section className="flex-1 px-4">
@@ -47,15 +49,15 @@ export default function MarketplacePage() {
           <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-white/15 bg-[#17172b] px-3">
             <Search className="size-5 shrink-0 text-white/50" />
             <input
-              aria-label="Cerca annunci"
+              aria-label={t('search')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cerca un annuncio…"
+              placeholder={t('searchPlaceholder')}
               className="h-12 min-w-0 flex-1 bg-transparent text-base outline-none"
             />
           </label>
           <button
-            aria-label="Filtri"
+            aria-label={t('filters')}
             aria-expanded={filters}
             onClick={() => setFilters(!filters)}
             className="grid size-12 place-items-center rounded-xl border border-white/15"
@@ -63,51 +65,57 @@ export default function MarketplacePage() {
             <SlidersHorizontal className="size-5" />
           </button>
         </div>
-        {rentalsEnabled ? <div className="my-4 grid grid-cols-2 border-b border-white/15">
-          {[
-            ['buy', 'Compra'],
-            ['rent', 'Noleggia'],
-          ].map(([value, label]) => (
-            <button
-              key={value}
-              aria-pressed={mode === value}
-              onClick={() => setMode(value)}
-              className={`min-h-12 border-b-2 text-base ${mode === value ? 'border-pink-400 text-pink-300' : 'border-transparent text-white/70'}`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        : <p className="my-4 text-sm text-white/70">Esplora gli annunci e contatta i venditori. Pagamenti e noleggi non disponibili in questa versione.</p>}
-        <div className="flex gap-2 overflow-x-auto pb-2" aria-label="Categorie">
-          {categories.map(([value, label]) => (
+        {rentalsEnabled ? (
+          <div className="my-4 grid grid-cols-2 border-b border-white/15">
+            {[
+              ['buy', t('buy')],
+              ['rent', t('rent')],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                aria-pressed={mode === value}
+                onClick={() => setMode(value)}
+                className={`min-h-12 border-b-2 text-base ${mode === value ? 'border-pink-400 text-pink-300' : 'border-transparent text-white/70'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="my-4 text-sm text-white/70">{t('browseNotice')}</p>
+        )}
+        <div
+          className="flex gap-2 overflow-x-auto pb-2"
+          aria-label={t('categories')}
+        >
+          {categories.map((value) => (
             <button
               key={value}
               onClick={() => setCategory(value)}
               aria-pressed={category === value}
               className={`min-h-11 shrink-0 rounded-full border px-4 text-sm ${category === value ? 'border-pink-400 bg-fuchsia-500/20 text-pink-200' : 'border-white/15 text-white/75'}`}
             >
-              {label}
+              {t(value)}
             </button>
           ))}
         </div>
         {filters && (
           <div className="mt-3 space-y-3 rounded-2xl border border-white/15 p-4">
             <label className="block text-sm">
-              Condizione
+              {t('condition')}
               <select
                 value={condition}
                 onChange={(e) => setCondition(e.target.value)}
                 className="checkout-input mt-2"
               >
-                <option value="">Tutte</option>
-                <option value="New">Nuovo</option>
-                <option value="Like New">Come nuovo</option>
-                <option value="Used">Usato</option>
+                <option value="">{t('All')}</option>
+                <option value="New">{t('New')}</option>
+                <option value="Like New">{t('Like New')}</option>
+                <option value="Used">{t('Used')}</option>
               </select>
             </label>
             <label className="block text-sm">
-              Prezzo massimo (€)
+              {t('maxPrice')}
               <input
                 type="number"
                 min="0"
@@ -123,7 +131,7 @@ export default function MarketplacePage() {
               }}
               className="min-h-11 text-sm text-pink-300"
             >
-              Azzera filtri
+              {t('reset')}
             </button>
           </div>
         )}

@@ -1,29 +1,60 @@
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-
-import { defaultLocale, isLocale, type Locale } from '@/lib/i18n/config';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  defaultLocale,
+  readLocalePreference,
+  resolveLocale,
+  saveLocalePreference,
+  type Locale,
+} from '@/lib/i18n/config';
 import { messages } from '@/lib/i18n/messages';
 
-type I18nContextValue = { locale: Locale; setLocale: (locale: Locale) => void; messages: (typeof messages)[Locale] };
+type I18nContextValue = {
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
+  messages: (typeof messages)[Locale];
+};
 const I18nContext = createContext<I18nContextValue | null>(null);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, updateLocale] = useState<Locale>(defaultLocale);
+  const manualChoice = useRef<Locale | null>(null);
   useEffect(() => {
-    const saved = localStorage.getItem('cosmora_locale');
-    const device = navigator.language.toLowerCase().split('-')[0];
-    const detected = saved && isLocale(saved) ? saved : isLocale(device) ? device : defaultLocale;
-    const timer = window.setTimeout(() => updateLocale(detected), 0);
-    return () => window.clearTimeout(timer);
+    manualChoice.current = readLocalePreference(() => window.localStorage);
+    const detect = () =>
+      updateLocale(
+        resolveLocale(
+          manualChoice.current,
+          navigator.languages?.length
+            ? navigator.languages
+            : [navigator.language],
+        ),
+      );
+    detect();
+    window.addEventListener('languagechange', detect);
+    return () => window.removeEventListener('languagechange', detect);
   }, []);
-  function setLocale(next: Locale) {
-    localStorage.setItem('cosmora_locale', next);
-    document.documentElement.lang = next;
+  const setLocale = useCallback((next: Locale) => {
+    manualChoice.current = next;
+    saveLocalePreference(next, () => window.localStorage);
     updateLocale(next);
-  }
-  useEffect(() => { document.documentElement.lang = locale; }, [locale]);
-  const value = useMemo(() => ({ locale, setLocale, messages: messages[locale] }), [locale]);
+  }, []);
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+  const value = useMemo(
+    () => ({ locale, setLocale, messages: messages[locale] }),
+    [locale, setLocale],
+  );
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 

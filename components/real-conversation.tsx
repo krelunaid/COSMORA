@@ -1,20 +1,29 @@
 'use client';
+import { useI18n } from '@/components/i18n-provider';
+import { communityTranslator, communityError } from '@/lib/i18n/community';
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from '@/components/app-link';
 import { AppBackButton } from '@/components/app-back-button';
 import { MobileShell } from '@/components/mobile-shell';
 import { accountRequest } from '@/lib/account-client';
-type Message = { id: string; sender_id: string; body: string; created_at: string };
+type Message = {
+  id: string;
+  sender_id: string;
+  body: string;
+  created_at: string;
+};
 export default function RealConversation() {
   const { conversationId: peer } = useParams<{ conversationId: string }>();
   return <Conversation key={peer} peer={peer} />;
 }
 function Conversation({ peer }: { peer: string }) {
+  const { locale } = useI18n();
+  const t = communityTranslator(locale);
   const messageViewport = useRef<HTMLElement>(null);
   const followLatest = useRef(true);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [name, setName] = useState('Conversazione');
+  const [name, setName] = useState('');
   const [userId, setUserId] = useState('');
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
@@ -25,21 +34,51 @@ function Conversation({ peer }: { peer: string }) {
   const [blockNotice, setBlockNotice] = useState('');
   useEffect(() => {
     const viewport = messageViewport.current;
-    if (viewport && followLatest.current) viewport.scrollTop = viewport.scrollHeight;
+    if (viewport && followLatest.current)
+      viewport.scrollTop = viewport.scrollHeight;
   }, [messages]);
   async function blockUser(blocked: boolean) {
-    try { await accountRequest('/api/blocks', { method: 'POST', body: JSON.stringify({ userId: peer, blocked }) }); setBlockNotice(blocked ? 'Utente bloccato: non potete scambiarvi messaggi.' : 'Utente sbloccato.'); }
-    catch (reason) { setError(reason instanceof Error ? reason.message : 'Operazione non riuscita.'); }
+    try {
+      await accountRequest('/api/blocks', {
+        method: 'POST',
+        body: JSON.stringify({ userId: peer, blocked }),
+      });
+      setBlockNotice(
+        blocked
+          ? t('Utente bloccato: non potete scambiarvi messaggi.')
+          : t('Utente sbloccato.'),
+      );
+    } catch (reason) {
+      setError(communityError(locale, reason, 'Operazione non riuscita.'));
+    }
   }
   useEffect(() => {
     let active = true;
     let timer: ReturnType<typeof setTimeout>;
     async function load() {
       try {
-        const value = await accountRequest(`/api/messages?peer=${encodeURIComponent(peer)}`);
-        if (active) { setMessages(value.messages.slice().reverse()); setUserId(value.userId); setName(value.profiles.find((profile: { id: string }) => profile.id === peer)?.display_name || 'Utente COSMORA'); setError(''); }
-      } catch (reason) { if (active) setError(reason instanceof Error ? reason.message : 'Caricamento non riuscito.'); }
-      finally { if (active) { setLoading(false); timer = setTimeout(poll, 15000); } }
+        const value = await accountRequest(
+          `/api/messages?peer=${encodeURIComponent(peer)}`,
+        );
+        if (active) {
+          setMessages(value.messages.slice().reverse());
+          setUserId(value.userId);
+          setName(
+            value.profiles.find(
+              (profile: { id: string }) => profile.id === peer,
+            )?.display_name || t('Utente COSMORA'),
+          );
+          setError('');
+        }
+      } catch (reason) {
+        if (active)
+          setError(communityError(locale, reason, 'Caricamento non riuscito.'));
+      } finally {
+        if (active) {
+          setLoading(false);
+          timer = setTimeout(poll, 15000);
+        }
+      }
     }
     function poll() {
       if (!active) return;
@@ -47,28 +86,144 @@ function Conversation({ peer }: { peer: string }) {
       else timer = setTimeout(poll, 15000);
     }
     void load();
-    return () => { active = false; clearTimeout(timer); };
-  }, [peer, revision]);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [peer, revision, locale, t]);
   async function send(event: React.SyntheticEvent<HTMLFormElement>) {
-    event.preventDefault(); if (sending || !draft.trim()) return;
-    setSending(true); setError('');
-    const id = pendingId || crypto.randomUUID(); setPendingId(id);
+    event.preventDefault();
+    if (sending || !draft.trim()) return;
+    setSending(true);
+    setError('');
+    const id = pendingId || crypto.randomUUID();
+    setPendingId(id);
     const body = draft.trim();
     try {
-      await accountRequest('/api/messages', { method: 'POST', body: JSON.stringify({ id, recipientId: peer, body }) });
+      await accountRequest('/api/messages', {
+        method: 'POST',
+        body: JSON.stringify({ id, recipientId: peer, body }),
+      });
       followLatest.current = true;
-      setMessages((current) => current.some((message) => message.id === id) ? current : [...current, { id, sender_id: userId, body, created_at: new Date().toISOString() }]);
-      setDraft(''); setPendingId(''); setRevision((value) => value + 1);
+      setMessages((current) =>
+        current.some((message) => message.id === id)
+          ? current
+          : [
+              ...current,
+              {
+                id,
+                sender_id: userId,
+                body,
+                created_at: new Date().toISOString(),
+              },
+            ],
+      );
+      setDraft('');
+      setPendingId('');
+      setRevision((value) => value + 1);
+    } catch (reason) {
+      setError(communityError(locale, reason, 'Invio non riuscito.'));
+    } finally {
+      setSending(false);
     }
-    catch (reason) { setError(reason instanceof Error ? reason.message : 'Invio non riuscito.'); }
-    finally { setSending(false); }
   }
-  return <MobileShell className="flex !h-dvh !min-h-0 flex-col overflow-hidden"><header className="flex min-h-16 shrink-0 items-center gap-3 px-4"><AppBackButton fallback="/inbox" /><h1 className="truncate text-lg font-semibold">{name}</h1></header><section ref={messageViewport} aria-label="Conversazione" onScroll={(event) => { const viewport = event.currentTarget; followLatest.current = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 80; }} className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4">
-    {error && <div className="rounded-xl border border-amber-300/30 p-3"><output className="block text-base text-amber-100">{error}</output>{!userId && <Link href="/auth/login" className="mt-2 block text-pink-300">Accedi</Link>}</div>}
-    {userId && <div className="flex gap-4 text-sm"><button onClick={() => blockUser(true)} className="min-h-11 text-pink-300">Blocca utente</button><button onClick={() => blockUser(false)} className="min-h-11 text-white/70">Sblocca utente</button></div>}
-    {blockNotice && <output className="block text-sm text-violet-200">{blockNotice}</output>}
-    {loading && <p role="status" className="text-base text-white/70">Caricamento conversazione…</p>}
-    {!loading && !error && messages.length === 0 && <p className="text-base text-white/70">Scrivi il primo messaggio.</p>}
-    {messages.map((message) => <div key={message.id} className={`flex ${message.sender_id === userId ? 'justify-end' : ''}`}><p className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl p-3 text-base ${message.sender_id === userId ? 'bg-violet-600' : 'bg-[#202138]'}`}>{message.body}</p></div>)}
-  </section><form onSubmit={send} className="flex shrink-0 gap-2 border-t border-white/15 p-3 pb-[max(12px,env(safe-area-inset-bottom))]"><textarea aria-label="Messaggio" maxLength={4000} disabled={sending} value={draft} onChange={(event) => { setDraft(event.target.value); setPendingId(''); }} rows={2} className="min-w-0 flex-1 rounded-xl bg-[#202138] p-3 text-base" placeholder="Scrivi un messaggio…" /><button disabled={sending || !draft.trim() || !userId} className="rounded-xl bg-violet-600 px-4 text-base disabled:opacity-40">{sending ? 'Invio…' : 'Invia'}</button></form></MobileShell>;
+  return (
+    <MobileShell className="flex !h-dvh !min-h-0 flex-col overflow-hidden">
+      <header className="flex min-h-16 shrink-0 items-center gap-3 px-4">
+        <AppBackButton fallback="/inbox" />
+        <h1 className="truncate text-lg font-semibold">
+          {name || t('Conversazione')}
+        </h1>
+      </header>
+      <section
+        ref={messageViewport}
+        aria-label={t('Conversazione')}
+        onScroll={(event) => {
+          const viewport = event.currentTarget;
+          followLatest.current =
+            viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight <
+            80;
+        }}
+        className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4"
+      >
+        {error && (
+          <div className="rounded-xl border border-amber-300/30 p-3">
+            <output className="block text-base text-amber-100">{error}</output>
+            {!userId && (
+              <Link href="/auth/login" className="mt-2 block text-pink-300">
+                {t('Accedi')}
+              </Link>
+            )}
+          </div>
+        )}
+        {userId && (
+          <div className="flex gap-4 text-sm">
+            <button
+              onClick={() => blockUser(true)}
+              className="min-h-11 text-pink-300"
+            >
+              {t('Blocca utente')}
+            </button>
+            <button
+              onClick={() => blockUser(false)}
+              className="min-h-11 text-white/70"
+            >
+              {t('Sblocca utente')}
+            </button>
+          </div>
+        )}
+        {blockNotice && (
+          <output className="block text-sm text-violet-200">
+            {blockNotice}
+          </output>
+        )}
+        {loading && (
+          <output className="block text-base text-white/70">
+            {t('Caricamento conversazione…')}
+          </output>
+        )}
+        {!loading && !error && messages.length === 0 && (
+          <p className="text-base text-white/70">
+            {t('Scrivi il primo messaggio.')}
+          </p>
+        )}
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${message.sender_id === userId ? 'justify-end' : ''}`}
+          >
+            <p
+              className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl p-3 text-base ${message.sender_id === userId ? 'bg-violet-600' : 'bg-[#202138]'}`}
+            >
+              {message.body}
+            </p>
+          </div>
+        ))}
+      </section>
+      <form
+        onSubmit={send}
+        className="flex shrink-0 gap-2 border-t border-white/15 p-3 pb-[max(12px,env(safe-area-inset-bottom))]"
+      >
+        <textarea
+          aria-label={t('Messaggio')}
+          maxLength={4000}
+          disabled={sending}
+          value={draft}
+          onChange={(event) => {
+            setDraft(event.target.value);
+            setPendingId('');
+          }}
+          rows={2}
+          className="min-w-0 flex-1 rounded-xl bg-[#202138] p-3 text-base"
+          placeholder={t('Scrivi un messaggio…')}
+        />
+        <button
+          disabled={sending || !draft.trim() || !userId}
+          className="rounded-xl bg-violet-600 px-4 text-base disabled:opacity-40"
+        >
+          {sending ? t('Invio…') : t('Invia')}
+        </button>
+      </form>
+    </MobileShell>
+  );
 }

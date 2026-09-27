@@ -1,10 +1,10 @@
 'use client';
+import { useCommerce } from '@/components/use-commerce';
 import { paymentsEnabled } from '@/lib/release-features';
 import { useEffect, useState } from 'react';
 import Link from '@/components/app-link';
 import Image from 'next/image';
 import { accountRequest } from '@/lib/account-client';
-import { cents } from '@/lib/monetization';
 export function SaveItem({
   id,
   kind,
@@ -12,8 +12,11 @@ export function SaveItem({
   id: string;
   kind: 'cart' | 'favorite';
 }) {
+  const { t } = useCommerce();
   const [busy, setBusy] = useState(false),
-    [message, setMessage] = useState('');
+    [message, setMessage] = useState<
+      'savedCart' | 'savedFavorite' | 'loginRequired' | 'error' | ''
+    >('');
   return (
     <div>
       <button
@@ -27,38 +30,34 @@ export function SaveItem({
               method: 'POST',
               body: JSON.stringify({ listingId: id, kind }),
             });
-            setMessage(
-              kind === 'cart'
-                ? 'Aggiunto al carrello.'
-                : 'Salvato nei preferiti.',
-            );
+            setMessage(kind === 'cart' ? 'savedCart' : 'savedFavorite');
           } catch (e) {
-            setMessage(e instanceof Error ? e.message : 'Riprova.');
+            setMessage(
+              e instanceof Error && e.message.startsWith('Accedi')
+                ? 'loginRequired'
+                : 'error',
+            );
           } finally {
             setBusy(false);
           }
         }}
       >
-        {busy
-          ? 'Salvataggio…'
-          : kind === 'cart'
-            ? 'Aggiungi al carrello'
-            : '♡ Salva nei preferiti'}
+        {busy ? t('saving') : kind === 'cart' ? t('addCart') : t('addFavorite')}
       </button>
       {message && (
         <output className="mt-2 block text-sm">
-          {message}{' '}
+          {t(message)}{' '}
           <Link
             className="text-pink-300 underline"
             href={
-              message.startsWith('Accedi')
+              message === 'loginRequired'
                 ? '/auth/login'
                 : kind === 'cart'
                   ? '/cart'
                   : '/favorites'
             }
           >
-            Apri
+            {t('open')}
           </Link>
         </output>
       )}
@@ -75,6 +74,11 @@ type Item = {
   sale_price_cents: number | null;
 };
 export function SavedItems({ kind }: { kind: 'cart' | 'favorite' }) {
+  return <SavedItemsContent key={kind} kind={kind} />;
+}
+
+function SavedItemsContent({ kind }: { kind: 'cart' | 'favorite' }) {
+  const { t, euro } = useCommerce();
   const [items, setItems] = useState<Item[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
@@ -98,15 +102,15 @@ export function SavedItems({ kind }: { kind: 'cart' | 'favorite' }) {
   }, [kind, reload]);
   return (
     <div className="space-y-5 p-5">
-      {loading && <output>Caricamento…</output>}
+      {loading && <output>{t('loading')}</output>}
       {error && (
         <div role="alert">
-          <p>{error}</p>
+          <p>{error.startsWith('Accedi') ? t('loginRequired') : t('error')}</p>
           <Link
             className="inline-block min-h-11 py-3 text-pink-300"
             href="/auth/login"
           >
-            Accedi
+            {t('login')}
           </Link>
           <button
             className="ml-5 min-h-11 text-pink-300"
@@ -116,26 +120,21 @@ export function SavedItems({ kind }: { kind: 'cart' | 'favorite' }) {
               setReload(reload + 1);
             }}
           >
-            Riprova
+            {t('retry')}
           </button>
         </div>
       )}
       {!loading && !error && !items.length && (
         <div className="rounded-2xl border border-white/15 p-6 text-center">
           <h2 className="text-xl font-semibold">
-            {kind === 'cart'
-              ? 'Il carrello è vuoto'
-              : 'Ancora nessun preferito'}
+            {kind === 'cart' ? t('emptyCart') : t('emptyFavorites')}
           </h2>
-          <p className="mt-3 text-white/70">
-            Salva gli articoli che ti interessano: li ritroverai anche su un
-            altro dispositivo.
-          </p>
+          <p className="mt-3 text-white/70">{t('savedHint')}</p>
           <Link
             className="mt-5 inline-block rounded-xl bg-violet-600 p-3"
             href="/marketplace"
           >
-            Esplora il marketplace
+            {t('explore')}
           </Link>
         </div>
       )}
@@ -159,29 +158,28 @@ export function SavedItems({ kind }: { kind: 'cart' | 'favorite' }) {
               <h2 className="text-lg font-semibold">{item.title}</h2>
               <p className="mt-2 text-pink-300">
                 {item.sale_price_cents !== null
-                  ? cents(item.sale_price_cents)
-                  : 'Solo noleggio'}
+                  ? euro(item.sale_price_cents)
+                  : t('rentOnly')}
               </p>
               <p className="mt-1 text-sm text-white/70">
-                {item.status === 'active'
-                  ? 'Disponibile'
-                  : 'Non più disponibile'}
+                {item.status === 'active' ? t('available') : t('notAvailable')}
               </p>
             </div>
           </Link>
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            {paymentsEnabled && kind === 'cart' &&
+            {paymentsEnabled &&
+              kind === 'cart' &&
               item.status === 'active' &&
               item.sale_mode !== 'rent' && (
                 <Link
                   href={'/checkout?listing=' + item.slug}
                   className="rounded-xl bg-violet-600 p-3 text-base"
                 >
-                  Prova checkout
+                  {t('testCheckout')}
                 </Link>
               )}
             <button
-              disabled={busy === item.id}
+              disabled={Boolean(busy)}
               className="min-h-12 px-3 text-white/75"
               onClick={async () => {
                 setBusy(item.id);
@@ -190,7 +188,9 @@ export function SavedItems({ kind }: { kind: 'cart' | 'favorite' }) {
                     method: 'DELETE',
                     body: JSON.stringify({ listingId: item.id, kind }),
                   });
-                  setItems(items.filter((x) => x.id !== item.id));
+                  setItems((current) =>
+                    current.filter((x) => x.id !== item.id),
+                  );
                 } catch (e) {
                   setError(e instanceof Error ? e.message : 'Riprova.');
                 } finally {
@@ -198,15 +198,14 @@ export function SavedItems({ kind }: { kind: 'cart' | 'favorite' }) {
                 }
               }}
             >
-              Rimuovi
+              {t('remove')}
             </button>
           </div>
         </article>
       ))}
-      {kind === 'cart' && items.length > 0 && (
+      {paymentsEnabled && kind === 'cart' && items.length > 0 && (
         <p className="rounded-xl border border-amber-300/20 p-4 text-base text-amber-100">
-          Pagamenti solo di prova, un articolo per ordine. Nessun addebito
-          reale, prenotazione o spedizione. Non usare carte reali.
+          {t('cartNotice')}
         </p>
       )}
     </div>

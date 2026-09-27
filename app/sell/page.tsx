@@ -565,7 +565,7 @@ function ListingPhotoUploader({
         <button
           type="button"
           aria-label={t('add')}
-          onClick={() => void openPicker()}
+          onClick={() => openPicker()}
           disabled={busy}
           onDragEnter={(event) => {
             event.preventDefault();
@@ -742,7 +742,7 @@ function ListingPhotoUploader({
         <button
           type="button"
           disabled={busy || photos.length >= 8}
-          onClick={() => void openPicker()}
+          onClick={() => openPicker()}
         >
           {busy ? t('preparing') : t('more')}
         </button>

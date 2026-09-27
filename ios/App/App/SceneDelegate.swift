@@ -18,7 +18,7 @@ public class CosmoraAuthPlugin: CAPPlugin, CAPBridgedPlugin, ASWebAuthentication
             call.reject("Indirizzo di accesso non valido.")
             return
         }
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [self] in
             guard self.authSession == nil, self.bridge?.viewController?.view.window != nil else {
                 call.reject("Accesso già in corso o app non disponibile.")
                 return

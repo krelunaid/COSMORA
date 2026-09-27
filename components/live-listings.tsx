@@ -1,4 +1,5 @@
 'use client';
+import { useCommerce } from '@/components/use-commerce';
 import { paymentsEnabled, rentalsEnabled } from '@/lib/release-features';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -24,10 +25,6 @@ type Listing = {
   shipping_cost_cents: number | null;
   shipping_time: string | null;
 };
-const euro = (value: number) =>
-  new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(
-    value / 100,
-  );
 export function LiveListings({
   slug,
   category = 'All',
@@ -45,6 +42,7 @@ export function LiveListings({
   max?: string;
   seller?: string;
 }) {
+  const { t, euro, categoryLabel } = useCommerce();
   const [listings, setListings] = useState<Listing[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -93,8 +91,17 @@ export function LiveListings({
             };
             if (!response.ok)
               throw new Error(value.error || 'Catalogo non disponibile.');
+            if (controller.signal.aborted) return;
             setListings((previous) =>
-              offset ? [...previous, ...value.listings] : value.listings,
+              offset
+                ? [
+                    ...previous,
+                    ...value.listings.filter(
+                      (listing) =>
+                        !previous.some((item) => item.id === listing.id),
+                    ),
+                  ]
+                : value.listings,
             );
             setMore(value.hasMore);
           })
@@ -115,34 +122,32 @@ export function LiveListings({
   return (
     <section
       className="space-y-4 py-5"
-      aria-label={slug ? 'Dettaglio annuncio' : 'Annunci'}
+      aria-label={slug ? t('listingDetail') : t('listings')}
     >
       {error && (
         <div role="alert" className="rounded-xl border border-amber-300/25 p-4">
-          <p>{error}</p>
+          <p>{t('error')}</p>
           <button
             onClick={() => setRetry(retry + 1)}
             className="min-h-11 text-pink-300"
           >
-            Riprova
+            {t('retry')}
           </button>
         </div>
       )}
       {!loading && !error && !listings.length && (
         <div className="rounded-2xl border border-white/10 p-6 text-center">
           <h2 className="text-lg font-semibold">
-            {slug ? 'Annuncio non disponibile' : 'Nessun annuncio trovato'}
+            {slug ? t('unavailable') : t('noListings')}
           </h2>
           <p className="mt-2 text-base text-white/65">
-            {slug
-              ? 'Potrebbe essere stato venduto o sospeso.'
-              : 'Prova un’altra ricerca oppure pubblica il tuo primo annuncio.'}
+            {slug ? t('sold') : t('trySearch')}
           </p>
           <Link
             href={slug ? '/marketplace' : '/sell'}
             className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-violet-600 px-4"
           >
-            {slug ? 'Torna al marketplace' : 'Pubblica un annuncio'}
+            {slug ? t('back') : t('publish')}
           </Link>
         </div>
       )}
@@ -176,7 +181,8 @@ export function LiveListings({
                   {listing.title}
                 </h2>
                 <p className="mt-2 text-sm text-white/65">
-                  {listing.category} · {listing.condition}
+                  {categoryLabel(listing.category)} ·{' '}
+                  {categoryLabel(listing.condition)}
                 </p>
                 {mode !== 'rent' && listing.sale_price_cents !== null && (
                   <p className="mt-2 text-lg font-semibold text-pink-300">
@@ -185,8 +191,8 @@ export function LiveListings({
                 )}
                 {rentalsEnabled && listing.rental_price_cents !== null && (
                   <p className="mt-1 text-sm text-violet-200">
-                    Noleggio {euro(listing.rental_price_cents)} /{' '}
-                    {listing.rental_days} giorni
+                    {t('rental')} {euro(listing.rental_price_cents)} /{' '}
+                    {listing.rental_days} {t('days')}
                   </p>
                 )}
               </div>
@@ -200,12 +206,12 @@ export function LiveListings({
                       href={url}
                       target="_blank"
                       rel="noreferrer"
-                      aria-label={'Apri foto ' + (index + 2)}
+                      aria-label={t('openPhoto') + ' ' + (index + 2)}
                       className="relative size-20 overflow-hidden rounded-xl"
                     >
                       <Image
                         src={url}
-                        alt={'Foto ' + (index + 2)}
+                        alt={t('photo') + ' ' + (index + 2)}
                         fill
                         unoptimized
                         sizes="80px"
@@ -221,29 +227,48 @@ export function LiveListings({
                   href={'/profile/' + listing.seller_id}
                   className="block min-h-11 py-2 text-pink-300"
                 >
-                  Profilo del venditore →
+                  {t('seller')}
                 </Link>
                 <Link
                   href={'/inbox/' + listing.seller_id}
                   className="block rounded-xl bg-violet-600 p-3 text-center text-base font-semibold"
                 >
-                  Contatta il venditore
+                  {t('contact')}
                 </Link>
                 <ShareButton title={listing.title} />
                 <section className="space-y-2 rounded-xl border border-white/15 p-3 text-base">
-                  <h3 className="font-semibold">Consegna del venditore</h3>
-                  {listing.shipping_mode && listing.shipping_cost_cents !== null ? <>
-                    <p>{listing.shipping_mode === 'pickup' ? 'Ritiro a mano' : 'Spedizione'} · {euro(listing.shipping_cost_cents)}</p>
-                    <p>{listing.shipping_method}</p><p>{listing.shipping_time}</p>
-                    {listing.sale_price_cents !== null && <p className="font-semibold text-pink-200">Articolo e consegna: {euro(listing.sale_price_cents + listing.shipping_cost_cents)}</p>}
-                  </> : <p>Condizioni non ancora indicate: chiedile al venditore prima di acquistare.</p>}
+                  <h3 className="font-semibold">{t('delivery')}</h3>
+                  {listing.shipping_mode &&
+                  listing.shipping_cost_cents !== null ? (
+                    <>
+                      <p>
+                        {listing.shipping_mode === 'pickup'
+                          ? t('pickup')
+                          : t('shipping')}{' '}
+                        · {euro(listing.shipping_cost_cents)}
+                      </p>
+                      <p>{listing.shipping_method}</p>
+                      <p>{listing.shipping_time}</p>
+                      {listing.sale_price_cents !== null && (
+                        <p className="font-semibold text-pink-200">
+                          {t('total')}{' '}
+                          {euro(
+                            listing.sale_price_cents +
+                              listing.shipping_cost_cents,
+                          )}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p>{t('askDelivery')}</p>
+                  )}
                 </section>
                 <SaveItem id={listing.id} kind="favorite" />
                 {paymentsEnabled && listing.sale_mode !== 'rent' && (
                   <SaveItem id={listing.id} kind="cart" />
                 )}
                 <p className="text-sm text-white/60">
-                  {paymentsEnabled ? 'Checkout solo di prova: nessun acquisto, spedizione o rimborso reale. Non pagare fuori dall’app pensando di avere una protezione COSMORA.' : 'Pagamenti e noleggi non sono disponibili in questa versione.'}
+                  {paymentsEnabled ? t('testNotice') : t('disabled')}
                 </p>
               </div>
             )}
@@ -252,7 +277,7 @@ export function LiveListings({
       </div>
       {loading && (
         <output className="block py-4 text-base text-white/70">
-          Caricamento annunci…
+          {t('loadingListings')}
         </output>
       )}
       {more && !loading && !error && (
@@ -260,7 +285,7 @@ export function LiveListings({
           onClick={() => setOffset(offset + 24)}
           className="min-h-12 w-full rounded-xl border border-white/20 text-base"
         >
-          Mostra altri annunci
+          {t('more')}
         </button>
       )}
     </section>
