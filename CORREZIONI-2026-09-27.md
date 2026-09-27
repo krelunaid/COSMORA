@@ -28,3 +28,10 @@ Le correzioni sono disponibili nell'anteprima locale http://localhost:4317. La c
 La pubblicazione sul collegamento esistente è bloccata: il connettore Sites attualmente collegato non trova `appgprj_6a97f24742b88191826232d66f1aa235` e Cosmora non compare fra i progetti posseduti o condivisi. Occorre il collegamento all'account che gestisce `cosmora-app.andreagadducci.chatgpt.site`. Il contenitore iOS continua a puntare a tale URL. Nessuna release App Store/TestFlight è stata caricata.
 
 Un controllo esteso anche alla libreria UI non modificata segnala errori preesistenti di lint in alcuni componenti generici; questi non rientrano nel comando lint del progetto. Non sono stati modificati i flussi backend, eseguite operazioni reali o completata una revisione di sicurezza/legale dell'intero servizio.
+
+## Aggiornamento: pagine dedicate alle passioni
+
+- Entrando in Cosplay, Manga e fumetti, Action figure, Carte collezionabili o Videogiochi si vedono titolo, immagine, ricerca e suggerimenti pertinenti alla categoria scelta. I pulsanti delle altre categorie restano nella vista generale, raggiungibile da “Tutte le categorie”.
+- Le ricerche suggerite cercano parole nel titolo degli annunci della categoria selezionata. Non rappresentano disponibilità di prodotti o filtri su attributi strutturati. Cambiando categoria si azzerano ricerca e filtri locali.
+- Persone e venditori apre una pagina dedicata alla ricerca dei profili. Tutti i nuovi testi sono disponibili nelle cinque lingue supportate.
+- Controlli completati: typecheck, lint, build e 59 test superati. Nell'anteprima sono stati controllati suggerimenti, ritorno alle categorie, pagina Carte e pagina Persone e venditori. I dati del catalogo restano indisponibili nell'ambiente locale senza configurazione Supabase.

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useI18n } from '@/components/i18n-provider';
 import { communityTranslator } from '@/lib/i18n/community';
+import { categoryPageText } from '@/lib/i18n/category-pages';
 import { europeEvents } from '@/lib/events-data';
 import { formatEventDates } from '@/lib/event-selection';
 import { useEventDay } from '@/components/use-event-day';
@@ -92,38 +93,61 @@ export default function ExplorePage() {
     () => filterExploreDiscoveries(discoveries, section, query, t),
     [discoveries, query, section, t],
   );
+  const focusedPeople =
+    searchParams.get('section') === 'Creator' && section === 'Creator';
+  const searchLabel = focusedPeople
+    ? categoryPageText(locale, 'peopleSearch')
+    : t('Cerca prodotti, eventi, persone o crew');
 
   return (
     <MobileShell className="flex flex-col">
       <div className="flex-1 px-3 pb-8 pt-5 sm:px-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[.2em] text-pink-300">
-            {t('Scopri tutto COSMORA')}
-          </p>
-          <h1 className="mt-1 text-[28px] font-semibold">{t('Esplora')}</h1>
+          {focusedPeople ? (
+            <Link
+              href="/explore"
+              className="mb-3 flex min-h-11 items-center text-sm text-white/70"
+            >
+              ← {categoryPageText(locale, 'browseExplore')}
+            </Link>
+          ) : (
+            <p className="text-xs font-medium uppercase tracking-[.2em] text-pink-300">
+              {t('Scopri tutto COSMORA')}
+            </p>
+          )}
+          <h1 className="mt-1 text-[28px] font-semibold">
+            {focusedPeople ? t('Creator') : t('Esplora')}
+          </h1>
+          {focusedPeople && (
+            <p className="mt-2 text-sm leading-relaxed text-white/65">
+              {categoryPageText(locale, 'peopleIntro')}
+            </p>
+          )}
         </div>
         <label className="relative mt-4 block">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/65" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={t('Cerca prodotti, eventi, persone o crew')}
-            aria-label={t('Cerca prodotti, eventi, persone o crew')}
+            placeholder={searchLabel}
+            aria-label={searchLabel}
             className="h-11 w-full rounded-xl border border-white/10 bg-[#17172b] pl-9 pr-3 text-base outline-none focus:border-pink-400/50"
           />
         </label>
-        <div className="mt-4 flex min-h-12 w-full overflow-x-auto border-b border-white/10">
-          {exploreSections.map((item) => (
-            <button
-              key={item}
-              onClick={() => setSection(item)}
-              aria-pressed={section === item}
-              className={`shrink-0 px-3 py-3 text-sm ${section === item ? 'border-b-2 border-pink-400 text-pink-300' : 'text-white/70'}`}
-            >
-              {t(item)}
-            </button>
-          ))}
-        </div>
+        {!focusedPeople && (
+          <div className="mt-4 flex min-h-12 w-full overflow-x-auto border-b border-white/10">
+            {exploreSections.map((item) => (
+              <button
+                key={item}
+                onClick={() => setSection(item)}
+                aria-pressed={section === item}
+                className={`shrink-0 px-3 py-3 text-sm ${section === item ? 'border-b-2 border-pink-400 text-pink-300' : 'text-white/70'}`}
+              >
+                {t(item)}
+              </button>
+            ))}
+          </div>
+        )}
 
         {section === 'Per te' && !query && (
           <Link
