@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, CalendarDays, ChevronRight, Menu, Search } from 'lucide-react';
+import { Bell, CalendarDays, ChevronRight, Menu } from 'lucide-react';
 import Image from 'next/image';
 import Link from '@/components/app-link';
 import { useI18n } from '@/components/i18n-provider';
@@ -32,11 +32,6 @@ export default function HomePage() {
         <Link href="/" className="brand-wordmark" aria-label={copy.home}>COSMORA</Link>
         <Link href="/inbox" aria-label={copy.inbox} className="grid size-11 place-items-center rounded-xl active:bg-white/10"><Bell /></Link>
       </header>
-      <form action="/explore" method="get" className="mx-4 mb-3 flex shrink-0 items-center gap-2 rounded-2xl border border-white/15 bg-[#17172b] px-3">
-        <Search className="size-5 shrink-0 text-white/50" />
-        <input name="q" aria-label={copy.searchLabel} placeholder={copy.searchPlaceholder} className="h-12 min-w-0 flex-1 bg-transparent text-base outline-none" />
-        <button aria-label={copy.search} className="grid size-11 shrink-0 place-items-center text-pink-300"><ChevronRight /></button>
-      </form>
       <div className="home-main-content px-4 pb-2">
         <article className="home-event-hero relative overflow-hidden rounded-3xl border border-white/15">
           <Image src={event?.image ?? '/cosmora-hero-mobile.jpg'} alt="" fill priority sizes="(max-width: 640px) 100vw, 430px" className="object-cover object-center" />
