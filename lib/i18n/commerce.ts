@@ -450,6 +450,28 @@ export const commerceCopy = {
     'Mitglieder & Verkäufer',
     'Personas y vendedores',
   ],
+  sellerType: [
+    'Profilo venditore',
+    'Seller profile',
+    'Profil du vendeur',
+    'Verkäuferprofil',
+    'Perfil del vendedor',
+  ],
+  privateSeller: [
+    'Privato',
+    'Private individual',
+    'Particulier',
+    'Privatperson',
+    'Particular',
+  ],
+  shopSeller: ['Negozio', 'Shop', 'Boutique', 'Shop', 'Tienda'],
+  sellerTypeNotice: [
+    'Tipologia dichiarata nel profilo; COSMORA non certifica se il venditore opera come professionista.',
+    'Type declared in the profile; COSMORA does not verify whether the seller acts as a trader.',
+    'Type indiqué dans le profil ; COSMORA ne vérifie pas si le vendeur agit en tant que professionnel.',
+    'Angabe aus dem Profil; COSMORA prüft nicht, ob der Verkäufer gewerblich handelt.',
+    'Tipo indicado en el perfil; COSMORA no verifica si el vendedor actúa como profesional.',
+  ],
   rentals: ['Noleggi', 'Rentals', 'Locations', 'Vermietungen', 'Alquileres'],
   rentalNotice: [
     'Il noleggio non è attivo in questa versione. Non sono disponibili prenotazioni, cauzioni o garanzie sul noleggio.',

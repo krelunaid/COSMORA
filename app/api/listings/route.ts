@@ -62,8 +62,29 @@ export async function GET(request: Request) {
       { error: 'Catalogo non disponibile. Riprova.' },
       { status: 503 },
     );
+  const sellerIds = [
+    ...new Set((data ?? []).map((listing) => listing.seller_id)),
+  ];
+  const sellerProfiles = sellerIds.length
+    ? await admin
+        .from('seller_details')
+        .select('user_id,seller_type')
+        .in('user_id', sellerIds)
+    : { data: [], error: null };
+  if (sellerProfiles.error)
+    return NextResponse.json(
+      { error: 'Informazioni sui venditori non disponibili. Riprova.' },
+      { status: 503 },
+    );
+  const sellerTypes = new Map(
+    (sellerProfiles.data ?? []).map((profile) => [
+      profile.user_id,
+      profile.seller_type,
+    ]),
+  );
   const listings = (data ?? []).map((listing) => ({
     ...listing,
+    seller_type: sellerTypes.get(listing.seller_id) ?? null,
     images: listing.listing_images
       .sort((a, b) => a.position - b.position)
       .map(
@@ -84,7 +105,12 @@ const listingSchema = z.object({
   description: z.string().trim().min(10).max(5000),
   category: z.string().trim().min(2).max(60),
   condition: z.string().trim().min(2).max(30),
-  saleMode: z.enum(['buy', 'rent', 'both']).refine((mode) => rentalsEnabled || mode === 'buy', 'Il noleggio non è disponibile in questa versione.'),
+  saleMode: z
+    .enum(['buy', 'rent', 'both'])
+    .refine(
+      (mode) => rentalsEnabled || mode === 'buy',
+      'Il noleggio non è disponibile in questa versione.',
+    ),
   salePrice: z.coerce.number().min(0).optional(),
   rentalPrice: z.coerce.number().min(0).optional(),
   rentalDays: z.coerce.number().int().min(1).optional(),
@@ -119,8 +145,14 @@ export async function POST(request: Request) {
 
   const form = await request.formData();
   let shipping;
-  try { shipping = parseShipping(form); }
-  catch (error) { return NextResponse.json({ error: (error as Error).message }, { status: 400 }); }
+  try {
+    shipping = parseShipping(form);
+  } catch (error) {
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 400 },
+    );
+  }
   const parsed = listingSchema.safeParse({
     title: form.get('title'),
     description: form.get('description'),

@@ -10,6 +10,7 @@ type Listing = {
   id: string;
   slug: string;
   seller_id: string;
+  seller_type: string | null;
   title: string;
   description: string;
   category: string;
@@ -184,6 +185,19 @@ export function LiveListings({
                   {categoryLabel(listing.category)} ·{' '}
                   {categoryLabel(listing.condition)}
                 </p>
+                {slug && listing.seller_type && (
+                  <div className="mt-2 space-y-1 text-sm text-white/65">
+                    <p>
+                      {t('sellerType')}:{' '}
+                      {t(
+                        listing.seller_type === 'shop'
+                          ? 'shopSeller'
+                          : 'privateSeller',
+                      )}
+                    </p>
+                    <p>{t('sellerTypeNotice')}</p>
+                  </div>
+                )}
                 {mode !== 'rent' && listing.sale_price_cents !== null && (
                   <p className="mt-2 text-lg font-semibold text-pink-300">
                     {euro(listing.sale_price_cents)}
