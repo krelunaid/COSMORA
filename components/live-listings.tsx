@@ -28,6 +28,7 @@ type Listing = {
 };
 export function LiveListings({
   slug,
+  demo = false,
   category = 'All',
   mode = '',
   query = '',
@@ -36,6 +37,7 @@ export function LiveListings({
   seller = '',
 }: {
   slug?: string;
+  demo?: boolean;
   category?: string;
   mode?: string;
   query?: string;
@@ -69,6 +71,88 @@ export function LiveListings({
   }
   useEffect(() => {
     const controller = new AbortController();
+    if (demo) {
+      const sample: Listing[] = [
+        {
+          id: 'demo-manga',
+          slug: 'demo-collezione-manga',
+          seller_id: '00000000-0000-4000-8000-000000000001',
+          seller_type: 'private',
+          title: 'Collezione manga – 10 volumi',
+          description:
+            'Set in buone condizioni, pagine integre e copertine ben conservate. Ideale per iniziare la serie o completare la tua libreria. Ritiro a mano o spedizione tracciata.',
+          category: 'Comics',
+          condition: 'Used',
+          sale_mode: 'buy',
+          images: ['/mobile-category-manga.jpg'],
+          sale_price_cents: 3500,
+          rental_price_cents: null,
+          rental_days: null,
+          deposit_cents: 0,
+          shipping_mode: 'courier',
+          shipping_method: 'Poste Italiane',
+          shipping_cost_cents: 590,
+          shipping_time: '2–3 giorni lavorativi',
+        },
+        {
+          id: 'demo-figure',
+          slug: 'demo-figure-collezione',
+          seller_id: '00000000-0000-4000-8000-000000000002',
+          seller_type: 'shop',
+          title: 'Figura da collezione – edizione speciale',
+          description:
+            'Figura espositiva con base inclusa. Conservata in vetrina, senza danni visibili. Imballo protetto per la spedizione; foto illustrative per questa anteprima.',
+          category: 'Figures',
+          condition: 'Like New',
+          sale_mode: 'buy',
+          images: ['/mobile-category-figures.jpg'],
+          sale_price_cents: 4800,
+          rental_price_cents: null,
+          rental_days: null,
+          deposit_cents: 0,
+          shipping_mode: 'courier',
+          shipping_method: 'BRT',
+          shipping_cost_cents: 750,
+          shipping_time: '1–2 giorni lavorativi',
+        },
+        {
+          id: 'demo-cosplay',
+          slug: 'demo-accessorio-cosplay',
+          seller_id: '00000000-0000-4000-8000-000000000003',
+          seller_type: 'private',
+          title: 'Accessorio cosplay artigianale',
+          description:
+            'Accessorio leggero realizzato a mano, adatto a cosplay e fiere. Non è un prodotto ufficiale; condizioni ottime. Dimensioni e dettagli da concordare prima dell’acquisto.',
+          category: 'Cosplay',
+          condition: 'Like New',
+          sale_mode: 'buy',
+          images: ['/mobile-category-cosplay.jpg'],
+          sale_price_cents: 2400,
+          rental_price_cents: null,
+          rental_days: null,
+          deposit_cents: 0,
+          shipping_mode: 'pickup',
+          shipping_method: 'Ritiro a mano da concordare',
+          shipping_cost_cents: 0,
+          shipping_time: 'Da concordare',
+        },
+      ];
+      const filtered = sample.filter((listing) =>
+        (slug ? listing.slug === slug : true) &&
+        (category === 'All' || listing.category === category) &&
+        (!query ||
+          listing.title
+            .toLocaleLowerCase()
+            .includes(query.toLocaleLowerCase())) &&
+        (!condition || listing.condition === condition) &&
+        (!max || listing.sale_price_cents! <= Number(max) * 100),
+      );
+      setListings(filtered);
+      setMore(false);
+      setError('');
+      setLoading(false);
+      return () => controller.abort();
+    }
     const timer = setTimeout(
       () => {
         setLoading(true);
@@ -119,12 +203,17 @@ export function LiveListings({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [slug, category, mode, query, condition, max, seller, offset, retry]);
+  }, [slug, demo, category, mode, query, condition, max, seller, offset, retry]);
   return (
     <section
       className="space-y-4 py-5"
       aria-label={slug ? t('listingDetail') : t('listings')}
     >
+      {demo && (
+        <p className="rounded-xl border border-amber-300/25 bg-amber-300/10 p-3 text-sm text-amber-100">
+          Anteprima dimostrativa: annunci inventati e immagini illustrative, non in vendita.
+        </p>
+      )}
       {error && (
         <div role="alert" className="rounded-xl border border-amber-300/25 p-4">
           <p>{t('error')}</p>
@@ -158,7 +247,7 @@ export function LiveListings({
             key={listing.id}
             className="min-w-0 overflow-hidden rounded-2xl border border-white/15 bg-[#111225]"
           >
-            <Link href={'/marketplace/' + listing.slug} className="block">
+            <Link href={'/marketplace/' + listing.slug + (demo ? '?demo=1' : '')} className="block">
               <div className="relative aspect-square bg-white/5">
                 {listing.images[0] && (
                   <Image
@@ -237,19 +326,25 @@ export function LiveListings({
                 <p className="whitespace-pre-wrap text-base leading-relaxed text-white/80">
                   {listing.description}
                 </p>
-                <Link
-                  href={'/profile/' + listing.seller_id}
-                  className="block min-h-11 py-2 text-pink-300"
-                >
-                  {t('seller')}
-                </Link>
-                <Link
-                  href={'/inbox/' + listing.seller_id}
-                  className="block rounded-xl bg-violet-600 p-3 text-center text-base font-semibold"
-                >
-                  {t('contact')}
-                </Link>
-                <ShareButton title={listing.title} />
+                {demo ? (
+                  <p className="rounded-xl bg-white/5 p-3 text-sm text-white/65">Scheda di esempio: contatti e acquisto non attivi.</p>
+                ) : (
+                  <>
+                    <Link
+                      href={'/profile/' + listing.seller_id}
+                      className="block min-h-11 py-2 text-pink-300"
+                    >
+                      {t('seller')}
+                    </Link>
+                    <Link
+                      href={'/inbox/' + listing.seller_id}
+                      className="block rounded-xl bg-violet-600 p-3 text-center text-base font-semibold"
+                    >
+                      {t('contact')}
+                    </Link>
+                    <ShareButton title={listing.title} />
+                  </>
+                )}
                 <section className="space-y-2 rounded-xl border border-white/15 p-3 text-base">
                   <h3 className="font-semibold">{t('delivery')}</h3>
                   {listing.shipping_mode &&
@@ -277,8 +372,8 @@ export function LiveListings({
                     <p>{t('askDelivery')}</p>
                   )}
                 </section>
-                <SaveItem id={listing.id} kind="favorite" />
-                {paymentsEnabled && listing.sale_mode !== 'rent' && (
+                {!demo && <SaveItem id={listing.id} kind="favorite" />}
+                {!demo && paymentsEnabled && listing.sale_mode !== 'rent' && (
                   <SaveItem id={listing.id} kind="cart" />
                 )}
                 <p className="text-sm text-white/60">

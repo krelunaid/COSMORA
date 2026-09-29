@@ -418,7 +418,10 @@ body {
   border-color: rgb(232 121 249 / 55%);
 }
 .checkout-input::placeholder {
-  color: rgb(255 255 255 / 34%);
+  color: rgb(255 255 255 / 55%);
+}
+.sell-primary-action {
+  background-image: linear-gradient(90deg, #c02673, #6d28d9);
 }
 .mini-trust-card {
   display: flex;

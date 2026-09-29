@@ -20,12 +20,14 @@ import { categoryPageCopy, categoryPageText } from '@/lib/i18n/category-pages';
 export default function MarketplacePage() {
   const params = useSearchParams();
   const category = resolveMarketCategory(params.get('category'));
+  const demo = params.get('demo') === '1';
   // A category change starts a fresh search and clears filters from the previous one.
   return (
     <MarketplaceContent
       key={category}
       category={category}
       search={params.get('q') || ''}
+      demo={demo}
     />
   );
 }
@@ -33,9 +35,11 @@ export default function MarketplacePage() {
 function MarketplaceContent({
   category,
   search,
+  demo,
 }: {
   category: MarketCategory;
   search: string;
+  demo: boolean;
 }) {
   const { t, locale } = useCommerce();
   const [mode, setMode] = useState('buy');
@@ -249,13 +253,14 @@ function MarketplaceContent({
           </h2>
         )}
         <LiveListings
+          demo={demo}
           category={category}
           mode={mode}
           query={query}
           condition={condition}
           max={max}
         />
-        {!rentalsEnabled && (
+        {!rentalsEnabled && !demo && (
           <p className="mb-5 text-xs leading-relaxed text-white/50">
             {t('browseNotice')}
           </p>

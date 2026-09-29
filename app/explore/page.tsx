@@ -5,14 +5,16 @@ import { useI18n } from '@/components/i18n-provider';
 import { communityTranslator } from '@/lib/i18n/community';
 import { categoryPageText } from '@/lib/i18n/category-pages';
 import { europeEvents } from '@/lib/events-data';
-import { formatEventDates } from '@/lib/event-selection';
+import {
+  formatEventDates,
+  selectFeaturedEvent,
+} from '@/lib/event-selection';
 import { useEventDay } from '@/components/use-event-day';
 import Image from 'next/image';
 import Link from '@/components/app-link';
 import { useSearchParams } from 'next/navigation';
 import {
   CalendarDays,
-  ChevronRight,
   Search,
   ShoppingBag,
   Sparkles,
@@ -45,6 +47,7 @@ export default function ExplorePage() {
   const { locale } = useI18n();
   const t = communityTranslator(locale);
   const today = useEventDay();
+  const homeEventName = selectFeaturedEvent(europeEvents, today)?.name;
   const searchParams = useSearchParams();
   const [section, setSection] = useState<ExploreSection>(() =>
     exploreSections.includes(searchParams.get('section') as ExploreSection)
@@ -65,14 +68,23 @@ export default function ExplorePage() {
   }
   const discoveries = useMemo(() => {
     const cards = exploreDiscoveries
-      .filter((item) => item.section !== 'Eventi')
+      .filter(
+        (item) =>
+          item.section !== 'Eventi' &&
+          item.section !== 'Prodotti' &&
+          item.section !== 'Creator',
+      )
       .map((item) => ({
         ...item,
         title: t(item.title),
         meta: t(item.meta),
       }));
     const events: ExploreDiscovery[] = europeEvents
-      .filter((event) => event.end >= today)
+      .filter(
+        (event) =>
+          event.end >= today &&
+          (section !== 'Per te' || query.trim() || event.name !== homeEventName),
+      )
       .sort(
         (a, b) =>
           a.start.localeCompare(b.start) || a.name.localeCompare(b.name),
@@ -88,7 +100,7 @@ export default function ExplorePage() {
         href: event.internalUrl || event.url,
       }));
     return [...cards.slice(0, 3), ...events, ...cards.slice(3)];
-  }, [locale, t, today, section, query]);
+  }, [locale, t, today, homeEventName, section, query]);
   const visible = useMemo(
     () => filterExploreDiscoveries(discoveries, section, query, t),
     [discoveries, query, section, t],
@@ -136,49 +148,19 @@ export default function ExplorePage() {
         </label>
         {!focusedPeople && (
           <div className="mt-4 flex min-h-12 w-full overflow-x-auto border-b border-white/10">
-            {exploreSections.map((item) => (
-              <button
-                key={item}
-                onClick={() => setSection(item)}
-                aria-pressed={section === item}
-                className={`shrink-0 px-3 py-3 text-sm ${section === item ? 'border-b-2 border-pink-400 text-pink-300' : 'text-white/70'}`}
-              >
-                {t(item)}
-              </button>
-            ))}
+            {exploreSections
+              .filter((item) => item !== 'Creator')
+              .map((item) => (
+                <button
+                  key={item}
+                  onClick={() => setSection(item)}
+                  aria-pressed={section === item}
+                  className={`shrink-0 px-3 py-3 text-sm ${section === item ? 'border-b-2 border-pink-400 text-pink-300' : 'text-white/70'}`}
+                >
+                  {t(item)}
+                </button>
+              ))}
           </div>
-        )}
-
-        {section === 'Per te' && !query && (
-          <Link
-            href="/marketplace?category=Cosplay"
-            className="relative mt-4 block h-44 overflow-hidden rounded-2xl border border-violet-400/20 sm:h-48"
-          >
-            <Image
-              src="/cosmora-hero-mobile.jpg"
-              alt={t('Esplora Cosplay')}
-              fill
-              priority
-              sizes="(max-width: 430px) 100vw, 430px"
-              className="object-cover object-[70%_center]"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#09091b]/95 via-[#09091b]/65 to-transparent" />
-            <div className="relative flex h-full max-w-[68%] flex-col justify-center p-4">
-              <span className="text-xs font-semibold uppercase tracking-[.16em] text-pink-300">
-                {t('In evidenza')}
-              </span>
-              <h2 className="mt-2 text-lg font-semibold">
-                {t('Trova il tuo prossimo cosplay')}
-              </h2>
-              <p className="mt-1 text-sm leading-5 text-white/75">
-                {t('Prodotti, persone e community nello stesso universo.')}
-              </p>
-              <span className="mt-3 flex items-center text-sm text-pink-300">
-                {t('Esplora Cosplay')}
-                <ChevronRight className="size-3" />
-              </span>
-            </div>
-          </Link>
         )}
 
         {section === 'Creator' ? (
@@ -194,19 +176,36 @@ export default function ExplorePage() {
           </div>
         ) : (
           <>
-            {(section === 'Prodotti' || (section === 'Per te' && query)) && (
-              <div className="mt-5">
+            {section === 'Prodotti' ? (
+              <section className="mt-5" aria-labelledby="marketplace-listings">
+                <h2
+                  id="marketplace-listings"
+                  className="mb-1 text-lg font-semibold"
+                >
+                  {t('Annunci del marketplace')}
+                </h2>
+                <p className="mb-3 text-sm text-white/60">
+                  {t('Tutti i prodotti disponibili')}
+                </p>
                 <LiveListings query={query} />
-              </div>
+              </section>
+            ) : (
+              <>
+                {section === 'Per te' && query && (
+                  <div className="mt-5">
+                    <LiveListings query={query} />
+                  </div>
+                )}
+                <div className="discovery-grid mb-2 mt-4 grid grid-cols-2 items-stretch gap-3">
+                  {visible.map((item) => (
+                    <DiscoveryCard
+                      key={`${t(item.section)}-${item.title}`}
+                      item={item}
+                    />
+                  ))}
+                </div>
+              </>
             )}
-            <div className="discovery-grid mb-2 mt-4 grid grid-cols-2 items-stretch gap-3">
-              {visible.map((item) => (
-                <DiscoveryCard
-                  key={`${t(item.section)}-${item.title}`}
-                  item={item}
-                />
-              ))}
-            </div>
             {!visible.length &&
               section !== 'Prodotti' &&
               !(section === 'Per te' && query) && (

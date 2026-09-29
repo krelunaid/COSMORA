@@ -37,6 +37,20 @@ const translations: Record<string, Record<Locale, string>> = {
     de: 'Produkte',
     es: 'Productos',
   },
+  'Annunci del marketplace': {
+    it: 'Annunci del marketplace',
+    en: 'Marketplace listings',
+    fr: 'Annonces du marketplace',
+    de: 'Angebote im Marketplace',
+    es: 'Anuncios del marketplace',
+  },
+  'Tutti i prodotti disponibili': {
+    it: 'Tutti i prodotti disponibili',
+    en: 'All available products',
+    fr: 'Tous les produits disponibles',
+    de: 'Alle verfügbaren Produkte',
+    es: 'Todos los productos disponibles',
+  },
   Eventi: {
     it: 'Eventi',
     en: 'Events',
