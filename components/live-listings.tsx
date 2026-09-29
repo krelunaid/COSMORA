@@ -1,4 +1,5 @@
 'use client';
+import { useCommerce } from '@/components/use-commerce';
 import { paymentsEnabled, rentalsEnabled } from '@/lib/release-features';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -9,6 +10,7 @@ type Listing = {
   id: string;
   slug: string;
   seller_id: string;
+  seller_type: string | null;
   title: string;
   description: string;
   category: string;
@@ -24,12 +26,9 @@ type Listing = {
   shipping_cost_cents: number | null;
   shipping_time: string | null;
 };
-const euro = (value: number) =>
-  new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(
-    value / 100,
-  );
 export function LiveListings({
   slug,
+  demo = false,
   category = 'All',
   mode = '',
   query = '',
@@ -38,6 +37,7 @@ export function LiveListings({
   seller = '',
 }: {
   slug?: string;
+  demo?: boolean;
   category?: string;
   mode?: string;
   query?: string;
@@ -45,6 +45,7 @@ export function LiveListings({
   max?: string;
   seller?: string;
 }) {
+  const { t, euro, categoryLabel } = useCommerce();
   const [listings, setListings] = useState<Listing[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -70,6 +71,88 @@ export function LiveListings({
   }
   useEffect(() => {
     const controller = new AbortController();
+    if (demo) {
+      const sample: Listing[] = [
+        {
+          id: 'demo-manga',
+          slug: 'demo-collezione-manga',
+          seller_id: '00000000-0000-4000-8000-000000000001',
+          seller_type: 'private',
+          title: 'Collezione manga – 10 volumi',
+          description:
+            'Set in buone condizioni, pagine integre e copertine ben conservate. Ideale per iniziare la serie o completare la tua libreria. Ritiro a mano o spedizione tracciata.',
+          category: 'Comics',
+          condition: 'Used',
+          sale_mode: 'buy',
+          images: ['/mobile-category-manga.jpg'],
+          sale_price_cents: 3500,
+          rental_price_cents: null,
+          rental_days: null,
+          deposit_cents: 0,
+          shipping_mode: 'courier',
+          shipping_method: 'Poste Italiane',
+          shipping_cost_cents: 590,
+          shipping_time: '2–3 giorni lavorativi',
+        },
+        {
+          id: 'demo-figure',
+          slug: 'demo-figure-collezione',
+          seller_id: '00000000-0000-4000-8000-000000000002',
+          seller_type: 'shop',
+          title: 'Figura da collezione – edizione speciale',
+          description:
+            'Figura espositiva con base inclusa. Conservata in vetrina, senza danni visibili. Imballo protetto per la spedizione; foto illustrative per questa anteprima.',
+          category: 'Figures',
+          condition: 'Like New',
+          sale_mode: 'buy',
+          images: ['/mobile-category-figures.jpg'],
+          sale_price_cents: 4800,
+          rental_price_cents: null,
+          rental_days: null,
+          deposit_cents: 0,
+          shipping_mode: 'courier',
+          shipping_method: 'BRT',
+          shipping_cost_cents: 750,
+          shipping_time: '1–2 giorni lavorativi',
+        },
+        {
+          id: 'demo-cosplay',
+          slug: 'demo-accessorio-cosplay',
+          seller_id: '00000000-0000-4000-8000-000000000003',
+          seller_type: 'private',
+          title: 'Accessorio cosplay artigianale',
+          description:
+            'Accessorio leggero realizzato a mano, adatto a cosplay e fiere. Non è un prodotto ufficiale; condizioni ottime. Dimensioni e dettagli da concordare prima dell’acquisto.',
+          category: 'Cosplay',
+          condition: 'Like New',
+          sale_mode: 'buy',
+          images: ['/mobile-category-cosplay.jpg'],
+          sale_price_cents: 2400,
+          rental_price_cents: null,
+          rental_days: null,
+          deposit_cents: 0,
+          shipping_mode: 'pickup',
+          shipping_method: 'Ritiro a mano da concordare',
+          shipping_cost_cents: 0,
+          shipping_time: 'Da concordare',
+        },
+      ];
+      const filtered = sample.filter((listing) =>
+        (slug ? listing.slug === slug : true) &&
+        (category === 'All' || listing.category === category) &&
+        (!query ||
+          listing.title
+            .toLocaleLowerCase()
+            .includes(query.toLocaleLowerCase())) &&
+        (!condition || listing.condition === condition) &&
+        (!max || listing.sale_price_cents! <= Number(max) * 100),
+      );
+      setListings(filtered);
+      setMore(false);
+      setError('');
+      setLoading(false);
+      return () => controller.abort();
+    }
     const timer = setTimeout(
       () => {
         setLoading(true);
@@ -93,8 +176,17 @@ export function LiveListings({
             };
             if (!response.ok)
               throw new Error(value.error || 'Catalogo non disponibile.');
+            if (controller.signal.aborted) return;
             setListings((previous) =>
-              offset ? [...previous, ...value.listings] : value.listings,
+              offset
+                ? [
+                    ...previous,
+                    ...value.listings.filter(
+                      (listing) =>
+                        !previous.some((item) => item.id === listing.id),
+                    ),
+                  ]
+                : value.listings,
             );
             setMore(value.hasMore);
           })
@@ -111,38 +203,41 @@ export function LiveListings({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [slug, category, mode, query, condition, max, seller, offset, retry]);
+  }, [slug, demo, category, mode, query, condition, max, seller, offset, retry]);
   return (
     <section
       className="space-y-4 py-5"
-      aria-label={slug ? 'Dettaglio annuncio' : 'Annunci'}
+      aria-label={slug ? t('listingDetail') : t('listings')}
     >
+      {demo && (
+        <p className="rounded-xl border border-amber-300/25 bg-amber-300/10 p-3 text-sm text-amber-100">
+          Anteprima dimostrativa: annunci inventati e immagini illustrative, non in vendita.
+        </p>
+      )}
       {error && (
         <div role="alert" className="rounded-xl border border-amber-300/25 p-4">
-          <p>{error}</p>
+          <p>{t('error')}</p>
           <button
             onClick={() => setRetry(retry + 1)}
             className="min-h-11 text-pink-300"
           >
-            Riprova
+            {t('retry')}
           </button>
         </div>
       )}
       {!loading && !error && !listings.length && (
         <div className="rounded-2xl border border-white/10 p-6 text-center">
           <h2 className="text-lg font-semibold">
-            {slug ? 'Annuncio non disponibile' : 'Nessun annuncio trovato'}
+            {slug ? t('unavailable') : t('noListings')}
           </h2>
           <p className="mt-2 text-base text-white/65">
-            {slug
-              ? 'Potrebbe essere stato venduto o sospeso.'
-              : 'Prova un’altra ricerca oppure pubblica il tuo primo annuncio.'}
+            {slug ? t('sold') : t('trySearch')}
           </p>
           <Link
             href={slug ? '/marketplace' : '/sell'}
             className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-violet-600 px-4"
           >
-            {slug ? 'Torna al marketplace' : 'Pubblica un annuncio'}
+            {slug ? t('back') : t('publish')}
           </Link>
         </div>
       )}
@@ -152,7 +247,7 @@ export function LiveListings({
             key={listing.id}
             className="min-w-0 overflow-hidden rounded-2xl border border-white/15 bg-[#111225]"
           >
-            <Link href={'/marketplace/' + listing.slug} className="block">
+            <Link href={'/marketplace/' + listing.slug + (demo ? '?demo=1' : '')} className="block">
               <div className="relative aspect-square bg-white/5">
                 {listing.images[0] && (
                   <Image
@@ -176,8 +271,22 @@ export function LiveListings({
                   {listing.title}
                 </h2>
                 <p className="mt-2 text-sm text-white/65">
-                  {listing.category} · {listing.condition}
+                  {categoryLabel(listing.category)} ·{' '}
+                  {categoryLabel(listing.condition)}
                 </p>
+                {slug && listing.seller_type && (
+                  <div className="mt-2 space-y-1 text-sm text-white/65">
+                    <p>
+                      {t('sellerType')}:{' '}
+                      {t(
+                        listing.seller_type === 'shop'
+                          ? 'shopSeller'
+                          : 'privateSeller',
+                      )}
+                    </p>
+                    <p>{t('sellerTypeNotice')}</p>
+                  </div>
+                )}
                 {mode !== 'rent' && listing.sale_price_cents !== null && (
                   <p className="mt-2 text-lg font-semibold text-pink-300">
                     {euro(listing.sale_price_cents)}
@@ -185,8 +294,8 @@ export function LiveListings({
                 )}
                 {rentalsEnabled && listing.rental_price_cents !== null && (
                   <p className="mt-1 text-sm text-violet-200">
-                    Noleggio {euro(listing.rental_price_cents)} /{' '}
-                    {listing.rental_days} giorni
+                    {t('rental')} {euro(listing.rental_price_cents)} /{' '}
+                    {listing.rental_days} {t('days')}
                   </p>
                 )}
               </div>
@@ -200,12 +309,12 @@ export function LiveListings({
                       href={url}
                       target="_blank"
                       rel="noreferrer"
-                      aria-label={'Apri foto ' + (index + 2)}
+                      aria-label={t('openPhoto') + ' ' + (index + 2)}
                       className="relative size-20 overflow-hidden rounded-xl"
                     >
                       <Image
                         src={url}
-                        alt={'Foto ' + (index + 2)}
+                        alt={t('photo') + ' ' + (index + 2)}
                         fill
                         unoptimized
                         sizes="80px"
@@ -217,33 +326,58 @@ export function LiveListings({
                 <p className="whitespace-pre-wrap text-base leading-relaxed text-white/80">
                   {listing.description}
                 </p>
-                <Link
-                  href={'/profile/' + listing.seller_id}
-                  className="block min-h-11 py-2 text-pink-300"
-                >
-                  Profilo del venditore →
-                </Link>
-                <Link
-                  href={'/inbox/' + listing.seller_id}
-                  className="block rounded-xl bg-violet-600 p-3 text-center text-base font-semibold"
-                >
-                  Contatta il venditore
-                </Link>
-                <ShareButton title={listing.title} />
+                {demo ? (
+                  <p className="rounded-xl bg-white/5 p-3 text-sm text-white/65">Scheda di esempio: contatti e acquisto non attivi.</p>
+                ) : (
+                  <>
+                    <Link
+                      href={'/profile/' + listing.seller_id}
+                      className="block min-h-11 py-2 text-pink-300"
+                    >
+                      {t('seller')}
+                    </Link>
+                    <Link
+                      href={'/inbox/' + listing.seller_id}
+                      className="block rounded-xl bg-violet-600 p-3 text-center text-base font-semibold"
+                    >
+                      {t('contact')}
+                    </Link>
+                    <ShareButton title={listing.title} />
+                  </>
+                )}
                 <section className="space-y-2 rounded-xl border border-white/15 p-3 text-base">
-                  <h3 className="font-semibold">Consegna del venditore</h3>
-                  {listing.shipping_mode && listing.shipping_cost_cents !== null ? <>
-                    <p>{listing.shipping_mode === 'pickup' ? 'Ritiro a mano' : 'Spedizione'} · {euro(listing.shipping_cost_cents)}</p>
-                    <p>{listing.shipping_method}</p><p>{listing.shipping_time}</p>
-                    {listing.sale_price_cents !== null && <p className="font-semibold text-pink-200">Articolo e consegna: {euro(listing.sale_price_cents + listing.shipping_cost_cents)}</p>}
-                  </> : <p>Condizioni non ancora indicate: chiedile al venditore prima di acquistare.</p>}
+                  <h3 className="font-semibold">{t('delivery')}</h3>
+                  {listing.shipping_mode &&
+                  listing.shipping_cost_cents !== null ? (
+                    <>
+                      <p>
+                        {listing.shipping_mode === 'pickup'
+                          ? t('pickup')
+                          : t('shipping')}{' '}
+                        · {euro(listing.shipping_cost_cents)}
+                      </p>
+                      <p>{listing.shipping_method}</p>
+                      <p>{listing.shipping_time}</p>
+                      {listing.sale_price_cents !== null && (
+                        <p className="font-semibold text-pink-200">
+                          {t('total')}{' '}
+                          {euro(
+                            listing.sale_price_cents +
+                              listing.shipping_cost_cents,
+                          )}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p>{t('askDelivery')}</p>
+                  )}
                 </section>
-                <SaveItem id={listing.id} kind="favorite" />
-                {paymentsEnabled && listing.sale_mode !== 'rent' && (
+                {!demo && <SaveItem id={listing.id} kind="favorite" />}
+                {!demo && paymentsEnabled && listing.sale_mode !== 'rent' && (
                   <SaveItem id={listing.id} kind="cart" />
                 )}
                 <p className="text-sm text-white/60">
-                  {paymentsEnabled ? 'Checkout solo di prova: nessun acquisto, spedizione o rimborso reale. Non pagare fuori dall’app pensando di avere una protezione COSMORA.' : 'Pagamenti e noleggi non sono disponibili in questa versione.'}
+                  {paymentsEnabled ? t('testNotice') : t('disabled')}
                 </p>
               </div>
             )}
@@ -252,7 +386,7 @@ export function LiveListings({
       </div>
       {loading && (
         <output className="block py-4 text-base text-white/70">
-          Caricamento annunci…
+          {t('loadingListings')}
         </output>
       )}
       {more && !loading && !error && (
@@ -260,7 +394,7 @@ export function LiveListings({
           onClick={() => setOffset(offset + 24)}
           className="min-h-12 w-full rounded-xl border border-white/20 text-base"
         >
-          Mostra altri annunci
+          {t('more')}
         </button>
       )}
     </section>

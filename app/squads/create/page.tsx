@@ -1,4 +1,6 @@
 'use client';
+import { useI18n } from '@/components/i18n-provider';
+import { communityTranslator, communityError } from '@/lib/i18n/community';
 import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -6,6 +8,8 @@ import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
 import { accountRequest } from '@/lib/account-client';
 import Link from '@/components/app-link';
 export default function CreateSquad() {
+  const { locale } = useI18n();
+  const t = communityTranslator(locale);
   const router = useRouter();
   const [kind, setKind] = useState('COSPLAY_SQUAD');
   const [busy, setBusy] = useState(false);
@@ -36,25 +40,30 @@ export default function CreateSquad() {
       );
       router.push('/squads/' + result.squad.id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Creazione non riuscita.');
+      setError(communityError(locale, e, 'Creazione non riuscita.'));
     } finally {
       setBusy(false);
     }
   }
   return (
     <MobileShell>
-      <ScreenHeader title="Crea crew o incontro" back="/squads" />
+      <ScreenHeader title={t('Crea crew o incontro')} back="/squads" />
       <form onSubmit={submit} className="space-y-5 p-5 pb-12">
         <p className="text-base text-white/70">
-          Una crew è una squadra cosplay. Un incontro è un appuntamento aperto
-          in un luogo pubblico.
+          {t(
+            'Una crew è una squadra cosplay. Un incontro è un appuntamento aperto in un luogo pubblico.',
+          )}
         </p>
         <div className="grid grid-cols-2 gap-3">
           {[
-            ['COSPLAY_SQUAD', 'Crew cosplay', '/community/squad-example.jpg'],
+            [
+              'COSPLAY_SQUAD',
+              t('Crew cosplay'),
+              '/community/squad-example.jpg',
+            ],
             [
               'EVENT_MEETUP',
-              'Incontro pubblico',
+              t('Incontro pubblico'),
               '/community/meetup-example.jpg',
             ],
           ].map(([value, label, image]) => (
@@ -86,12 +95,12 @@ export default function CreateSquad() {
             <label key={name} className="block">
               {
                 [
-                  'Nome',
-                  'Descrizione',
-                  'Fandom (facoltativo)',
-                  'Città',
-                  'Luogo pubblico (non un indirizzo privato)',
-                  'Regole',
+                  t('Nome'),
+                  t('Descrizione'),
+                  t('Fandom (facoltativo)'),
+                  t('Città'),
+                  t('Luogo pubblico (non un indirizzo privato)'),
+                  t('Regole'),
                 ][i]
               }
               {name === 'description' || name === 'rules' ? (
@@ -115,7 +124,7 @@ export default function CreateSquad() {
           ),
         )}
         <label className="block">
-          Data e ora
+          {t('Data e ora')}
           <input
             name="date"
             type="datetime-local"
@@ -124,7 +133,7 @@ export default function CreateSquad() {
           />
         </label>
         <label className="block">
-          Partecipanti massimi
+          {t('Partecipanti massimi')}
           <input
             name="max"
             type="number"
@@ -142,13 +151,13 @@ export default function CreateSquad() {
             defaultChecked
             className="size-5"
           />
-          Approvo personalmente le richieste
+          {t('Approvo personalmente le richieste')}
         </label>
         {error && (
           <div role="alert" className="text-rose-300">
             {error}{' '}
             <Link href="/auth/login" className="underline">
-              Accedi
+              {t('Accedi')}
             </Link>
           </div>
         )}
@@ -156,7 +165,7 @@ export default function CreateSquad() {
           disabled={busy}
           className="min-h-12 w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 px-4 font-semibold disabled:opacity-50"
         >
-          {busy ? 'Creazione…' : 'Crea e salva'}
+          {busy ? t('Creazione…') : t('Crea e salva')}
         </button>
       </form>
     </MobileShell>

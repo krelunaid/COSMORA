@@ -1,3 +1,5 @@
+'use client';
+import { useCommerce } from '@/components/use-commerce';
 import {
   MobileShell,
   MobileNav,
@@ -5,9 +7,10 @@ import {
 } from '@/components/mobile-shell';
 import { SavedItems } from '@/components/saved-items';
 export default function CartPage() {
+  const { t } = useCommerce();
   return (
     <MobileShell>
-      <ScreenHeader title="Il tuo carrello" back="/marketplace" />
+      <ScreenHeader title={t('cart')} back="/marketplace" />
       <SavedItems kind="cart" />
       <MobileNav active="explore" />
     </MobileShell>

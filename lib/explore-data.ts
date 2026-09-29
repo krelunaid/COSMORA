@@ -89,13 +89,14 @@ export function filterExploreDiscoveries(
   items: readonly ExploreDiscovery[],
   section: ExploreSection,
   query: string,
+  sectionLabel: (section: ExploreSection) => string = (value) => value,
 ) {
   const needle = query.trim().toLowerCase();
   return items.filter(
     (item) =>
       (section === 'Per te' || item.section === section) &&
       (!needle ||
-        `${item.title} ${item.meta} ${item.section}`
+        `${item.title} ${item.meta} ${sectionLabel(item.section)}`
           .toLowerCase()
           .includes(needle)),
   );

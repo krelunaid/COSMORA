@@ -1,4 +1,6 @@
 'use client';
+import { useI18n } from '@/components/i18n-provider';
+import { communityTranslator, communityError } from '@/lib/i18n/community';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from '@/components/app-link';
@@ -7,6 +9,8 @@ import { accountRequest } from '@/lib/account-client';
 import { orderStatusLabel } from '@/lib/order-status';
 type Item = { id: string; label: string; detail: string };
 export default function RealInbox() {
+  const { locale } = useI18n();
+  const t = communityTranslator(locale);
   const params = useSearchParams();
   const [tab, setTab] = useState(
     params.get('tab') === 'orders' ? 'orders' : 'messages',
@@ -16,6 +20,15 @@ export default function RealInbox() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [reload, setReload] = useState(0);
+  const locationTab = params.get('tab') === 'orders' ? 'orders' : 'messages';
+  const [lastLocationTab, setLastLocationTab] = useState(locationTab);
+  if (locationTab !== lastLocationTab) {
+    setLastLocationTab(locationTab);
+    setTab(locationTab);
+    setQuery('');
+    setLoading(true);
+    setError('');
+  }
   useEffect(() => {
     let active = true;
     accountRequest(`/api/${tab}`)
@@ -33,8 +46,9 @@ export default function RealInbox() {
                 is_test?: boolean;
               }) => ({
                 id: order.id,
-                label: order.item_title || `Ordine ${order.id.slice(0, 8)}`,
-                detail: `${order.is_test ? 'TEST · ' : ''}${orderStatusLabel(order.status)} · ${new Intl.NumberFormat('it-IT', { style: 'currency', currency: order.currency }).format(order.amount_cents / 100)}`,
+                label:
+                  order.item_title || `${t('Ordine')} ${order.id.slice(0, 8)}`,
+                detail: `${order.is_test ? 'TEST · ' : ''}${orderStatusLabel(order.status, locale)} · ${new Intl.NumberFormat(locale, { style: 'currency', currency: order.currency }).format(order.amount_cents / 100)}`,
               }),
             ),
           );
@@ -51,7 +65,7 @@ export default function RealInbox() {
                 label:
                   value.profiles.find(
                     (profile: { id: string }) => profile.id === id,
-                  )?.display_name || 'Utente COSMORA',
+                  )?.display_name || t('Utente COSMORA'),
                 detail: message.body,
               });
           }
@@ -59,7 +73,8 @@ export default function RealInbox() {
         }
       })
       .catch((reason) => {
-        if (active) setError(reason.message);
+        if (active)
+          setError(communityError(locale, reason, 'Caricamento non riuscito.'));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -67,18 +82,18 @@ export default function RealInbox() {
     return () => {
       active = false;
     };
-  }, [tab, reload]);
+  }, [tab, reload, locale, t]);
   const visible = items.filter((item) =>
     `${item.label} ${item.detail}`.toLowerCase().includes(query.toLowerCase()),
   );
   return (
     <MobileShell className="flex !h-dvh !min-h-0 flex-col overflow-hidden">
       <header className="px-5 py-5">
-        <h1 className="text-2xl font-semibold">Messaggi e ordini</h1>
+        <h1 className="text-2xl font-semibold">{t('Messaggi e ordini')}</h1>
       </header>
       <section className="min-h-0 flex-1 overflow-y-auto px-5 pb-24">
         <label className="block text-sm">
-          Cerca
+          {t('Cerca')}
           <input
             type="search"
             value={query}
@@ -88,8 +103,8 @@ export default function RealInbox() {
         </label>
         <div className="my-4 grid grid-cols-2">
           {[
-            ['messages', 'Messaggi'],
-            ['orders', 'Ordini'],
+            ['messages', t('Messaggi')],
+            ['orders', t('Ordini')],
           ].map(([key, label]) => (
             <button
               key={key}
@@ -108,12 +123,12 @@ export default function RealInbox() {
           ))}
         </div>
         {loading ? (
-          <p>Caricamento…</p>
+          <p>{t('Caricamento…')}</p>
         ) : error ? (
           <div className="space-y-4">
             <output className="block text-amber-200">{error}</output>
             <Link href="/auth/login" className="block text-pink-300">
-              Accedi o registrati
+              {t('Accedi o registrati')}
             </Link>
             <button
               onClick={() => {
@@ -123,7 +138,7 @@ export default function RealInbox() {
               }}
               className="min-h-12 rounded-xl border border-white/20 px-4"
             >
-              Riprova
+              {t('Riprova')}
             </button>
           </div>
         ) : (
@@ -131,10 +146,10 @@ export default function RealInbox() {
             {visible.length === 0 && (
               <p className="py-6 text-base text-white/70">
                 {query
-                  ? 'Nessun risultato.'
+                  ? t('Nessun risultato.')
                   : tab === 'orders'
-                    ? 'Non ci sono ordini associati al tuo account.'
-                    : 'Non hai ancora conversazioni.'}
+                    ? t('Non ci sono ordini associati al tuo account.')
+                    : t('Non hai ancora conversazioni.')}
               </p>
             )}
             {visible.map((item) =>

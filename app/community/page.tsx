@@ -1,4 +1,6 @@
 'use client';
+import { useI18n } from '@/components/i18n-provider';
+import { communityTranslator, communityError } from '@/lib/i18n/community';
 /* User-uploaded videos do not yet support caption-file uploads. */
 /* oxlint-disable jsx-a11y/media-has-caption */
 import { useEffect, useState } from 'react';
@@ -20,6 +22,8 @@ type Post = {
   media: { type: string; url: string }[];
 };
 export default function CommunityPage() {
+  const { locale } = useI18n();
+  const t = communityTranslator(locale);
   const [posts, setPosts] = useState<Post[]>([]);
   const [query, setQuery] = useState('');
   const [offset, setOffset] = useState(0);
@@ -27,6 +31,7 @@ export default function CommunityPage() {
   const [error, setError] = useState('');
   const [more, setMore] = useState(false);
   const [reload, setReload] = useState(0);
+  const [userId, setUserId] = useState('');
   useEffect(() => {
     const controller = new AbortController();
     const timer = setTimeout(
@@ -48,18 +53,28 @@ export default function CommunityPage() {
             const value = (await r.json()) as {
               posts: Post[];
               hasMore: boolean;
+              userId?: string;
               error?: string;
             };
             if (!r.ok) throw Error(value.error);
             if (!controller.signal.aborted) {
-              setPosts((p) => (offset ? [...p, ...value.posts] : value.posts));
+              setPosts((p) =>
+                offset
+                  ? [
+                      ...p,
+                      ...value.posts.filter(
+                        (post) =>
+                          !p.some((existing) => existing.id === post.id),
+                      ),
+                    ]
+                  : value.posts,
+              );
               setMore(value.hasMore);
+              setUserId(value.userId ?? '');
             }
           } catch (e) {
             if (!controller.signal.aborted)
-              setError(
-                e instanceof Error ? e.message : 'Caricamento non riuscito.',
-              );
+              setError(communityError(locale, e, 'Caricamento non riuscito.'));
           } finally {
             if (!controller.signal.aborted) setLoading(false);
           }
@@ -71,16 +86,16 @@ export default function CommunityPage() {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [query, offset, reload]);
+  }, [query, offset, reload, locale]);
   return (
     <MobileShell className="flex flex-col">
       <header className="flex items-center justify-between p-5">
-        <h1 className="text-2xl font-semibold">Community</h1>
+        <h1 className="text-2xl font-semibold">{t('Community')}</h1>
         <Link
           href="/community/post/new"
           className="rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold"
         >
-          Nuovo post
+          {t('Nuovo post')}
         </Link>
       </header>
       <section className="flex-1 space-y-4 px-4 pb-5">
@@ -89,17 +104,17 @@ export default function CommunityPage() {
             href="/squads"
             className="flex min-h-11 items-center rounded-full border border-violet-400/30 px-4 text-sm text-violet-200"
           >
-            Crew e incontri →
+            {t('Crew e incontri →')}
           </Link>
         </div>
         <input
-          aria-label="Cerca nei post"
+          aria-label={t('Cerca nei post')}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
             setOffset(0);
           }}
-          placeholder="Cerca nella community…"
+          placeholder={t('Cerca nella community…')}
           className="checkout-input"
         />
         {error && (
@@ -109,23 +124,25 @@ export default function CommunityPage() {
               onClick={() => setReload(reload + 1)}
               className="min-h-11 text-pink-300"
             >
-              Riprova
+              {t('Riprova')}
             </button>
           </div>
         )}
         {!loading && !error && !posts.length && (
           <div className="rounded-2xl border border-white/10 p-6 text-center">
             <h2 className="text-xl font-semibold">
-              Il prossimo post può essere il tuo
+              {t('Il prossimo post può essere il tuo')}
             </h2>
             <p className="mt-3 text-base text-white/70">
-              Condividi un cosplay, una collezione o un momento a un evento.
+              {t(
+                'Condividi un cosplay, una collezione o un momento a un evento.',
+              )}
             </p>
             <Link
               href="/community/post/new"
               className="mt-4 inline-block rounded-xl bg-violet-600 px-4 py-3"
             >
-              Crea un post
+              {t('Crea un post')}
             </Link>
           </div>
         )}
@@ -142,7 +159,7 @@ export default function CommunityPage() {
                 {post.author}
               </Link>
               <p className="mt-1 text-xs text-white/60">
-                {new Date(post.created_at).toLocaleString('it-IT')}
+                {new Date(post.created_at).toLocaleString(locale)}
               </p>
               <p className="mt-3 whitespace-pre-wrap break-words text-base leading-relaxed">
                 {post.caption}
@@ -165,7 +182,7 @@ export default function CommunityPage() {
                       width={800}
                       height={800}
                       src={media.url}
-                      alt={'Foto del post ' + (index + 1)}
+                      alt={t('Foto del post') + ' ' + (index + 1)}
                       loading="lazy"
                       className="max-h-[480px] w-full object-contain"
                     />
@@ -175,7 +192,7 @@ export default function CommunityPage() {
             </div>
             {post.media.length > 1 && (
               <p className="p-3 text-sm text-white/65">
-                Scorri le {post.media.length} foto e video →
+                {t('Scorri foto e video →')} ({post.media.length})
               </p>
             )}
             {post.link_url &&
@@ -191,43 +208,45 @@ export default function CommunityPage() {
             <div className="flex flex-wrap items-start justify-between gap-3 px-4">
               <ShareButton title={post.caption.slice(0, 80)} url="/community" />
               <ReportButton targetType="POST" targetId={post.id} />
-              <button
-                className="min-h-11 text-sm text-white/60"
-                onClick={async () => {
-                  try {
-                    await accountRequest('/api/blocks', {
-                      method: 'POST',
-                      body: JSON.stringify({
-                        userId: post.author_id,
-                        blocked: true,
-                      }),
-                    });
-                    setPosts((p) =>
-                      p.filter((item) => item.author_id !== post.author_id),
-                    );
-                  } catch (e) {
-                    setError(
-                      e instanceof Error
-                        ? e.message
-                        : 'Operazione non riuscita.',
-                    );
-                  }
-                }}
-              >
-                Blocca autore
-              </button>
+              {post.author_id !== userId && (
+                <button
+                  className="min-h-11 text-sm text-white/60"
+                  onClick={async () => {
+                    try {
+                      await accountRequest('/api/blocks', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                          userId: post.author_id,
+                          blocked: true,
+                        }),
+                      });
+                      setPosts((p) =>
+                        p.filter((item) => item.author_id !== post.author_id),
+                      );
+                    } catch (e) {
+                      setError(
+                        communityError(locale, e, 'Operazione non riuscita.'),
+                      );
+                    }
+                  }}
+                >
+                  {t('Blocca autore')}
+                </button>
+              )}
             </div>
           </article>
         ))}
         {loading && (
-          <output className="py-4 text-white/70">Caricamento post…</output>
+          <output className="py-4 text-white/70">
+            {t('Caricamento post…')}
+          </output>
         )}
         {more && !loading && (
           <button
             onClick={() => setOffset(offset + 20)}
             className="min-h-12 w-full rounded-xl border border-white/20"
           >
-            Mostra altri post
+            {t('Mostra altri post')}
           </button>
         )}
       </section>

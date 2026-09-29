@@ -9,6 +9,13 @@ test('authentication stays on either trusted COSMORA origin', () => {
     }
   }
 });
+test('local preview authentication returns to the preview', () => {
+  for (const origin of ['http://localhost:4317', 'http://127.0.0.1:4317']) {
+    for (const path of ['/profile/me', '/auth/recovery'] as const) {
+      assert.equal(authRedirect(origin, path), origin + path);
+    }
+  }
+});
 test('untrusted origins and development use the existing public destination', () => {
   for (const origin of ['http://127.0.0.1:3017', 'http://cosmora.kreluna.it', 'https://cosmora.kreluna.it.evil.test', 'null']) {
     assert.equal(authRedirect(origin, '/profile/me'), 'https://cosmora-app.andreagadducci.chatgpt.site/profile/me');

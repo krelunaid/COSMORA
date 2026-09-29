@@ -1,7 +1,11 @@
 'use client';
+import { useI18n } from '@/components/i18n-provider';
+import { accountMessages } from '@/lib/i18n/account';
 import { useEffect, useState } from 'react';
 import Link from '@/components/app-link';
 export function ProfileDirectory({ query = '' }: { query?: string }) {
+  const { locale } = useI18n();
+  const t = accountMessages[locale];
   const [rows, setRows] = useState<
     Array<{ id: string; display_name: string; country: string }>
   >([]);
@@ -22,13 +26,17 @@ export function ProfileDirectory({ query = '' }: { query?: string }) {
           .then(async (r) => {
             const d = (await r.json()) as { profiles: typeof rows };
             if (!r.ok) throw Error('Profili non disponibili.');
-            setRows(d.profiles);
-            setError('');
+            if (!c.signal.aborted) {
+              setRows(d.profiles);
+              setError('');
+            }
           })
-          .catch((e) => {
-            if (e.name !== 'AbortError') setError(e.message);
+          .catch(() => {
+            if (!c.signal.aborted) setError('profilesFailed');
           })
-          .finally(() => setLoading(false)),
+          .finally(() => {
+            if (!c.signal.aborted) setLoading(false);
+          }),
       200,
     );
     return () => {
@@ -39,11 +47,11 @@ export function ProfileDirectory({ query = '' }: { query?: string }) {
   return (
     <div className="space-y-3">
       {loading ? (
-        <output>Caricamento profili…</output>
+        <output>{t.profilesLoading}</output>
       ) : error ? (
-        <p role="alert">{error}</p>
+        <p role="alert">{t.profilesFailed}</p>
       ) : !rows.length ? (
-        <p className="text-white/70">Nessun profilo trovato.</p>
+        <p className="text-white/70">{t.noProfiles}</p>
       ) : (
         rows.map((p) => (
           <Link
@@ -56,7 +64,7 @@ export function ProfileDirectory({ query = '' }: { query?: string }) {
             </span>
             <div>
               <h2 className="text-lg font-semibold">
-                {p.display_name || 'Utente COSMORA'}
+                {p.display_name || t.user}
               </h2>
               <p className="text-sm text-white/65">{p.country}</p>
             </div>

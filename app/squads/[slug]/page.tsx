@@ -1,4 +1,6 @@
 'use client';
+import { useI18n } from '@/components/i18n-provider';
+import { communityTranslator, communityError } from '@/lib/i18n/community';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import {
@@ -11,6 +13,8 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { accountRequest } from '@/lib/account-client';
 import Link from '@/components/app-link';
 export default function CrewDetail() {
+  const { locale } = useI18n();
+  const t = communityTranslator(locale);
   const { slug } = useParams<{ slug: string }>();
   const [crew, setCrew] = useState<Crew>();
   const [user, setUser] = useState('');
@@ -39,7 +43,7 @@ export default function CrewDetail() {
         }
       } catch (e) {
         if (active)
-          setError(e instanceof Error ? e.message : 'Errore di caricamento.');
+          setError(communityError(locale, e, 'Errore di caricamento.'));
       } finally {
         if (active) setLoading(false);
       }
@@ -48,7 +52,7 @@ export default function CrewDetail() {
     return () => {
       active = false;
     };
-  }, [slug, version]);
+  }, [slug, version, locale]);
   async function act(action: string, memberId?: string) {
     setBusy(true);
     setError('');
@@ -59,25 +63,25 @@ export default function CrewDetail() {
       });
       setVersion((v) => v + 1);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Operazione non riuscita.');
+      setError(communityError(locale, e, 'Operazione non riuscita.'));
     } finally {
       setBusy(false);
     }
   }
   return (
     <MobileShell>
-      <ScreenHeader title="Crew e incontri" back="/squads" />
+      <ScreenHeader title={t('Crew e incontri')} back="/squads" />
       <section className="space-y-5 p-5 pb-32">
         {loading ? (
-          <output>Caricamento…</output>
+          <output>{t('Caricamento…')}</output>
         ) : !crew ? (
-          <p>Questa crew non è disponibile.</p>
+          <p>{t('Questa crew non è disponibile.')}</p>
         ) : (
           <>
             <h1 className="text-3xl font-semibold">{crew.name}</h1>
             {crew.status !== 'ACTIVE' && (
               <p className="text-amber-300">
-                Questa crew è in revisione e non è ancora pubblica.
+                {t('Questa crew è in revisione e non è ancora pubblica.')}
               </p>
             )}
             <p className="whitespace-pre-wrap text-lg text-white/80">
@@ -85,28 +89,28 @@ export default function CrewDetail() {
             </p>
             <div className="space-y-2 rounded-2xl border border-white/15 p-5">
               <p>{crew.city}</p>
-              <p>{new Date(crew.starts_at).toLocaleString('it-IT')}</p>
+              <p>{new Date(crew.starts_at).toLocaleString(locale)}</p>
               <p>{crew.approximate_location}</p>
               <p>
-                {crew.memberCount}/{crew.max_members} partecipanti
+                {crew.memberCount}/{crew.max_members} {t('partecipanti')}
               </p>
             </div>
-            <h2 className="text-xl font-semibold">Regole</h2>
+            <h2 className="text-xl font-semibold">{t('Regole')}</h2>
             <p className="whitespace-pre-wrap text-white/75">{crew.rules}</p>
             <Link
               href={'/profile/' + crew.owner_id}
               className="block text-pink-300 underline"
             >
-              Profilo dell’organizzatore
+              {t('Profilo dell’organizzatore')}
             </Link>
             {user === crew.owner_id ? (
               <div>
                 <h2 className="text-xl font-semibold">
-                  Richieste di partecipazione
+                  {t('Richieste di partecipazione')}
                 </h2>
                 {!crew.requests?.length ? (
                   <p className="mt-3 text-white/65">
-                    Nessuna richiesta in attesa.
+                    {t('Nessuna richiesta in attesa.')}
                   </p>
                 ) : (
                   crew.requests.map((m) => (
@@ -118,7 +122,7 @@ export default function CrewDetail() {
                         href={'/profile/' + m.user_id}
                         className="underline"
                       >
-                        Vedi il profilo
+                        {t('Vedi il profilo')}
                       </Link>
                       <div className="flex gap-3">
                         <button
@@ -126,14 +130,14 @@ export default function CrewDetail() {
                           onClick={() => act('approve', m.user_id)}
                           className="min-h-11 rounded-xl bg-violet-600 px-4"
                         >
-                          Approva
+                          {t('Approva')}
                         </button>
                         <button
                           disabled={busy}
                           onClick={() => act('decline', m.user_id)}
                           className="min-h-11 rounded-xl border border-white/20 px-4"
                         >
-                          Rifiuta
+                          {t('Rifiuta')}
                         </button>
                       </div>
                     </div>
@@ -144,15 +148,27 @@ export default function CrewDetail() {
               <>
                 <p className="text-white/70">
                   {crew.myStatus === 'ACTIVE'
-                    ? 'Sei tra i partecipanti.'
+                    ? t('Sei tra i partecipanti.')
                     : crew.myStatus === 'PENDING'
-                      ? 'Richiesta inviata: attendi l’approvazione.'
-                      : crew.approval_required
-                        ? 'L’organizzatore deve approvare la partecipazione.'
-                        : 'Puoi unirti fino a esaurimento posti.'}
+                      ? t('Richiesta inviata: attendi l’approvazione.')
+                      : new Date(crew.starts_at) <= new Date()
+                        ? t('Questo incontro è già iniziato.')
+                        : crew.memberCount >= crew.max_members
+                          ? t('La crew è al completo.')
+                          : crew.approval_required
+                            ? t(
+                                'L’organizzatore deve approvare la partecipazione.',
+                              )
+                            : t('Puoi unirti fino a esaurimento posti.')}
                 </p>
                 <button
-                  disabled={busy || new Date(crew.starts_at) <= new Date()}
+                  disabled={
+                    busy ||
+                    ((new Date(crew.starts_at) <= new Date() ||
+                      crew.memberCount >= crew.max_members) &&
+                      crew.myStatus !== 'ACTIVE' &&
+                      crew.myStatus !== 'PENDING')
+                  }
                   onClick={() =>
                     act(
                       crew.myStatus === 'ACTIVE' || crew.myStatus === 'PENDING'
@@ -163,12 +179,12 @@ export default function CrewDetail() {
                   className="min-h-12 w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 px-4 disabled:opacity-50"
                 >
                   {busy
-                    ? 'Attendi…'
+                    ? t('Attendi…')
                     : crew.myStatus === 'ACTIVE'
-                      ? 'Lascia la crew'
+                      ? t('Lascia la crew')
                       : crew.myStatus === 'PENDING'
-                        ? 'Annulla richiesta'
-                        : 'Partecipa'}
+                        ? t('Annulla richiesta')
+                        : t('Partecipa')}
                 </button>
               </>
             ) : (
@@ -176,7 +192,7 @@ export default function CrewDetail() {
                 href="/auth/login"
                 className="block rounded-xl bg-violet-600 p-4 text-center"
               >
-                Accedi per partecipare
+                {t('Accedi per partecipare')}
               </Link>
             )}
           </>
