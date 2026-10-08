@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
+import { getBlockedAuthorIds } from '@/lib/server/blocked-content';
 
 const schema = z.object({
   listingId: z.uuid(),
@@ -16,10 +17,13 @@ export async function GET(request: Request) {
   const kind = new URL(request.url).searchParams.get('kind');
   if (kind !== 'cart' && kind !== 'favorite')
     return NextResponse.json({ error: 'Sezione non valida.' }, { status: 400 });
+  const blocks = await getBlockedAuthorIds(auth.admin, auth.user.id);
+  if (blocks.error)
+    return NextResponse.json({ error: 'Articoli non disponibili. Riprova.' }, { status: 503 });
   const { data, error } = await auth.admin
     .from('saved_items')
     .select(
-      'listing_id, listings(id,slug,title,status,sale_mode,sale_price_cents,listing_images(storage_path,position))',
+      'listing_id, listings(id,seller_id,slug,title,status,sale_mode,sale_price_cents,listing_images(storage_path,position))',
     )
     .eq('user_id', auth.user.id)
     .eq('kind', kind)
@@ -30,11 +34,12 @@ export async function GET(request: Request) {
       { error: 'Articoli non disponibili. Riprova.' },
       { status: 503 },
     );
-  const items = (data ?? []).map((row) => {
+  const items = await Promise.all((data ?? []).map(async (row) => {
     const listing = (Array.isArray(row.listings)
       ? row.listings[0]
       : row.listings) as unknown as {
       id: string;
+      seller_id: string;
       slug: string;
       title: string;
       status: string;
@@ -42,20 +47,24 @@ export async function GET(request: Request) {
       sale_price_cents: number | null;
       listing_images: { storage_path: string; position: number }[];
     };
+    if (listing && blocks.ids.includes(listing.seller_id)) return null;
+    // Preserve a removable saved item without exposing hidden user content.
+    if (!listing || listing.status !== 'active') return {
+      id: row.listing_id, seller_id: '', status: 'unavailable', slug: '', title: '',
+      image: null, sale_mode: 'buy', sale_price_cents: null,
+    };
     const path = listing?.listing_images?.sort(
       (a, b) => a.position - b.position,
     )[0]?.storage_path;
+    const image = path ? await auth.admin.storage.from('listing-images').createSignedUrl(path, 3600) : null;
     return {
       ...listing,
       listing_images: undefined,
-      image: path
-        ? auth.admin.storage.from('listing-images').getPublicUrl(path).data
-            .publicUrl
-        : null,
+      image: image?.data?.signedUrl || null,
     };
-  });
+  }));
   return NextResponse.json(
-    { items },
+    { items: items.filter((item) => item !== null) },
     { headers: { 'Cache-Control': 'private, no-store' } },
   );
 }
@@ -100,6 +109,11 @@ async function mutate(request: Request, remove: boolean) {
       { error: 'Articolo non disponibile per il carrello.' },
       { status: 409 },
     );
+  const blocks = await getBlockedAuthorIds(auth.admin, auth.user.id);
+  if (blocks.error)
+    return NextResponse.json({ error: 'Articoli non disponibili. Riprova.' }, { status: 503 });
+  if (blocks.ids.includes(listing.seller_id))
+    return NextResponse.json({ error: 'Articolo non disponibile.' }, { status: 404 });
   const { count, error: countError } = await auth.admin
     .from('saved_items')
     .select('listing_id', { head: true, count: 'exact' })

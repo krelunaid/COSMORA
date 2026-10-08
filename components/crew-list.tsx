@@ -1,8 +1,13 @@
 'use client';
+import { apiFetch } from '@/lib/api-fetch';
 import { useI18n } from '@/components/i18n-provider';
 import { communityTranslator } from '@/lib/i18n/community';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import Link from '@/components/app-link';
+import { useBlockedContent } from '@/components/use-blocked-content';
+import { BlockedContentNotice } from '@/components/blocked-content-notice';
+import { withoutBlockedAuthors } from '@/lib/blocked-content';
 export type Crew = {
   id: string;
   owner_id: string;
@@ -26,25 +31,35 @@ export function CrewList({ query = '' }: { query?: string }) {
   const [crews, setCrews] = useState<Crew[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { blockedIds, blocksRevision, blocksReady, blocksError, retryBlocks } = useBlockedContent();
   useEffect(() => {
     const controller = new AbortController();
-    fetch('/api/squads', { signal: controller.signal })
-      .then(async (r) => {
+    setLoading(true);
+    setError('');
+    void (async () => {
+      try {
+        const session = await getSupabaseBrowserClient()?.auth.getSession();
+        if (controller.signal.aborted) return;
+        if (session?.error) throw session.error;
+        const token = session?.data.session?.access_token;
+        const r = await apiFetch('/api/squads', {
+          signal: controller.signal,
+          headers: token ? { Authorization: 'Bearer ' + token } : {},
+        });
         const d = (await r.json()) as { squads: Crew[]; error?: string };
         if (!r.ok) throw Error(d.error);
-        setCrews(d.squads);
-      })
-      .catch((e) => {
-        if (e.name !== 'AbortError')
+        if (!controller.signal.aborted) setCrews(d.squads);
+      } catch {
+        if (!controller.signal.aborted)
           setError(t('Non riesco a caricare le crew. Riprova tra poco.'));
-      })
-      .finally(() => {
+      } finally {
         if (!controller.signal.aborted) setLoading(false);
-      });
+      }
+    })();
     return () => controller.abort();
-  }, [t]);
+  }, [t, blocksRevision]);
   const needle = query.trim().toLocaleLowerCase(locale);
-  const visible = crews.filter(
+  const visible = (blocksReady ? withoutBlockedAuthors(crews, blockedIds, (crew) => crew.owner_id) : []).filter(
     (crew) =>
       !needle ||
       `${crew.name} ${crew.description} ${crew.city}`
@@ -53,7 +68,8 @@ export function CrewList({ query = '' }: { query?: string }) {
   );
   return (
     <div className="space-y-4">
-      {loading ? (
+      <BlockedContentNotice ready={blocksReady} error={blocksError} retry={retryBlocks} />
+      {!blocksReady ? null : loading ? (
         <output>{t('Caricamento crew…')}</output>
       ) : error ? (
         <p role="alert">{error}</p>

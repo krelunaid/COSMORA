@@ -5,6 +5,7 @@ import { paymentsEnabled } from '@/lib/release-features';
 import { useState, useEffect } from 'react';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
 import { accountRequest } from '@/lib/account-client';
+import { AccountRequestError } from '@/lib/account-http';
 import Link from '@/components/app-link';
 export default function Onboarding() {
   const { locale } = useI18n();
@@ -18,6 +19,7 @@ export default function Onboarding() {
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [needsLogin, setNeedsLogin] = useState(false);
   useEffect(() => {
     let active = true;
     accountRequest<{
@@ -30,8 +32,11 @@ export default function Onboarding() {
           setSaved(true);
         }
       })
-      .catch(() => {
-        if (active) setError('failed');
+      .catch((error) => {
+        if (active) {
+          setError(error instanceof AccountRequestError ? error.message : 'failed');
+          setNeedsLogin(error instanceof AccountRequestError && error.status === 401);
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -43,6 +48,7 @@ export default function Onboarding() {
   async function save(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
+    setNeedsLogin(false);
     setSaved(false);
     setBusy(true);
     try {
@@ -55,8 +61,9 @@ export default function Onboarding() {
         }),
       });
       setSaved(true);
-    } catch {
-      setError('failed');
+    } catch (error) {
+      setError(error instanceof AccountRequestError ? error.message : 'failed');
+      setNeedsLogin(error instanceof AccountRequestError && error.status === 401);
     } finally {
       setBusy(false);
     }
@@ -64,13 +71,15 @@ export default function Onboarding() {
   async function connect() {
     setBusy(true);
     setError('');
+    setNeedsLogin(false);
     try {
       const r = await accountRequest<{ url: string }>('/api/stripe/connect', {
         method: 'POST',
       });
       window.location.assign(r.url);
-    } catch {
-      setError('failed');
+    } catch (error) {
+      setError(error instanceof AccountRequestError ? error.message : 'failed');
+      setNeedsLogin(error instanceof AccountRequestError && error.status === 401);
       setBusy(false);
     }
   }
@@ -103,6 +112,7 @@ export default function Onboarding() {
             onInvalid={(event) => {
               event.preventDefault();
               setError('invalid');
+              setNeedsLogin(false);
             }}
             onSubmit={save}
             className="space-y-5"
@@ -268,10 +278,12 @@ export default function Onboarding() {
         )}
         {error && (
           <p role="alert" className="mt-4 text-rose-300">
-            {t(error === 'invalid' ? 'invalid' : 'error')}{' '}
-            <Link href="/auth/login" className="underline">
-              {t('login')}
-            </Link>
+            {error === 'invalid' ? t('invalid') : error === 'failed' ? t('error') : error}
+            {needsLogin && (
+              <Link href="/auth/login" className="ml-2 underline">
+                {t('login')}
+              </Link>
+            )}
           </p>
         )}
       </div>

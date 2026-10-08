@@ -426,6 +426,13 @@ const copy = {
     'Die Anmeldung über diesen Anbieter ist fehlgeschlagen. Versuche es erneut oder nutze deine E-Mail.',
     'El acceso con esta cuenta ha fallado. Reinténtalo o usa tu correo.',
   ],
+  completeInBrowser: [
+    'Finish signing in in your browser, then return to COSMORA.',
+    'Completa l’accesso nel browser, poi torna in COSMORA.',
+    'Terminez la connexion dans le navigateur, puis revenez dans COSMORA.',
+    'Schließe die Anmeldung im Browser ab und kehre zu COSMORA zurück.',
+    'Termina el acceso en el navegador y vuelve a COSMORA.',
+  ],
   connectionFailed: [
     'Check your connection and try again.',
     'Controlla la connessione e riprova.',
@@ -747,6 +754,34 @@ const copy = {
     'Pour révoquer aussi la connexion Apple, ouvrez Réglages iPhone → votre nom → Connexion avec Apple → COSMORA → Supprimer.',
     'Um auch die Apple-Verknüpfung aufzuheben, öffne iPhone-Einstellungen → dein Name → Mit Apple anmelden → COSMORA → Löschen.',
     'Para revocar también la conexión con Apple, abre Ajustes del iPhone → tu nombre → Iniciar sesión con Apple → COSMORA → Eliminar.',
+  ],
+  appleRevoked: [
+    'Your Sign in with Apple connection has also been revoked.',
+    'Anche il collegamento Accedi con Apple è stato revocato.',
+    'Votre connexion Se connecter avec Apple a également été révoquée.',
+    'Deine Verbindung über Mit Apple anmelden wurde ebenfalls widerrufen.',
+    'También se ha revocado la conexión de Iniciar sesión con Apple.',
+  ],
+  deleteSignIn: [
+    'Sign in again to continue deleting your account.',
+    'Accedi di nuovo per continuare l’eliminazione del tuo account.',
+    'Reconnectez-vous pour poursuivre la suppression de votre compte.',
+    'Melde dich erneut an, um die Löschung deines Kontos fortzusetzen.',
+    'Vuelve a iniciar sesión para continuar eliminando tu cuenta.',
+  ],
+  appleIdentityMismatch: [
+    'The Apple connection does not match this account. Sign in again with the Apple account you used for COSMORA, then retry deletion.',
+    'Il collegamento Apple non corrisponde a questo account. Accedi di nuovo con l’account Apple usato per COSMORA, poi riprova l’eliminazione.',
+    'La connexion Apple ne correspond pas à ce compte. Reconnectez-vous avec le compte Apple utilisé pour COSMORA, puis réessayez la suppression.',
+    'Die Apple-Verbindung passt nicht zu diesem Konto. Melde dich erneut mit dem für COSMORA verwendeten Apple-Konto an und wiederhole die Löschung.',
+    'La conexión Apple no coincide con esta cuenta. Vuelve a entrar con la cuenta de Apple usada en COSMORA e intenta eliminarla de nuevo.',
+  ],
+  appleRevocationUnavailable: [
+    'Apple could not complete the disconnection. Retry deletion shortly; it has not completed yet.',
+    'Apple non ha completato la revoca del collegamento. Riprova l’eliminazione tra poco; non è ancora completata.',
+    'Apple n’a pas pu révoquer la connexion. Réessayez la suppression dans un instant ; elle n’est pas encore terminée.',
+    'Apple konnte die Verbindung nicht widerrufen. Versuche die Löschung gleich noch einmal; sie ist noch nicht abgeschlossen.',
+    'Apple no ha podido revocar la conexión. Reintenta la eliminación en unos momentos; todavía no se ha completado.',
   ],
   permanent: [
     'This action is permanent',

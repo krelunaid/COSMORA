@@ -15,7 +15,12 @@ export default function ProductPage() {
     <MobileShell className="flex flex-col">
       <ScreenHeader title={t('listing')} back="/marketplace" />
       <div className="flex-1 px-4">
-        <LiveListings slug={slug} demo={params.get('demo') === '1'} />
+        <LiveListings
+          slug={slug}
+          demo={
+            process.env.NODE_ENV === 'development' && params.get('demo') === '1'
+          }
+        />
       </div>
       <MobileNav active="explore" />
     </MobileShell>

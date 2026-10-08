@@ -17,7 +17,7 @@ export async function GET(request: Request) {
           .eq('status', 'active')
           .limit(100)
       : type === 'creator'
-        ? await a.admin.from('profiles').select('id,display_name').limit(100)
+        ? await a.admin.from('profiles').select('id,display_name').eq('moderation_hidden', false).limit(100)
         : type === 'crew'
           ? await a.admin
               .from('squads')

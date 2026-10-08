@@ -18,23 +18,23 @@ type MarketCategoryConfig = {
 // counts or product attributes that sellers are required to provide.
 export const MARKET_CATEGORIES = {
   Cosplay: {
-    image: '/mobile-category-cosplay.jpg',
+    image: '/editorial/category-cosplay.svg',
     suggestions: ['Naruto', 'One Piece', 'Demon Slayer', 'Genshin Impact'],
   },
   Comics: {
-    image: '/mobile-category-manga.jpg',
+    image: '/editorial/category-manga.svg',
     suggestions: ['One Piece', 'Naruto', 'Dragon Ball', 'Marvel', 'DC'],
   },
   Figures: {
-    image: '/mobile-category-figures.jpg',
+    image: '/editorial/category-figures.svg',
     suggestions: ['Funko Pop', 'Bandai', 'Dragon Ball', 'Marvel'],
   },
   Cards: {
-    image: '/mobile-category-cards.jpg',
+    image: '/editorial/category-cards.svg',
     suggestions: ['Pokémon', 'Yu-Gi-Oh!', 'Magic', 'One Piece'],
   },
   Gaming: {
-    image: '/mobile-category-gaming.jpg',
+    image: '/editorial/category-gaming.svg',
     suggestions: ['Nintendo', 'PlayStation', 'Xbox', 'PC', 'Controller'],
   },
 } as const satisfies Record<MarketCategoryId, MarketCategoryConfig>;

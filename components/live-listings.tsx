@@ -1,4 +1,6 @@
 'use client';
+import { ReportButton } from '@/components/report-button';
+import { apiFetch } from '@/lib/api-fetch';
 import { useCommerce } from '@/components/use-commerce';
 import { paymentsEnabled, rentalsEnabled } from '@/lib/release-features';
 import { useEffect, useState } from 'react';
@@ -6,6 +8,10 @@ import Image from 'next/image';
 import Link from '@/components/app-link';
 import { ShareButton } from '@/components/share-button';
 import { SaveItem } from '@/components/saved-items';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { useBlockedContent } from '@/components/use-blocked-content';
+import { BlockedContentNotice } from '@/components/blocked-content-notice';
+import { withoutBlockedAuthors } from '@/lib/blocked-content';
 type Listing = {
   id: string;
   slug: string;
@@ -28,7 +34,7 @@ type Listing = {
 };
 export function LiveListings({
   slug,
-  demo = false,
+  demo: requestedDemo = false,
   category = 'All',
   mode = '',
   query = '',
@@ -45,6 +51,7 @@ export function LiveListings({
   max?: string;
   seller?: string;
 }) {
+  const demo = process.env.NODE_ENV === 'development' && requestedDemo;
   const { t, euro, categoryLabel } = useCommerce();
   const [listings, setListings] = useState<Listing[]>([]);
   const [error, setError] = useState('');
@@ -52,6 +59,8 @@ export function LiveListings({
   const [offset, setOffset] = useState(0);
   const [more, setMore] = useState(false);
   const [retry, setRetry] = useState(0);
+  const { blockedIds, blocksRevision, blocksReady, blocksError, retryBlocks, viewerId } = useBlockedContent();
+  const visibleListings = blocksReady ? withoutBlockedAuthors(listings, blockedIds, (listing) => listing.seller_id) : [];
   const filterKey = JSON.stringify([
     slug,
     category,
@@ -60,6 +69,7 @@ export function LiveListings({
     condition,
     max,
     seller,
+    blocksRevision,
   ]);
   const [applied, setApplied] = useState(filterKey);
   if (applied !== filterKey) {
@@ -84,7 +94,7 @@ export function LiveListings({
           category: 'Comics',
           condition: 'Used',
           sale_mode: 'buy',
-          images: ['/mobile-category-manga.jpg'],
+          images: ['/editorial/category-manga.svg'],
           sale_price_cents: 3500,
           rental_price_cents: null,
           rental_days: null,
@@ -105,7 +115,7 @@ export function LiveListings({
           category: 'Figures',
           condition: 'Like New',
           sale_mode: 'buy',
-          images: ['/mobile-category-figures.jpg'],
+          images: ['/editorial/category-figures.svg'],
           sale_price_cents: 4800,
           rental_price_cents: null,
           rental_days: null,
@@ -126,7 +136,7 @@ export function LiveListings({
           category: 'Cosplay',
           condition: 'Like New',
           sale_mode: 'buy',
-          images: ['/mobile-category-cosplay.jpg'],
+          images: ['/editorial/category-cosplay.svg'],
           sale_price_cents: 2400,
           rental_price_cents: null,
           rental_days: null,
@@ -167,11 +177,21 @@ export function LiveListings({
           offset: String(offset),
         });
         if (slug) params.set('slug', slug);
-        fetch('/api/listings?' + params, { signal: controller.signal })
+        void (async () => {
+          const session = await getSupabaseBrowserClient()?.auth.getSession();
+          if (session?.error) throw session.error;
+          if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError');
+          const token = session?.data.session?.access_token;
+          return apiFetch('/api/listings?' + params, {
+            signal: controller.signal,
+            headers: token ? { Authorization: 'Bearer ' + token } : {},
+          });
+        })()
           .then(async (response) => {
             const value = (await response.json()) as {
               listings: Listing[];
               hasMore: boolean;
+              userId?: string;
               error?: string;
             };
             if (!response.ok)
@@ -203,12 +223,13 @@ export function LiveListings({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [slug, demo, category, mode, query, condition, max, seller, offset, retry]);
+  }, [slug, demo, category, mode, query, condition, max, seller, offset, retry, blocksRevision]);
   return (
     <section
       className="space-y-4 py-5"
       aria-label={slug ? t('listingDetail') : t('listings')}
     >
+      <BlockedContentNotice ready={blocksReady} error={blocksError} retry={retryBlocks} />
       {demo && (
         <p className="rounded-xl border border-amber-300/25 bg-amber-300/10 p-3 text-sm text-amber-100">
           Anteprima dimostrativa: annunci inventati e immagini illustrative, non in vendita.
@@ -225,7 +246,7 @@ export function LiveListings({
           </button>
         </div>
       )}
-      {!loading && !error && !listings.length && (
+      {blocksReady && !loading && !error && !visibleListings.length && (
         <div className="rounded-2xl border border-white/10 p-6 text-center">
           <h2 className="text-lg font-semibold">
             {slug ? t('unavailable') : t('noListings')}
@@ -242,7 +263,7 @@ export function LiveListings({
         </div>
       )}
       <div className={slug ? 'space-y-5' : 'grid grid-cols-2 gap-3'}>
-        {listings.map((listing) => (
+        {visibleListings.map((listing) => (
           <article
             key={listing.id}
             className="min-w-0 overflow-hidden rounded-2xl border border-white/15 bg-[#111225]"
@@ -343,6 +364,7 @@ export function LiveListings({
                       {t('contact')}
                     </Link>
                     <ShareButton title={listing.title} />
+                    <ReportButton targetType="LISTING" targetId={listing.id} authorId={listing.seller_id} viewerId={viewerId} />
                   </>
                 )}
                 <section className="space-y-2 rounded-xl border border-white/15 p-3 text-base">
@@ -384,12 +406,12 @@ export function LiveListings({
           </article>
         ))}
       </div>
-      {loading && (
+      {blocksReady && loading && (
         <output className="block py-4 text-base text-white/70">
           {t('loadingListings')}
         </output>
       )}
-      {more && !loading && !error && (
+      {blocksReady && more && !loading && !error && (
         <button
           onClick={() => setOffset(offset + 24)}
           className="min-h-12 w-full rounded-xl border border-white/20 text-base"

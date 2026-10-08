@@ -9,6 +9,8 @@ import { accountRequest } from '@/lib/account-client';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { localeLabels, supportedLocales, type Locale } from '@/lib/i18n/config';
 import { paymentsEnabled } from '@/lib/release-features';
+import { accountRestrictions } from '@/lib/i18n/account-restrictions';
+import { SafetyLink } from '@/components/safety-link';
 
 export default function MyProfilePage() {
   const { locale, setLocale, messages } = useI18n();
@@ -17,18 +19,21 @@ export default function MyProfilePage() {
     displayName: '',
     country: '',
     email: '',
+    suspended: false,
+    deletionPending: false,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [ready, setReady] = useState(false);
+  const restricted = profile.suspended || profile.deletionPending;
   useEffect(() => {
     let active = true;
-    accountRequest('/api/account')
+    accountRequest<{ displayName: string; country: string; email: string; suspended?: boolean; deletionPending?: boolean }>('/api/account')
       .then((value) => {
         if (active) {
-          setProfile(value);
+          setProfile({ ...value, suspended: value.suspended === true, deletionPending: value.deletionPending === true });
           setReady(true);
         }
       })
@@ -44,6 +49,7 @@ export default function MyProfilePage() {
   }, []);
   async function save(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (restricted) return;
     setSaving(true);
     setError('');
     setNotice('');
@@ -72,6 +78,7 @@ export default function MyProfilePage() {
     <MobileShell>
       <section className="space-y-5 px-5 py-6 pb-28">
         <h1 className="text-2xl font-semibold">{t.myProfile}</h1>
+        <SafetyLink />
         <section className="space-y-2 rounded-xl border border-white/15 p-4">
           <label className="flex flex-wrap items-center justify-between gap-3 text-base">
             {t.language}
@@ -113,6 +120,10 @@ export default function MyProfilePage() {
           <>
             <p className="break-all text-base text-white/75">{profile.email}</p>
             <p className="text-sm text-white/70">{t.privateEmail}</p>
+            {restricted && <p role="status" className="rounded-xl border border-amber-300/30 p-4 text-amber-100">
+              {profile.deletionPending ? accountRestrictions[locale].deleting : accountRestrictions[locale].suspended}
+            </p>}
+            {!restricted && <>
             <form onSubmit={save} className="space-y-4">
               <label className="block text-base">
                 {messages.auth.name}
@@ -192,6 +203,7 @@ export default function MyProfilePage() {
                 {paymentsEnabled ? t.messagesOrders : messages.nav.inbox}
               </Link>
             </nav>
+            </>}
             <button
               onClick={signOut}
               className="min-h-12 w-full rounded-xl border border-white/20 text-base"

@@ -1,0 +1,215 @@
+{
+  "candidate": 31,
+  "created": "2026-10-03",
+  "source": "scripts/generate-editorial-assets.mjs",
+  "originalAssets": [
+    {
+      "path": "public/editorial/category-artist.svg",
+      "sha256": "b4d724f725c6d12fb9ed69e0044fb753492fdf7b5fbc1526e6f63789e5a57274",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/editorial/category-cards.svg",
+      "sha256": "348f0d18a5f4920a176fe355b6099ec734375b963e82a03f3c219f87af6880ac",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/editorial/category-cosplay.svg",
+      "sha256": "baea83b748dad40ac8badeaba51581310f742b374862e5056de3f5b41149b14c",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/editorial/category-figures.svg",
+      "sha256": "bb07276614041ac83e5091dbeb44d88772f94120b1eda2c3fce5e3cc46204a40",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/editorial/category-gaming.svg",
+      "sha256": "7a3207e1b44d9ea0eaf1668ac8f18b47b6e13c9b753eb034716b12a1c1d0a8a0",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/editorial/category-manga.svg",
+      "sha256": "f3d9a534d4bf8d376d2a38e9b08e13481eee390ab49c556e49aca84d4755b869",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/editorial/crew.svg",
+      "sha256": "a99550fa029c1c6dca2dfd9297ca52f0a19b8d16519d8b16d3359133adbdadb1",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/editorial/hero.svg",
+      "sha256": "fef87a718d863caa4d81bdd941c50334ea0cba1d581eaeb79644564eb3d7c23f",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/editorial/meetup.svg",
+      "sha256": "9e0bcca820423fd1ff7836a1c2a5ef818b9b6a26c82b41d21eae962fb806507e",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/animagic.svg",
+      "sha256": "8593b993238ac338bdd1f62af705413b84fa28c07fa2f4a1024e62d34c8c45e6",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/bd-comic-strip-festival.svg",
+      "sha256": "2d687fea4b25e393bcd55b5b45b4379ac399830fdc971fe82a69e2a89c91f7b7",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/comic-barcelona.svg",
+      "sha256": "1e28b1bf5d0d024de032b60a149443d9a6491882735452ea708ad912f933c3d2",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/comic-con-brussels-fall.svg",
+      "sha256": "874062c1a2d62d0f699adb1a373bc3594bf348cf1290a677909f943423a02fc4",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/comic-con-brussels-spring.svg",
+      "sha256": "cb84c0713d1555fef6878d82db6a0e7aa133fac59dfeba178dda365d40736ca7",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/comic-con-france.svg",
+      "sha256": "6229bf25101ce746a637c990a57049f4ab13aea5e30612f7dc79deb7ec229a1d",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/comic-con-holland-den-bosch.svg",
+      "sha256": "04349d4264eeeb062597e46a3b5369c5382e1859cc32f99daba804c4f769c2e8",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/comic-con-holland-greater-amsterdam.svg",
+      "sha256": "debc6ed2d8e25138a1ec81963dbcfda3f781b4421b156b5177fcbbef1eca4369",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/comic-con-open-air.svg",
+      "sha256": "a0bbf7a1eb9999774b649206ec21d885a6aaa2910c14f64622f0eabaa7749693",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/comicon-bergamo.svg",
+      "sha256": "6e50a1f90be353693b8f18c6d30d3ba5adf462b50422dde6f03ae4711a6cc036",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/comicon-napoli.svg",
+      "sha256": "410f2052305d0bb28bda85112815edd18e09547a1432cac20b1ac05b354ddafd",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/dokomi.svg",
+      "sha256": "84012dd2d8dbfbb1f79e963c34ba538a8ecca96d780960f2b68721770811bfea",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/elftopia.svg",
+      "sha256": "1f3f7978f2df79fcb63642ccbf336b3f2d2342a42119f422b5b5fa7e8f54e649",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/facts-fall.svg",
+      "sha256": "a897f344c3f3f73c758f2a30abc339cb49be2949b8b81275d6886e4572a54143",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/gamescom.svg",
+      "sha256": "b02c4e3f1da470a7e92db502c411ec81633fb8fa5d509bf5f06db40bb69b4ead",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/heroes-dutch-comic-con-spring.svg",
+      "sha256": "67b1b4772dc26cc3b5a5e39fd604d9ebab372c22a257ac03ff6d39fc6d22bf90",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/heroes-dutch-comic-con-winter.svg",
+      "sha256": "48b6a34cceff6dc5d52ca1ef0ade375c30452f421522dfd1422abb8bb0df0747",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/i-heart-horror.svg",
+      "sha256": "393a640195ffd705b08369653d1c2f13249bb33b3c61a896c8135ce5121a9758",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/iberanime-lisboa.svg",
+      "sha256": "c967a95edb453ca625a64e4cafb1a9856e21b221cec02ce1575766b9e05ea9df",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/japan-con-brussels-manga.svg",
+      "sha256": "6cbdd799189bf9121aa45232fb604d4e3041a97aa570e0c5dae91f251182ba96",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/japan-expo-paris.svg",
+      "sha256": "58dd3fe8e8ca340b171c90645910881f650ddbc7918c5198b0524ebc94a5463b",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/lucca-comics-games.svg",
+      "sha256": "ebc2c69db889bb5e51610a99ad15cf7967933b336423b70b6f38a545645a0560",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/manga-barcelona.svg",
+      "sha256": "244773aa4b71dd5df7ac865ff37788974c297efc450c69825a2f4836290f629e",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/manga-comic-con-leipzig.svg",
+      "sha256": "19fb4eb00947a959c1266c57c75d5b268b76518cce435c474be10e5cd6ab6e8b",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/milano-comics-games.svg",
+      "sha256": "55201e185442346da522981edf8246520bd16d4bd32f7bd92ae87b7be3e96c00",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/paris-games-week.svg",
+      "sha256": "7c3142b6080858ddebaa12730c3de4659bcea749f35522dc1d3f2932cc4be4c9",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/romics-fall.svg",
+      "sha256": "73d3072ef9f2bf6d1fa39cf551ea8e7c2d9bab445a9d6c6ad1a16a407184ca95",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/events/romics-spring.svg",
+      "sha256": "eb342f5a98626dda59f21f8acbcc1572bd5dca37b6dfd68321fd4c00a4db94de",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    },
+    {
+      "path": "public/favicon.svg",
+      "sha256": "fb44dd0d21ac2628c09ce0212c779fbdff53390b88a7a8792200d6ef2e8b16f5",
+      "provenance": "Original SVG paths authored in code for COSMORA; no imported imagery or icon paths."
+    }
+  ],
+  "preservedBranding": [
+    {
+      "path": "public/brand/cosmora-app-icon.png",
+      "sha256": "79a0f6e9d4f0b80408510406d2fe087f815c1dff765b262710e62623dc8da88f",
+      "provenance": "Existing COSMORA project identity retained by request."
+    },
+    {
+      "path": "assets/icon-only.png",
+      "sha256": "79a0f6e9d4f0b80408510406d2fe087f815c1dff765b262710e62623dc8da88f",
+      "provenance": "Existing COSMORA project identity retained by request."
+    },
+    {
+      "path": "assets/logo.png",
+      "sha256": "79a0f6e9d4f0b80408510406d2fe087f815c1dff765b262710e62623dc8da88f",
+      "provenance": "Existing COSMORA project identity retained by request."
+    }
+  ],
+  "archivedOriginals": "work/asset-archive/2026-10-03-editorial/manifest.json"
+}

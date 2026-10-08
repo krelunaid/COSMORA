@@ -1,4 +1,5 @@
 'use client';
+import { apiFetch } from '@/lib/api-fetch';
 import { useI18n } from '@/components/i18n-provider';
 import { communityTranslator, communityError } from '@/lib/i18n/community';
 import { useEffect, useState } from 'react';
@@ -12,6 +13,9 @@ import { type Crew } from '@/components/crew-list';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { accountRequest } from '@/lib/account-client';
 import Link from '@/components/app-link';
+import { ReportButton } from '@/components/report-button';
+import { useBlockedContent } from '@/components/use-blocked-content';
+import { BlockedContentNotice } from '@/components/blocked-content-notice';
 export default function CrewDetail() {
   const { locale } = useI18n();
   const t = communityTranslator(locale);
@@ -22,13 +26,16 @@ export default function CrewDetail() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [version, setVersion] = useState(0);
+  const { blockedIds, blocksRevision, blocksReady, blocksError, retryBlocks } = useBlockedContent();
   useEffect(() => {
     let active = true;
     async function load() {
       try {
         const s = await getSupabaseBrowserClient()?.auth.getSession();
+        if (s?.error) throw s.error;
+        if (!active) return;
         const token = s?.data.session?.access_token;
-        const r = await fetch('/api/squads?id=' + slug, {
+        const r = await apiFetch('/api/squads?id=' + slug, {
           headers: token ? { Authorization: 'Bearer ' + token } : {},
         });
         const d = (await r.json()) as {
@@ -40,6 +47,7 @@ export default function CrewDetail() {
         if (active) {
           setCrew(d.squads[0]);
           setUser(d.userId || '');
+          setError('');
         }
       } catch (e) {
         if (active)
@@ -52,7 +60,7 @@ export default function CrewDetail() {
     return () => {
       active = false;
     };
-  }, [slug, version, locale]);
+  }, [slug, version, locale, blocksRevision]);
   async function act(action: string, memberId?: string) {
     setBusy(true);
     setError('');
@@ -72,13 +80,14 @@ export default function CrewDetail() {
     <MobileShell>
       <ScreenHeader title={t('Crew e incontri')} back="/squads" />
       <section className="space-y-5 p-5 pb-32">
-        {loading ? (
+        {!blocksReady ? <BlockedContentNotice ready={blocksReady} error={blocksError} retry={retryBlocks} /> : loading ? (
           <output>{t('Caricamento…')}</output>
-        ) : !crew ? (
+        ) : !crew || blockedIds.has(crew.owner_id) ? (
           <p>{t('Questa crew non è disponibile.')}</p>
         ) : (
           <>
             <h1 className="text-3xl font-semibold">{crew.name}</h1>
+            <ReportButton targetType="SQUAD" targetId={crew.id} authorId={crew.owner_id} viewerId={user} />
             {crew.status !== 'ACTIVE' && (
               <p className="text-amber-300">
                 {t('Questa crew è in revisione e non è ancora pubblica.')}

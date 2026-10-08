@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { rentalsEnabled } from '@/lib/release-features';
 import { parseShipping } from '@/lib/shipping';
+import { getBlockedAuthorIds } from '@/lib/server/blocked-content';
 
 import {
   getSupabaseAdmin,
@@ -15,6 +16,12 @@ export async function GET(request: Request) {
       { error: 'Catalogo non disponibile.' },
       { status: 503 },
     );
+  const auth = await requireAuthenticatedUser(request);
+  if (request.headers.has('authorization') && !auth)
+    return NextResponse.json({ error: 'Accesso non disponibile.' }, { status: 401 });
+  const blocks = await getBlockedAuthorIds(admin, auth?.user.id);
+  if (blocks.error)
+    return NextResponse.json({ error: 'Catalogo non disponibile.' }, { status: 503 });
   const params = new URL(request.url).searchParams;
   const slug = params.get('slug');
   const offset = Math.max(
@@ -27,6 +34,8 @@ export async function GET(request: Request) {
       'id, slug, seller_id, title, description, category, condition, sale_mode, sale_price_cents, rental_price_cents, rental_days, deposit_cents, shipping_mode, shipping_method, shipping_cost_cents, shipping_time, listing_images(storage_path,position)',
     )
     .eq('status', 'active');
+  if (blocks.ids.length)
+    query = query.not('seller_id', 'in', '(' + blocks.ids.join(',') + ')');
   if (!rentalsEnabled) query = query.in('sale_mode', ['buy', 'both']);
   if (slug) query = query.eq('slug', slug);
   const category = params.get('category');
@@ -82,6 +91,10 @@ export async function GET(request: Request) {
       profile.seller_type,
     ]),
   );
+  const paths = (data ?? []).flatMap((listing) => listing.listing_images.map((image) => image.storage_path));
+  const signed = paths.length ? await admin.storage.from('listing-images').createSignedUrls(paths, 3600) : { data: [], error: null };
+  if (signed.error) return NextResponse.json({ error: 'Immagini non disponibili. Riprova.' }, { status: 503 });
+  const imageUrls = new Map((signed.data ?? []).map((image) => [image.path, image.signedUrl]));
   const listings = (data ?? []).map((listing) => ({
     ...listing,
     seller_type: sellerTypes.get(listing.seller_id) ?? null,
@@ -89,14 +102,13 @@ export async function GET(request: Request) {
       .sort((a, b) => a.position - b.position)
       .map(
         (image) =>
-          admin.storage.from('listing-images').getPublicUrl(image.storage_path)
-            .data.publicUrl,
-      ),
+          imageUrls.get(image.storage_path) || '',
+      ).filter(Boolean),
     listing_images: undefined,
   }));
   return NextResponse.json(
-    { listings, hasMore: listings.length === 24 },
-    { headers: { 'Cache-Control': 'no-store' } },
+    { listings, hasMore: listings.length === 24, userId: auth?.user.id },
+    { headers: { 'Cache-Control': 'private, no-store' } },
   );
 }
 
@@ -281,7 +293,7 @@ export async function POST(request: Request) {
     if (!imageInsert.error) {
       const activated = await admin
         .from('listings')
-        .update({ status: 'active' })
+        .update({ status: 'pending_review' })
         .eq('id', id);
       if (activated.error) throw activated.error;
     }
@@ -296,5 +308,5 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ listing: inserted.data }, { status: 201 });
+  return NextResponse.json({ listing: { ...inserted.data, status: 'pending_review' } }, { status: 201 });
 }

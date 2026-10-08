@@ -2,6 +2,19 @@ import type { Locale } from './config';
 
 // Only interface copy belongs here. User captions, names and messages stay unchanged.
 const translations: Record<string, Record<Locale, string>> = {
+  'Aggiorna': { it: 'Aggiorna', en: 'Refresh', fr: 'Actualiser', de: 'Aktualisieren', es: 'Actualizar' },
+  'Post visualizzati': { it: 'Post visualizzati', en: 'Posts shown', fr: 'Publications affichées', de: 'Angezeigte Beiträge', es: 'Publicaciones mostradas' },
+  'Cerca nel testo dei post': { it: 'Cerca nel testo dei post', en: 'Search post text', fr: 'Rechercher dans le texte des publications', de: 'Im Text der Beiträge suchen', es: 'Buscar en el texto de las publicaciones' },
+  'Nessun post trovato': { it: 'Nessun post trovato', en: 'No posts found', fr: 'Aucune publication trouvée', de: 'Keine Beiträge gefunden', es: 'No se encontraron publicaciones' },
+  'Prova un altro testo oppure azzera la ricerca.': { it: 'Prova un altro testo oppure azzera la ricerca.', en: 'Try different text or clear your search.', fr: 'Essayez un autre texte ou effacez la recherche.', de: 'Versuche einen anderen Text oder setze die Suche zurück.', es: 'Prueba otro texto o borra la búsqueda.' },
+  'Elenco post': { it: 'Elenco post', en: 'Post list', fr: 'Liste des publications', de: 'Beitragsliste', es: 'Lista de publicaciones' },
+  'Mostra dettagli': { it: 'Mostra dettagli', en: 'Show details', fr: 'Afficher les détails', de: 'Details anzeigen', es: 'Mostrar detalles' },
+  'Nascondi dettagli': { it: 'Nascondi dettagli', en: 'Hide details', fr: 'Masquer les détails', de: 'Details ausblenden', es: 'Ocultar detalles' },
+  'Video': { it: 'Video', en: 'Video', fr: 'Vidéo', de: 'Video', es: 'Vídeo' },
+  'Apri collegamento': { it: 'Apri collegamento', en: 'Open link', fr: 'Ouvrir le lien', de: 'Link öffnen', es: 'Abrir enlace' },
+  Violenza: { it: 'Violenza', en: 'Violence', fr: 'Violence', de: 'Gewalt', es: 'Violencia' },
+  Contraffazione: { it: 'Contraffazione', en: 'Counterfeit', fr: 'Contrefaçon', de: 'Fälschung', es: 'Falsificación' },
+  'Il messaggio selezionato sarà condiviso con i moderatori.': { it: 'Il messaggio selezionato sarà condiviso con i moderatori.', en: 'The selected message will be shared with moderators.', fr: 'Le message sélectionné sera partagé avec les modérateurs.', de: 'Die ausgewählte Nachricht wird mit den Moderatoren geteilt.', es: 'El mensaje seleccionado se compartirá con los moderadores.' },
   'Scopri tutto COSMORA': {
     it: 'Scopri tutto COSMORA',
     en: 'Discover COSMORA',

@@ -40,3 +40,18 @@ next-env.d.ts
 /ios/build/
 *.tsbuildinfo
 /supabase/.temp/
+
+# Local review records contain account/operator details and personal paths.
+/docs/APP-STORE-METADATA.json
+/docs/APP-STORE-REVIEW-NOTES.md
+
+# Signing material and packaged releases belong outside source control.
+*.p8
+*.p12
+*.pfx
+*.mobileprovision
+*.provisionprofile
+*.jks
+*.keystore
+*.ipa
+*.xcarchive/

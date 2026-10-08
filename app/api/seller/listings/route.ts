@@ -39,7 +39,8 @@ export async function PATCH(request: Request) {
   if (!['active', 'paused'].includes(current.data.status)) return NextResponse.json({ error: 'Questo annuncio non può essere modificato.' }, { status: 409 });
   if ((current.data.sale_mode !== 'rent' && input.salePriceCents === null) || (current.data.sale_mode !== 'buy' && input.rentalPriceCents === null)) return NextResponse.json({ error: 'Inserisci il prezzo previsto per questo annuncio.' }, { status: 400 });
   const { data, error } = await auth.admin.from('listings').update({
-    title: input.title, description: input.description, status: input.status,
+    // Changes and reactivation must be reviewed before becoming public again.
+    title: input.title, description: input.description, status: input.status === 'active' ? 'pending_review' : 'paused',
     sale_price_cents: current.data.sale_mode === 'rent' ? null : input.salePriceCents,
     rental_price_cents: current.data.sale_mode === 'buy' ? null : input.rentalPriceCents,
     updated_at: new Date().toISOString(),

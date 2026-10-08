@@ -20,7 +20,8 @@ import { categoryPageCopy, categoryPageText } from '@/lib/i18n/category-pages';
 export default function MarketplacePage() {
   const params = useSearchParams();
   const category = resolveMarketCategory(params.get('category'));
-  const demo = params.get('demo') === '1';
+  const demo =
+    process.env.NODE_ENV === 'development' && params.get('demo') === '1';
   // A category change starts a fresh search and clears filters from the previous one.
   return (
     <MarketplaceContent

@@ -1,4 +1,8 @@
 'use client';
+import { CommunityRulesNotice } from '@/components/community-rules-notice';
+import { apiFetch } from '@/lib/api-fetch';
+import { AccountRequestError } from '@/lib/account-http';
+import { readFormResponse } from '@/lib/form-response';
 import { useI18n } from '@/components/i18n-provider';
 import { saleText, type SaleKey } from '@/lib/i18n/sale';
 import {
@@ -33,6 +37,21 @@ import {
 } from '@/components/mobile-shell';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
+type ListingFormControl =
+  | HTMLInputElement
+  | HTMLSelectElement
+  | HTMLTextAreaElement;
+
+function isListingFormControl(
+  control: EventTarget | Element,
+): control is ListingFormControl {
+  return (
+    control instanceof HTMLInputElement ||
+    control instanceof HTMLSelectElement ||
+    control instanceof HTMLTextAreaElement
+  );
+}
+
 export default function SellPage() {
   const router = useRouter();
   const { locale } = useI18n();
@@ -47,28 +66,90 @@ export default function SellPage() {
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState('');
   const [preparingPhotos, setPreparingPhotos] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const formId = useId();
+  const photoSectionRef = useRef<HTMLDivElement>(null);
+
+  function validateControl(control: ListingFormControl) {
+    control.setCustomValidity('');
+    if (!control.willValidate) return '';
+    const textControl =
+      control instanceof HTMLTextAreaElement ||
+      (control instanceof HTMLInputElement && control.type === 'text');
+    const invalidLength =
+      textControl &&
+      ((control.required &&
+        control.value.trim().length < Math.max(1, control.minLength)) ||
+        (control.maxLength >= 0 &&
+          control.value.trim().length > control.maxLength));
+    if (!invalidLength && control.validity.valid) return '';
+    const messages: Record<string, SaleKey> = {
+      title: 'invalidTitle',
+      description: 'invalidDescription',
+      category: 'invalidCategory',
+      condition: 'invalidCondition',
+      salePrice: 'invalidPrice',
+      shippingMethod:
+        shippingMode === 'pickup' ? 'invalidPickup' : 'invalidCarrier',
+      shippingCarrierOther: 'invalidCarrierName',
+      shippingCost: 'invalidShippingCost',
+      shippingTime: 'invalidShippingTime',
+      confirmation: 'invalidConfirmation',
+    };
+    const message = t(messages[control.name] ?? 'invalid');
+    control.setCustomValidity(message);
+    return message;
+  }
+
+  function clearFieldErrors(...names: string[]) {
+    setFieldErrors((current) => {
+      const next = { ...current };
+      for (const name of names) delete next[name];
+      return next;
+    });
+  }
+
+  function fieldAccessibility(name: string) {
+    return {
+      'aria-invalid': Boolean(fieldErrors[name]),
+      'aria-describedby': fieldErrors[name]
+        ? `${formId}-${name}-error`
+        : undefined,
+    };
+  }
+
+  function fieldError(name: string) {
+    return fieldErrors[name] ? (
+      <span
+        id={`${formId}-${name}-error`}
+        role="alert"
+        className="mt-2 block text-sm text-rose-300"
+      >
+        {fieldErrors[name]}
+      </span>
+    ) : null;
+  }
 
   useEffect(() => {
     let active = true;
     async function checkSeller() {
-      const session = await getSupabaseBrowserClient()?.auth.getSession();
-      if (!active) return;
-      const token = session?.data.session?.access_token;
-      if (!token) {
-        router.replace('/auth/login');
-        return;
-      }
       try {
-        const response = await fetch('/api/seller/profile', {
+        const session = await getSupabaseBrowserClient()?.auth.getSession();
+        if (!active) return;
+        if (session?.error) throw session.error;
+        const token = session?.data.session?.access_token;
+        if (!token) {
+          router.replace('/auth/login');
+          return;
+        }
+        const response = await apiFetch('/api/seller/profile', {
           headers: { Authorization: 'Bearer ' + token },
         });
-        const result = (await response.json()) as { profile?: unknown };
-        if (active && response.ok && !result.profile)
+        const result = await readFormResponse<{ profile?: unknown }>(response, saleText(locale, 'error'));
+        if (active && !result.profile)
           router.replace('/seller/onboarding');
-        else if (active && !response.ok)
-          setPublishError(saleText(locale, 'error'));
-      } catch {
-        if (active) setPublishError(saleText(locale, 'error'));
+      } catch (error) {
+        if (active) setPublishError(error instanceof AccountRequestError ? error.message : saleText(locale, 'error'));
       }
     }
     void checkSeller();
@@ -80,9 +161,9 @@ export default function SellPage() {
     return (
       <MobileShell className="flex flex-col">
         <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
-          <CheckCircle2 className="size-16 text-emerald-300" />
-          <h1 className="mt-5 text-2xl font-semibold">{t('published')}</h1>
-          <p className="mt-3 text-sm text-white/50">{t('visible')}</p>
+          <CheckCircle2 className="size-16 text-amber-300" />
+          <h1 className="mt-5 text-2xl font-semibold">{t('submittedReview')}</h1>
+          <p className="mt-3 text-sm text-white/50">{t('reviewVisibility')}</p>
           <Link
             href="/seller"
             className="sell-primary-action mt-6 grid h-11 w-full place-items-center rounded-xl"
@@ -112,39 +193,37 @@ export default function SellPage() {
         </Link>
       </div>
       <form
+        onChange={(event) => {
+          const control = event.target;
+          if (
+            isListingFormControl(control) &&
+            fieldErrors[control.name] &&
+            !validateControl(control)
+          ) {
+            clearFieldErrors(control.name);
+          }
+        }}
         onSubmit={async (event) => {
           event.preventDefault();
           const form = event.currentTarget;
           if (preparingPhotos || publishing) return;
+          setPublishError('');
+          const errors: Record<string, string> = {};
+          let firstInvalid: ListingFormControl | undefined;
           for (const control of Array.from(form.elements)) {
-            if (
-              control instanceof HTMLInputElement ||
-              control instanceof HTMLTextAreaElement
-            ) {
-              control.setCustomValidity('');
-              if (
-                control.type === 'text' ||
-                control instanceof HTMLTextAreaElement
-              ) {
-                control.value = control.value.trim();
-                if (
-                  control.required &&
-                  control.value.length < Math.max(1, control.minLength)
-                ) {
-                  control.setCustomValidity(t('invalid'));
-                }
-              }
+            if (!isListingFormControl(control)) continue;
+            const message = validateControl(control);
+            if (message) {
+              errors[control.name] = message;
+              firstInvalid ??= control;
             }
           }
-          if (!form.checkValidity()) {
-            setPublishError(t('invalid'));
-            const invalid = form.querySelector<HTMLElement>(':invalid');
-            invalid?.focus();
-            invalid?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-            return;
-          }
-          if (!photoCount) {
-            setPhotoError(t('requiredPhoto'));
+          setFieldErrors(errors);
+          setPhotoError(photoCount ? '' : t('requiredPhoto'));
+          if (!photoCount || firstInvalid) {
+            const target = !photoCount ? photoSectionRef.current : firstInvalid;
+            target?.focus({ preventScroll: true });
+            target?.scrollIntoView({ block: 'center', behavior: 'smooth' });
             return;
           }
           const supabase = getSupabaseBrowserClient();
@@ -156,6 +235,7 @@ export default function SellPage() {
           setPublishError('');
           try {
             const session = await supabase.auth.getSession();
+            if (session.error) throw session.error;
             const token = session.data.session?.access_token;
             if (!token) {
               router.push('/auth/login');
@@ -164,9 +244,10 @@ export default function SellPage() {
             const body = new FormData(form);
             body.set('saleMode', saleMode);
             if (shippingMode === 'courier' && shippingCarrier === 'other') {
+              const otherCarrier = body.get('shippingCarrierOther');
               body.set(
                 'shippingMethod',
-                String(body.get('shippingCarrierOther') || '').trim(),
+                typeof otherCarrier === 'string' ? otherCarrier.trim() : '',
               );
             }
             for (const [index, photo] of listingPhotos.entries()) {
@@ -187,22 +268,16 @@ export default function SellPage() {
                 body.append('photos', photo.file);
               }
             }
-            const response = await fetch('/api/listings', {
+            const response = await apiFetch('/api/listings', {
               method: 'POST',
               headers: { Authorization: `Bearer ${token}` },
               body,
             });
 
-            setPublishing(false);
-            if (!response.ok) {
-              setPublishError(
-                response.status === 400 ? t('invalid') : t('error'),
-              );
-              return;
-            }
+            await readFormResponse(response, t('error'));
             setPublished(true);
-          } catch {
-            setPublishError(t('error'));
+          } catch (error) {
+            setPublishError(error instanceof AccountRequestError ? error.message : t('error'));
           } finally {
             setPublishing(false);
           }
@@ -211,48 +286,64 @@ export default function SellPage() {
         className="flex-1 space-y-5 px-4 py-5 text-base"
       >
         <p className="text-base text-white/75">{t('intro')}</p>
-        <h2 className="text-xl font-semibold">{t('photos')} *</h2>
-        <ListingPhotoUploader
-          onBusyChange={setPreparingPhotos}
-          onPhotosChange={setListingPhotos}
-          onCountChange={(count) => {
-            setPhotoCount(count);
-            if (count) setPhotoError('');
-          }}
-        />
-        {photoError && (
-          <p role="alert" className="-mt-2 text-sm text-rose-300">
-            {photoError}
-          </p>
-        )}
+        <div
+          ref={photoSectionRef}
+          tabIndex={-1}
+          aria-describedby={photoError ? `${formId}-photos-error` : undefined}
+          className="space-y-5"
+        >
+          <h2 className="text-xl font-semibold">{t('photos')} *</h2>
+          <ListingPhotoUploader
+            onBusyChange={setPreparingPhotos}
+            onPhotosChange={setListingPhotos}
+            onCountChange={(count) => {
+              setPhotoCount(count);
+              if (count) setPhotoError('');
+            }}
+          />
+          {photoError && (
+            <p
+              id={`${formId}-photos-error`}
+              role="alert"
+              className="-mt-2 text-sm text-rose-300"
+            >
+              {photoError}
+            </p>
+          )}
+        </div>
         <fieldset className="space-y-4 rounded-2xl border border-white/15 p-4">
           <legend className="px-2 text-xl font-semibold">{t('details')}</legend>
           <label className="block">
             {t('name')}
             <input
               name="title"
+              {...fieldAccessibility('title')}
               required
               minLength={3}
               maxLength={120}
               placeholder={t('nameHint')}
               className="checkout-input mt-2"
             />
+            {fieldError('title')}
           </label>
           <label className="block">
             {t('description')}
             <textarea
               name="description"
+              {...fieldAccessibility('description')}
               required
               minLength={10}
               maxLength={5000}
               placeholder={t('descriptionHint')}
               className="checkout-input mt-2 min-h-36 py-3"
             />
+            {fieldError('description')}
           </label>
           <label className="block">
             {t('category')}
             <select
               name="category"
+              {...fieldAccessibility('category')}
               required
               defaultValue=""
               className="checkout-input mt-2"
@@ -275,11 +366,13 @@ export default function SellPage() {
                 </option>
               ))}
             </select>
+            {fieldError('category')}
           </label>
           <label className="block">
             {t('condition')}
             <select
               name="condition"
+              {...fieldAccessibility('condition')}
               required
               defaultValue=""
               className="checkout-input mt-2"
@@ -299,6 +392,7 @@ export default function SellPage() {
                 </option>
               ))}
             </select>
+            {fieldError('condition')}
           </label>
         </fieldset>
         <fieldset className="space-y-4 rounded-2xl border border-white/15 p-4">
@@ -310,11 +404,13 @@ export default function SellPage() {
             <input
               required
               name="salePrice"
+              {...fieldAccessibility('salePrice')}
               type="number"
               min="0"
               step="0.01"
               className="checkout-input mt-2"
             />
+            {fieldError('salePrice')}
           </label>
           <p className="text-white/75">{t('shippingInfo')}</p>
           <label className="block">
@@ -322,7 +418,14 @@ export default function SellPage() {
             <select
               name="shippingMode"
               value={shippingMode}
-              onChange={(event) => setShippingMode(event.target.value)}
+              onChange={(event) => {
+                setShippingMode(event.target.value);
+                clearFieldErrors(
+                  'shippingMethod',
+                  'shippingCarrierOther',
+                  'shippingCost',
+                );
+              }}
               className="checkout-input mt-2"
             >
               <option value="courier">{t('courier')}</option>
@@ -334,6 +437,7 @@ export default function SellPage() {
             {shippingMode === 'pickup' ? (
               <input
                 name="shippingMethod"
+                {...fieldAccessibility('shippingMethod')}
                 required
                 minLength={2}
                 maxLength={120}
@@ -343,9 +447,14 @@ export default function SellPage() {
             ) : (
               <select
                 name="shippingMethod"
+                {...fieldAccessibility('shippingMethod')}
                 required
                 value={shippingCarrier}
-                onChange={(event) => setShippingCarrier(event.target.value)}
+                onChange={(event) => {
+                  setShippingCarrier(event.target.value);
+                  if (event.target.value !== 'other')
+                    clearFieldErrors('shippingCarrierOther');
+                }}
                 className="checkout-input mt-2"
               >
                 <option value="">{t('chooseCarrier')}</option>
@@ -359,17 +468,20 @@ export default function SellPage() {
                 <option value="other">{t('otherCarrier')}</option>
               </select>
             )}
+            {fieldError('shippingMethod')}
           </label>
           {shippingMode === 'courier' && shippingCarrier === 'other' && (
             <label className="block">
               {t('carrierName')}
               <input
                 name="shippingCarrierOther"
+                {...fieldAccessibility('shippingCarrierOther')}
                 required
                 minLength={2}
                 maxLength={120}
                 className="checkout-input mt-2"
               />
+              {fieldError('shippingCarrierOther')}
             </label>
           )}
           {shippingMode === 'pickup' ? (
@@ -379,6 +491,7 @@ export default function SellPage() {
               {t('cost')}
               <input
                 name="shippingCost"
+                {...fieldAccessibility('shippingCost')}
                 required
                 type="number"
                 min="0"
@@ -386,12 +499,14 @@ export default function SellPage() {
                 step="0.01"
                 className="checkout-input mt-2"
               />
+              {fieldError('shippingCost')}
             </label>
           )}
           <label className="block">
             {t('time')}
             <select
               name="shippingTime"
+              {...fieldAccessibility('shippingTime')}
               required
               defaultValue=""
               className="checkout-input mt-2"
@@ -403,6 +518,7 @@ export default function SellPage() {
               <option value="5–7 giorni lavorativi">{t('timeFiveSeven')}</option>
               <option value="Da concordare">{t('timeToAgree')}</option>
             </select>
+            {fieldError('shippingTime')}
           </label>
           <p className="-mt-2 rounded-xl bg-white/5 p-3 text-sm text-white/65">
             {t('timingNote')}
@@ -412,9 +528,19 @@ export default function SellPage() {
           </p>
         </fieldset>
         <label className="flex items-start gap-3 rounded-xl border border-white/15 p-4 text-base leading-relaxed">
-          <input required type="checkbox" className="mt-1 size-5 shrink-0" />
-          {t('confirm')}
+          <input
+            name="confirmation"
+            {...fieldAccessibility('confirmation')}
+            required
+            type="checkbox"
+            className="mt-1 size-5 shrink-0"
+          />
+          <span>
+            {t('confirm')}
+            {fieldError('confirmation')}
+          </span>
         </label>
+        <CommunityRulesNotice />
         {publishError && (
           <p role="alert" className="text-sm text-rose-300">
             {publishError}

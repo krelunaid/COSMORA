@@ -1,4 +1,6 @@
 'use client';
+import { CommunityRulesNotice } from '@/components/community-rules-notice';
+import { apiFetch } from '@/lib/api-fetch';
 import { useI18n } from '@/components/i18n-provider';
 import { communityTranslator, communityError } from '@/lib/i18n/community';
 
@@ -16,6 +18,8 @@ import {
 import { CommunityMediaPicker } from '@/components/community-media-picker';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
 import { accountRequest } from '@/lib/account-client';
+import { AccountRequestError } from '@/lib/account-http';
+import { readFormResponse } from '@/lib/form-response';
 import { moderateText } from '@/lib/community-moderation';
 import { europeEvents } from '@/lib/events-data';
 import { formatEventDates } from '@/lib/event-selection';
@@ -99,6 +103,7 @@ export default function CreateCommunityPostPage() {
   }, [connectionType, locale]);
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState('');
+  const [needsLogin, setNeedsLogin] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaError, setMediaError] = useState('');
   const italianEvents = europeEvents.filter(
@@ -114,34 +119,35 @@ export default function CreateCommunityPostPage() {
     }
     setPublishing(true);
     setPublishError('');
+    setNeedsLogin(false);
     try {
       const rawCaption = formData.get('caption');
       const caption = typeof rawCaption === 'string' ? rawCaption : '';
       const moderation = moderateText('Community post', caption);
-      const session = await getSupabaseBrowserClient()?.auth.getSession();
-      const token = session?.data.session?.access_token;
-      if (!token) {
-        window.location.assign('/auth/login');
-        return;
-      }
+      const client = getSupabaseBrowserClient();
+      if (!client) throw new Error('Accesso non disponibile. Riprova più tardi.');
+      const session = await client.auth.getSession();
+      if (session.error) throw new Error('Accesso non disponibile. Riprova più tardi.');
+      const token = session.data.session?.access_token;
+      if (!token) throw new AccountRequestError('Accedi per continuare.', 401, 'AUTH_REQUIRED');
       formData.delete('media');
       for (const file of mediaFiles) formData.append('media', file);
       formData.set('connectionType', connectionType);
-      const response = await fetch('/api/community/posts', {
+      const response = await apiFetch('/api/community/posts', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-      const payload = (await response.json().catch(() => null)) as {
-        error?: string;
+      const payload = await readFormResponse<{
         moderation?: { status: string; reasons: string[] };
-      } | null;
-      if (!response.ok || !payload)
-        throw new Error(payload?.error ?? 'Pubblicazione non riuscita.');
-      setResult(payload.moderation ?? moderation);
+      }>(response, 'Pubblicazione non riuscita.');
+      setResult(payload.moderation ?? { ...moderation, status: 'PENDING_REVIEW' });
     } catch (error) {
+      setNeedsLogin(error instanceof AccountRequestError && error.status === 401);
       setPublishError(
-        communityError(locale, error, 'Pubblicazione non riuscita.'),
+        error instanceof AccountRequestError
+          ? t(error.message)
+          : communityError(locale, error, 'Pubblicazione non riuscita.'),
       );
     } finally {
       setPublishing(false);
@@ -182,7 +188,13 @@ export default function CreateCommunityPostPage() {
   return (
     <MobileShell>
       <ScreenHeader title={t('Pubblica nella Community')} back="/community" />
-      <form action={submit} className="space-y-4 p-4">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void submit(new FormData(event.currentTarget));
+        }}
+        className="space-y-4 p-4"
+      >
         <CommunityMediaPicker
           onFilesChange={setMediaFiles}
           error={mediaError}
@@ -311,9 +323,15 @@ export default function CreateCommunityPostPage() {
             </>
           )}
         </section>
+        <CommunityRulesNotice />
         {publishError && (
           <p role="alert" className="text-sm text-rose-300">
             {publishError}
+            {needsLogin && (
+              <Link href="/auth/login" className="ml-2 underline">
+                {t('Accedi')}
+              </Link>
+            )}
           </p>
         )}
         <button

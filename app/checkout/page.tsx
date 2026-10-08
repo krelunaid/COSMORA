@@ -1,4 +1,5 @@
 'use client';
+import { apiFetch } from '@/lib/api-fetch';
 import { paymentsEnabled } from '@/lib/release-features';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -108,7 +109,7 @@ function CheckoutContent({
           if (active) setOrder(v.order);
         })
       : slug
-        ? fetch('/api/listings?slug=' + encodeURIComponent(slug)).then(
+        ? apiFetch('/api/listings?slug=' + encodeURIComponent(slug)).then(
             async (r) => {
               const v = (await r.json()) as { listings?: Listing[] };
               if (!r.ok || !v.listings?.length)
@@ -132,7 +133,7 @@ function CheckoutContent({
     <MobileShell>
       <ScreenHeader
         title={orderId ? t('orderStatus') : t('checkout')}
-        back="/cart"
+        back={paymentsEnabled ? '/cart' : '/marketplace'}
       />
       <div className="space-y-5 p-5">
         <p className="rounded-2xl border border-amber-300/30 bg-amber-300/5 p-4 text-base leading-relaxed text-amber-100">
@@ -186,9 +187,14 @@ function CheckoutContent({
                 {t('update')}
               </button>
             )}
-            <Link className="block py-3 text-pink-300" href="/inbox?tab=orders">
-              {t('allOrders')}
-            </Link>
+            {paymentsEnabled && (
+              <Link
+                className="block py-3 text-pink-300"
+                href="/inbox?tab=orders"
+              >
+                {t('allOrders')}
+              </Link>
+            )}
           </section>
         )}
         {listing && (

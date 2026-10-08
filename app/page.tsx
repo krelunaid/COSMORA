@@ -11,12 +11,12 @@ import { formatEventDates, selectFeaturedEvent } from '@/lib/event-selection';
 import { eventMessages } from '@/lib/i18n/events';
 
 const categories = [
-  { label: 'cosplay', category: 'Cosplay', image: '/mobile-category-cosplay.jpg' },
-  { label: 'comics', category: 'Comics', image: '/mobile-category-manga.jpg' },
-  { label: 'figures', category: 'Figures', image: '/mobile-category-figures.jpg' },
-  { label: 'cards', category: 'Cards', image: '/mobile-category-cards.jpg' },
-  { label: 'gaming', category: 'Gaming', image: '/mobile-category-gaming.jpg' },
-  { label: 'people', href: '/explore?section=Creator', image: '/mobile-category-artist.jpg' },
+  { label: 'cosplay', category: 'Cosplay', image: '/editorial/category-cosplay.svg' },
+  { label: 'comics', category: 'Comics', image: '/editorial/category-manga.svg' },
+  { label: 'figures', category: 'Figures', image: '/editorial/category-figures.svg' },
+  { label: 'cards', category: 'Cards', image: '/editorial/category-cards.svg' },
+  { label: 'gaming', category: 'Gaming', image: '/editorial/category-gaming.svg' },
+  { label: 'people', href: '/explore?section=Creator', image: '/editorial/category-artist.svg' },
 ] as const;
 
 export default function HomePage() {
@@ -34,7 +34,7 @@ export default function HomePage() {
       </header>
       <div className="home-main-content px-4 pb-2">
         <article className="home-event-hero relative overflow-hidden rounded-3xl border border-white/15">
-          <Image src={event?.image ?? '/cosmora-hero-mobile.jpg'} alt="" fill priority sizes="(max-width: 640px) 100vw, 430px" className="object-cover object-center" />
+          <Image src={event?.image ?? '/editorial/hero.svg'} alt="" fill priority sizes="(max-width: 640px) 100vw, 430px" className="object-cover object-center" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#080918]/95 via-[#080918]/80 to-[#080918]/30" />
           <div className="relative flex h-full flex-col items-start justify-center gap-2 p-4">
             {event ? <>

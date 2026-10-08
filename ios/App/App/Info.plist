@@ -34,7 +34,10 @@
 	<array>
 		<dict>
 			<key>CFBundleURLSchemes</key>
-			<array><string>com.kreluna.cosmora</string></array>
+			<array>
+				<string>it.kreluna.cosmora</string>
+				<string>com.kreluna.cosmora</string>
+			</array>
 		</dict>
 	</array>
 	<key>LSRequiresIPhoneOS</key>

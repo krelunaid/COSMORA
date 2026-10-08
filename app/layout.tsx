@@ -4,6 +4,9 @@ import './globals.css';
 import { I18nProvider } from '@/components/i18n-provider';
 import { NativeAppClass } from '@/components/native-app-class';
 import { ServiceWorkerRegistration } from '@/components/service-worker-registration';
+import { NativeAuthCallback } from '@/components/native-auth-callback';
+import { TermsConsentGate } from '@/components/auth/terms-consent-gate';
+import { BlockFeedback } from '@/components/block-feedback';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -40,8 +43,9 @@ export default function RootLayout({
         />
         <NativeAppClass />
         <I18nProvider>
+          <NativeAuthCallback />
           <ServiceWorkerRegistration />
-          {children}
+          <TermsConsentGate>{children}<BlockFeedback /></TermsConsentGate>
         </I18nProvider>
       </body>
     </html>

@@ -28,6 +28,8 @@ const statusLabels: Record<string, SaleKey> = {
   paused: 'paused',
   draft: 'draft',
   sold: 'sold',
+  pending_review: 'pendingReview',
+  moderated: 'moderated',
 };
 const field =
   'mt-2 w-full rounded-xl border border-white/20 bg-[#111225] p-3 text-base';
@@ -77,7 +79,7 @@ function ListingEditor({
       );
       onSaved(result.listing);
       setEditing(false);
-      setNotice(t('saved'));
+      setNotice(t(result.listing.status === 'pending_review' ? 'reviewVisibility' : 'saved'));
     } catch {
       setError('failed');
     } finally {

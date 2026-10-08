@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
 import { accountRequest } from '@/lib/account-client';
+import { AccountRequestError } from '@/lib/account-http';
 import Link from '@/components/app-link';
 export default function CreateSquad() {
   const { locale } = useI18n();
@@ -14,12 +15,18 @@ export default function CreateSquad() {
   const [kind, setKind] = useState('COSPLAY_SQUAD');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [needsLogin, setNeedsLogin] = useState(false);
   async function submit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     setError('');
+    setNeedsLogin(false);
     const f = new FormData(event.currentTarget);
     try {
+      const date = f.get('date');
+      const startsAt = new Date(typeof date === 'string' ? date : '');
+      if (!Number.isFinite(startsAt.getTime()))
+        throw new Error('Controlla nome, descrizione, data, luogo e regole.');
       const result = await accountRequest<{ squad: { id: string } }>(
         '/api/squads',
         {
@@ -29,7 +36,7 @@ export default function CreateSquad() {
             description: f.get('description'),
             type: kind,
             city: f.get('city'),
-            startsAt: new Date(f.get('date') as string).toISOString(),
+            startsAt: startsAt.toISOString(),
             location: f.get('location'),
             maxMembers: Number(f.get('max')),
             approval: f.get('approval') === 'on',
@@ -41,6 +48,7 @@ export default function CreateSquad() {
       router.push('/squads/' + result.squad.id);
     } catch (e) {
       setError(communityError(locale, e, 'Creazione non riuscita.'));
+      setNeedsLogin(e instanceof AccountRequestError && e.status === 401);
     } finally {
       setBusy(false);
     }
@@ -59,12 +67,12 @@ export default function CreateSquad() {
             [
               'COSPLAY_SQUAD',
               t('Crew cosplay'),
-              '/community/squad-example.jpg',
+              '/editorial/crew.svg',
             ],
             [
               'EVENT_MEETUP',
               t('Incontro pubblico'),
-              '/community/meetup-example.jpg',
+              '/editorial/meetup.svg',
             ],
           ].map(([value, label, image]) => (
             <button
@@ -155,10 +163,15 @@ export default function CreateSquad() {
         </label>
         {error && (
           <div role="alert" className="text-rose-300">
-            {error}{' '}
-            <Link href="/auth/login" className="underline">
-              {t('Accedi')}
-            </Link>
+            {error}
+            {needsLogin && (
+              <>
+                {' '}
+                <Link href="/auth/login" className="underline">
+                  {t('Accedi')}
+                </Link>
+              </>
+            )}
           </div>
         )}
         <button

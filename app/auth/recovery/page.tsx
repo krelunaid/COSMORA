@@ -2,18 +2,28 @@
 import { useI18n } from '@/components/i18n-provider';
 import { accountMessages } from '@/lib/i18n/account';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Capacitor } from '@capacitor/core';
 import Link from '@/components/app-link';
 import { Button } from '@/components/ui/button';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { authRedirect } from '@/lib/supabase/auth-redirect';
 
 export default function RecoveryPage() {
+  const searchParams = useSearchParams();
+  const linkExpired = searchParams.get('authError') === 'expired';
+  return <RecoveryForm key={linkExpired ? 'expired' : 'recovery'} linkExpired={linkExpired} />;
+}
+
+function RecoveryForm({ linkExpired }: { linkExpired: boolean }) {
   const { locale } = useI18n();
   const t = accountMessages[locale];
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [done, setDone] = useState(false);
+  const canSetPassword = ready && !linkExpired;
+  const displayedMessage = message || (linkExpired ? 'expiredLink' : '');
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client) return;
@@ -21,7 +31,11 @@ export default function RecoveryPage() {
     const {
       data: { subscription },
     } = client.auth.onAuthStateChange((event, session) => {
-      if (active && event === 'PASSWORD_RECOVERY' && session) setReady(true);
+      if (active && event === 'PASSWORD_RECOVERY' && session) {
+        setReady(true);
+        setDone(false);
+        setMessage('');
+      }
     });
     // A signed-in user may also change their own password from this page.
     client.auth
@@ -49,7 +63,7 @@ export default function RecoveryPage() {
     try {
       const client = getSupabaseBrowserClient();
       if (!client) throw new Error('unavailable');
-      if (ready) {
+      if (canSetPassword) {
         const password = form.get('password');
         if (typeof password !== 'string') throw new Error('passwordRequired');
         if (password.length < 8 || password !== form.get('confirm'))
@@ -64,7 +78,7 @@ export default function RecoveryPage() {
         const { error } = await client.auth.resetPasswordForEmail(
           email.trim(),
           {
-            redirectTo: authRedirect(window.location.origin, '/auth/recovery'),
+            redirectTo: authRedirect(window.location.origin, '/auth/recovery', Capacitor.isNativePlatform()),
           },
         );
         if (error) throw new Error('recoveryFailed');
@@ -87,11 +101,11 @@ export default function RecoveryPage() {
           {t.backLogin}
         </Link>
         <h1 className="text-2xl font-semibold">
-          {ready ? t.newPasswordTitle : t.recoverAccount}
+          {canSetPassword ? t.newPasswordTitle : t.recoverAccount}
         </h1>
         {!done && (
           <form onSubmit={submit} className="space-y-5">
-            {ready ? (
+            {canSetPassword ? (
               <>
                 <label className="block">
                   {t.newPassword}
@@ -133,13 +147,13 @@ export default function RecoveryPage() {
               disabled={busy}
               className="min-h-12 w-full text-base"
             >
-              {busy ? t.wait : ready ? t.savePassword : t.sendLink}
+              {busy ? t.wait : canSetPassword ? t.savePassword : t.sendLink}
             </Button>
           </form>
         )}
-        {message && (
+        {displayedMessage && (
           <output className="block rounded-xl border border-white/20 p-4 text-base text-white/85">
-            {t[message as keyof typeof t]}
+            {t[displayedMessage as keyof typeof t]}
           </output>
         )}
         {done && (

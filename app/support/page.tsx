@@ -3,15 +3,22 @@ import { useCommerce } from '@/components/use-commerce';
 import { Mail } from 'lucide-react';
 import Link from '@/components/app-link';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
+import { useI18n } from '@/components/i18n-provider';
+import { communityRules } from '@/lib/i18n/community-rules';
+import { ModerationLink } from '@/components/moderation-link';
+import { SafetyLink } from '@/components/safety-link';
 
 export default function SupportPage() {
   const { t } = useCommerce();
+  const { locale } = useI18n();
   const subject = t('supportSubject');
   const mailto = `mailto:info@kreluna.it?subject=${encodeURIComponent(subject)}`;
   return (
     <MobileShell>
       <ScreenHeader title={t('support')} back="/profile/me" />
       <section className="space-y-6 px-5 py-6 text-base leading-relaxed">
+        <SafetyLink />
+        <ModerationLink />
         <div>
           <h1 className="text-2xl font-semibold">{t('help')}</h1>
           <p className="mt-3 text-white/75">{t('supportIntro')}</p>
@@ -38,6 +45,9 @@ export default function SupportPage() {
         <p className="rounded-2xl border border-amber-300/25 p-4 text-amber-100">
           {t('noSecrets')}
         </p>
+        <Link href="/community/rules" className="block min-h-12 text-pink-300 underline">
+          {communityRules[locale].title}
+        </Link>
         <Link
           href="/privacy"
           className="block min-h-12 text-pink-300 underline"

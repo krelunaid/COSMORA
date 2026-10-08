@@ -6,6 +6,7 @@ import Link from '@/components/app-link';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
 import { accountRequest } from '@/lib/account-client';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { AccountRequestError } from '@/lib/account-http';
 
 export default function DeleteAccountPage() {
   const { locale } = useI18n();
@@ -15,20 +16,30 @@ export default function DeleteAccountPage() {
   const [error, setError] = useState('');
   const [deleted, setDeleted] = useState(false);
   const [apple, setApple] = useState(false);
+  const [appleRevoked, setAppleRevoked] = useState(false);
   async function remove(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy || confirmation !== t.deleteWord) return;
     setBusy(true);
     setError('');
     try {
+      const session = (await getSupabaseBrowserClient()?.auth.getSession())?.data.session;
+      if (!session) {
+        setError('deleteSignIn');
+        return;
+      }
+      const appleRefreshToken = session?.user.identities?.some((identity) => identity.provider === 'apple')
+        ? session.provider_refresh_token : undefined;
       const result = await accountRequest<{
         deleted: boolean;
         appleManualRevocation: boolean;
+        appleRevocation?: 'not-applicable' | 'manual-required' | 'revoked';
       }>('/api/account/delete', {
         method: 'DELETE',
-        body: JSON.stringify({ confirmation: 'ELIMINA' }),
-      });
+        body: JSON.stringify({ confirmation: 'ELIMINA', appleRefreshToken }),
+      }, 60000);
       setApple(result.appleManualRevocation);
+      setAppleRevoked(result.appleRevocation === 'revoked');
       setDeleted(true);
       // The server has already deleted the account; local cleanup cannot undo it.
       try {
@@ -36,8 +47,13 @@ export default function DeleteAccountPage() {
       } catch {
         /* Session will expire. */
       }
-    } catch {
-      setError('deleteFailed');
+    } catch (reason) {
+      setError(reason instanceof AccountRequestError && reason.status === 401
+        ? 'deleteSignIn'
+        : reason instanceof AccountRequestError && reason.code === 'APPLE_IDENTITY_MISMATCH'
+        ? 'appleIdentityMismatch'
+        : reason instanceof AccountRequestError && reason.code === 'APPLE_REVOCATION_UNAVAILABLE'
+          ? 'appleRevocationUnavailable' : 'deleteFailed');
     } finally {
       setBusy(false);
     }
@@ -51,6 +67,7 @@ export default function DeleteAccountPage() {
             <h1 className="text-2xl font-semibold">{t.accountDeleted}</h1>
             <p>{t.deletedBody}</p>
             {apple && <p>{t.appleRevocation}</p>}
+            {appleRevoked && <p>{t.appleRevoked}</p>}
             <Link
               href="/"
               className="block rounded-xl bg-violet-600 p-3 text-center"
@@ -83,9 +100,10 @@ export default function DeleteAccountPage() {
             </form>
             {error && (
               <p role="alert" className="text-amber-200">
-                {t.deleteFailed}
+                {t[error as keyof typeof t]}
               </p>
             )}
+            {error === 'deleteSignIn' && <Link href="/auth/login" className="block min-h-12 rounded-xl bg-violet-600 p-3 text-center">{t.backLogin}</Link>}
             <Link
               href="/profile/me"
               className="block min-h-12 py-3 text-pink-300"
