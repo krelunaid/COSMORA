@@ -14,7 +14,12 @@ Aggiornamento delle lingue preparato il 9 ottobre 2026 dal commit `5ab3dc0`.
 - Sincronizzazione mobile e archivio iOS firmato completati.
 - Bundle `it.kreluna.cosmora`, versione `1.0.2`, build `40`; il selettore di lingua è presente nell'archivio.
 - Caricamento su App Store Connect riuscito il 9 ottobre alle 23:05 (Europe/Rome).
-- App Store Connect mostra la build in elaborazione. La versione è ancora in preparazione per l'invio; non è ancora stata inviata in revisione.
-- Novità italiane e note inglesi per i revisori salvate e verificate dopo il ricaricamento della pagina.
+- Elaborazione della build completata; build 40 selezionata nella versione 1.0.2.
+- Novità salvate in tutte le cinque localizzazioni presenti (IT, EN Regno Unito, FR, DE, ES Spagna); note inglesi per i revisori salvate.
+- Invio effettivo alla verifica completato il 9 ottobre 2026 alle 23:37 (Europe/Rome). La pagina dell'invio mostra **In attesa di verifica**, versione **1.0.2 (40)**.
+- ID invio: `261d23a7-1dca-44b6-bf29-265b2b14297b`; [pagina Apple](https://appstoreconnect.apple.com/apps/6809232374/distribution/reviewsubmissions/details/261d23a7-1dca-44b6-bf29-265b2b14297b).
+- Rilascio automatico dopo approvazione, aggiornamento immediato a tutti gli utenti. Nessuna approvazione o distribuzione della 1.0.2 ancora osservata.
+
+La successiva preparazione della commissione vendita al 5% non è inclusa nell'archivio 1.0.2 (40); i pagamenti di questa release restano disabilitati.
 
 I pacchetti firmati e i log di compilazione/caricamento restano fuori dal repository. Le credenziali di accesso per i revisori sono nei campi riservati di App Store Connect e non sono incluse in questi file.

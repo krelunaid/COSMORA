@@ -1,0 +1,3 @@
+Vous pouvez désormais choisir l’italien, l’anglais, le français, l’allemand ou l’espagnol au premier lancement et changer de langue à tout moment dans le Profil.
+
+Amélioration des traductions des messages d’erreur pour les annonces, les vendeurs et la Communauté, ainsi que des commandes et des écrans de modération.

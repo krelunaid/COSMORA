@@ -7,9 +7,20 @@
   "createdAt": "2026-10-09T21:08:04.199184+00:00",
   "archiveSucceeded": true,
   "uploadSucceeded": true,
-  "uploadStateObserved": "PROCESSING",
-  "releaseStateObserved": "PREPARE_FOR_SUBMISSION",
+  "uploadStateObserved": "PROCESSED",
+  "buildId": "17d0eea5-28b8-402c-b2f3-9b4ac3fc9c9c",
+  "releaseStateObserved": "WAITING_FOR_REVIEW",
+  "submissionId": "261d23a7-1dca-44b6-bf29-265b2b14297b",
+  "submissionUrl": "https://appstoreconnect.apple.com/apps/6809232374/distribution/reviewsubmissions/details/261d23a7-1dca-44b6-bf29-265b2b14297b",
+  "submittedAtObserved": "2026-10-09 23:37 Europe/Rome",
+  "releaseAfterApproval": "AUTOMATIC_IMMEDIATE",
   "releaseNotesFile": "release-notes-it.txt",
+  "additionalReleaseNotesFiles": [
+    "release-notes-en.txt",
+    "release-notes-fr.txt",
+    "release-notes-de.txt",
+    "release-notes-es.txt"
+  ],
   "reviewNotesFile": "review-notes-en.txt",
   "existingItalianScreenshots": [
     "01-home.png",
