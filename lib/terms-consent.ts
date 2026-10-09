@@ -149,7 +149,7 @@ export function hasCurrentTermsReceipt(
 export function isTermsExemptPath(pathname: string): boolean {
   const path = pathname.replace(/\/+$/, '') || '/';
   return ['/auth/login', '/auth/register', '/auth/recovery', '/account/delete',
-    '/community/rules', '/privacy', '/support'].includes(path);
+    '/community/rules', '/child-safety', '/privacy', '/support'].includes(path);
 }
 
 /** Runs outside onAuthStateChange's callback/lock and never blocks sign-in on metadata failure. */

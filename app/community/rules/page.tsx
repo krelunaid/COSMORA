@@ -4,6 +4,7 @@ import Link from '@/components/app-link';
 import { useI18n } from '@/components/i18n-provider';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
 import { communityRules } from '@/lib/i18n/community-rules';
+import { childSafetyMessages } from '@/lib/i18n/child-safety';
 
 export default function CommunityRulesPage() {
   const { locale } = useI18n();
@@ -16,6 +17,7 @@ export default function CommunityRulesPage() {
       {copy.sections.map(([title, text]) => <section key={title} className="space-y-2">
         <h2 className="text-lg font-semibold text-white">{title}</h2><p>{text}</p>
       </section>)}
+      <Link href="/child-safety" className="block min-h-11 py-2 text-pink-300 underline">{childSafetyMessages[locale].title}</Link>
       <Link href="/support" className="block min-h-11 py-2 text-pink-300 underline">{copy.support}</Link>
     </article>
   </MobileShell>;
