@@ -48,11 +48,11 @@ export const saleCopy = {
     'Los vendedores particulares no necesitan tarjeta de crédito. Stripe te guía para verificar tus datos y añadir una cuenta bancaria para recibir los cobros. No publiques tu IBAN ni documentos de identidad en la descripción.',
   ],
   payoutTest: [
-    'Modalità test: usa solo i dati di prova previsti da Stripe, non coordinate bancarie reali. Nessun accredito reale. Commissione e regole di sblocco sono ancora da definire.',
-    'Test mode: use only Stripe test data, not real bank details. No real payouts. Commission and release rules are still to be defined.',
-    'Mode test : utilisez uniquement les données de test Stripe, pas de coordonnées bancaires réelles. Aucun versement réel. Commission et règles de déblocage restent à définir.',
-    'Testmodus: Verwende nur Stripe-Testdaten, keine echten Bankdaten. Keine echten Auszahlungen. Provision und Freigaberegeln sind noch festzulegen.',
-    'Modo de prueba: usa solo datos de prueba de Stripe, no datos bancarios reales. No hay cobros reales. La comisión y las reglas de liberación aún están por definir.',
+    'Modalità test: usa solo i dati di prova previsti da Stripe, non coordinate bancarie reali. Nessun accredito reale. Commissione COSMORA sulle vendite: 5% del prezzo dell’articolo, spedizione esclusa. L’importo mostrato è prima dei costi del pagamento, a carico del venditore.',
+    'Test mode: use only Stripe test data, not real bank details. No real payouts. COSMORA sales fee: 5% of the item price, excluding shipping. The amount shown is before payment processing costs, which are paid by the seller.',
+    'Mode test : utilisez uniquement les données de test Stripe, pas de coordonnées bancaires réelles. Aucun versement réel. Commission COSMORA sur les ventes : 5 % du prix de l’article, hors livraison. Le montant affiché est avant les frais de paiement, à la charge du vendeur.',
+    'Testmodus: Verwende nur Stripe-Testdaten, keine echten Bankdaten. Keine echten Auszahlungen. COSMORA-Verkaufsgebühr: 5 % des Artikelpreises, ohne Versand. Der angezeigte Betrag versteht sich vor den Zahlungsabwicklungsgebühren, die der Verkäufer trägt.',
+    'Modo de prueba: usa solo datos de prueba de Stripe, no datos bancarios reales. No hay cobros reales. Comisión de COSMORA por venta: 5 % del precio del artículo, sin envío. El importe mostrado es anterior a los costes del pago, a cargo del vendedor.',
   ],
   title: [
     'Crea annuncio',

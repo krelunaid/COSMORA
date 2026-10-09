@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { paymentsEnabled } from '@/lib/release-features';
 import { z } from 'zod';
-import { calculateMarketplaceQuote } from '@/lib/monetization';
+import { calculateMarketplaceQuote, SALE_FEE_POLICY_VERSION } from '@/lib/monetization';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
 import { getAppUrl, getStripe } from '@/lib/stripe/server';
 const schema = z
@@ -98,8 +98,10 @@ export async function POST(request: Request) {
           shipping_method: listing.shipping_method,
           shipping_time: listing.shipping_time,
           fee_rate_bps: quote.rateBps,
+          fee_policy_version: SALE_FEE_POLICY_VERSION,
           platform_fee_cents: quote.platformFeeCents,
-          seller_net_cents: quote.sellerNetCents + listing.shipping_cost_cents,
+          // Before Stripe processing fees; shipping is not part of the COSMORA fee base.
+          seller_net_cents: quote.sellerAmountBeforeProcessingFeesCents + listing.shipping_cost_cents,
           is_test: true,
           checkout_key: parsed.data.checkoutKey,
           stripe_account_id: account.stripe_account_id,
@@ -130,6 +132,11 @@ export async function POST(request: Request) {
       );
     const appUrl = getAppUrl(request);
     const options = { stripeAccount: order.stripe_account_id };
+    // Reuse the stored policy on retries, including orders made before the 5% policy.
+    const orderMetadata = {
+      cosmora_order_id: order.id,
+      cosmora_fee_policy_version: order.fee_policy_version,
+    };
     const session = order.stripe_checkout_session_id
       ? await stripe.checkout.sessions.retrieve(
           order.stripe_checkout_session_id,
@@ -157,9 +164,9 @@ export async function POST(request: Request) {
             ],
             payment_intent_data: {
               application_fee_amount: order.platform_fee_cents,
-              metadata: { cosmora_order_id: order.id },
+              metadata: orderMetadata,
             },
-            metadata: { cosmora_order_id: order.id },
+            metadata: orderMetadata,
             custom_text: {
               submit: {
                 message:

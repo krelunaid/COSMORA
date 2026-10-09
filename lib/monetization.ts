@@ -1,10 +1,12 @@
 export type TransactionKind = 'sale' | 'rental' | 'commission';
 
+export const SALE_FEE_POLICY_VERSION = '2026-10-09-sale-5pct';
+
 export const PLATFORM_FEE_RULES = {
   sale: {
-    rateBps: 1000,
+    rateBps: 500,
     label: 'Vendita',
-    description: '10% sul prezzo del prodotto',
+    description: '5% sul prezzo del prodotto; spedizione esclusa e costi del pagamento separati',
   },
   rental: {
     rateBps: 1200,
@@ -31,6 +33,7 @@ export function calculateMarketplaceQuote({
   const safeDeposit = Math.max(0, Math.round(depositCents));
   const rateBps = PLATFORM_FEE_RULES[kind].rateBps;
   const platformFeeCents = Math.round((safeAmount * rateBps) / 10_000);
+  const sellerAmountBeforeProcessingFeesCents = safeAmount - platformFeeCents;
 
   return {
     kind,
@@ -38,7 +41,9 @@ export function calculateMarketplaceQuote({
     depositCents: safeDeposit,
     rateBps,
     platformFeeCents,
-    sellerNetCents: safeAmount - platformFeeCents,
+    sellerAmountBeforeProcessingFeesCents,
+    // Compatibility alias: this amount is before Stripe fees, not the final payout.
+    sellerNetCents: sellerAmountBeforeProcessingFeesCents,
     buyerTotalCents: safeAmount + safeDeposit,
   };
 }
