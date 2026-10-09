@@ -1,10 +1,10 @@
 'use client';
 import { CommunityRulesNotice } from '@/components/community-rules-notice';
 import { apiFetch } from '@/lib/api-fetch';
-import { AccountRequestError } from '@/lib/account-http';
 import { readFormResponse } from '@/lib/form-response';
 import { useI18n } from '@/components/i18n-provider';
 import { saleText, type SaleKey } from '@/lib/i18n/sale';
+import { apiErrorText } from '@/lib/i18n/api-errors';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -64,7 +64,7 @@ export default function SellPage() {
   const [photoError, setPhotoError] = useState('');
   const [listingPhotos, setListingPhotos] = useState<ListingPhoto[]>([]);
   const [publishing, setPublishing] = useState(false);
-  const [publishError, setPublishError] = useState('');
+  const [publishError, setPublishError] = useState<Error | string>('');
   const [preparingPhotos, setPreparingPhotos] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const formId = useId();
@@ -149,7 +149,7 @@ export default function SellPage() {
         if (active && !result.profile)
           router.replace('/seller/onboarding');
       } catch (error) {
-        if (active) setPublishError(error instanceof AccountRequestError ? error.message : saleText(locale, 'error'));
+        if (active) setPublishError(error instanceof Error ? error : 'failed');
       }
     }
     void checkSeller();
@@ -228,7 +228,7 @@ export default function SellPage() {
           }
           const supabase = getSupabaseBrowserClient();
           if (!supabase) {
-            setPublishError(t('error'));
+            setPublishError('failed');
             return;
           }
           setPublishing(true);
@@ -277,7 +277,7 @@ export default function SellPage() {
             await readFormResponse(response, t('error'));
             setPublished(true);
           } catch (error) {
-            setPublishError(error instanceof AccountRequestError ? error.message : t('error'));
+            setPublishError(error instanceof Error ? error : 'failed');
           } finally {
             setPublishing(false);
           }
@@ -543,7 +543,7 @@ export default function SellPage() {
         <CommunityRulesNotice />
         {publishError && (
           <p role="alert" className="text-sm text-rose-300">
-            {publishError}
+            {apiErrorText(locale, publishError, t('error'))}
           </p>
         )}
         <button

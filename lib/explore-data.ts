@@ -1,5 +1,5 @@
 import type { DiscoveryCardContent } from './mobile-layout';
-import { MARKET_CATEGORIES } from './marketplace-categories';
+import { MARKET_CATEGORIES } from './marketplace-categories.ts';
 
 export const exploreSections = [
   'Per te',

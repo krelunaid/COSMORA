@@ -1,6 +1,7 @@
 'use client';
 import { useI18n } from '@/components/i18n-provider';
 import { saleText, type SaleKey } from '@/lib/i18n/sale';
+import { apiErrorText } from '@/lib/i18n/api-errors';
 import { paymentsEnabled } from '@/lib/release-features';
 import { useState, useEffect } from 'react';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
@@ -18,7 +19,7 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<Error | string>('');
   const [needsLogin, setNeedsLogin] = useState(false);
   useEffect(() => {
     let active = true;
@@ -34,7 +35,7 @@ export default function Onboarding() {
       })
       .catch((error) => {
         if (active) {
-          setError(error instanceof AccountRequestError ? error.message : 'failed');
+          setError(error instanceof Error ? error : 'failed');
           setNeedsLogin(error instanceof AccountRequestError && error.status === 401);
         }
       })
@@ -62,7 +63,7 @@ export default function Onboarding() {
       });
       setSaved(true);
     } catch (error) {
-      setError(error instanceof AccountRequestError ? error.message : 'failed');
+      setError(error instanceof Error ? error : 'failed');
       setNeedsLogin(error instanceof AccountRequestError && error.status === 401);
     } finally {
       setBusy(false);
@@ -78,7 +79,7 @@ export default function Onboarding() {
       });
       window.location.assign(r.url);
     } catch (error) {
-      setError(error instanceof AccountRequestError ? error.message : 'failed');
+      setError(error instanceof Error ? error : 'failed');
       setNeedsLogin(error instanceof AccountRequestError && error.status === 401);
       setBusy(false);
     }
@@ -278,7 +279,7 @@ export default function Onboarding() {
         )}
         {error && (
           <p role="alert" className="mt-4 text-rose-300">
-            {error === 'invalid' ? t('invalid') : error === 'failed' ? t('error') : error}
+            {error === 'invalid' ? t('invalid') : apiErrorText(locale, error, t('error'))}
             {needsLogin && (
               <Link href="/auth/login" className="ml-2 underline">
                 {t('login')}

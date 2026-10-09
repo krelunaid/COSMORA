@@ -22,7 +22,8 @@ void test('community distinguishes session failure from a missing session before
   assert.ok(community.indexOf('if (session.error)') < community.indexOf('if (!token)'));
   assert.match(community, /if \(!token\) throw new AccountRequestError\('Accedi per continuare\.', 401, 'AUTH_REQUIRED'\)/);
   assert.match(community, /readFormResponse</);
-  assert.match(community, /error instanceof AccountRequestError\s*\? t\(error\.message\)/);
+  assert.match(community, /setPublishError\(error instanceof Error \? error : 'failed'\)/);
+  assert.match(community, /communityError\(locale, publishError, 'Pubblicazione non riuscita\.'\)/);
 });
 
 for (const status of [400, 401, 403, 413, 429, 500, 503]) {
@@ -64,9 +65,10 @@ void test('successful form response keeps the pending-review receipt', async () 
 
 void test('listing and seller profile display API errors instead of unconditional login prompts', () => {
   assert.match(sell, /await readFormResponse\(response, t\('error'\)\)/);
-  assert.match(sell, /error instanceof AccountRequestError \? error\.message : t\('error'\)/);
+  assert.match(sell, /setPublishError\(error instanceof Error \? error : 'failed'\)/);
+  assert.match(sell, /apiErrorText\(locale, publishError, t\('error'\)\)/);
   assert.doesNotMatch(sell, /response\.status === 400 \? t\('invalid'\) : t\('error'\)/);
   assert.match(sellerProfile, /error instanceof AccountRequestError && error\.status === 401/);
   assert.match(sellerProfile, /\{needsLogin && \([\s\S]*?href="\/auth\/login"/);
-  assert.match(sellerProfile, /error === 'failed' \? t\('error'\) : error/);
+  assert.match(sellerProfile, /apiErrorText\(locale, error, t\('error'\)\)/);
 });

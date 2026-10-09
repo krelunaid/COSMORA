@@ -102,7 +102,7 @@ export default function CreateCommunityPostPage() {
     };
   }, [connectionType, locale]);
   const [publishing, setPublishing] = useState(false);
-  const [publishError, setPublishError] = useState('');
+  const [publishError, setPublishError] = useState<Error | string>('');
   const [needsLogin, setNeedsLogin] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaError, setMediaError] = useState('');
@@ -144,11 +144,7 @@ export default function CreateCommunityPostPage() {
       setResult(payload.moderation ?? { ...moderation, status: 'PENDING_REVIEW' });
     } catch (error) {
       setNeedsLogin(error instanceof AccountRequestError && error.status === 401);
-      setPublishError(
-        error instanceof AccountRequestError
-          ? t(error.message)
-          : communityError(locale, error, 'Pubblicazione non riuscita.'),
-      );
+      setPublishError(error instanceof Error ? error : 'failed');
     } finally {
       setPublishing(false);
     }
@@ -326,7 +322,7 @@ export default function CreateCommunityPostPage() {
         <CommunityRulesNotice />
         {publishError && (
           <p role="alert" className="text-sm text-rose-300">
-            {publishError}
+            {communityError(locale, publishError, 'Pubblicazione non riuscita.')}
             {needsLogin && (
               <Link href="/auth/login" className="ml-2 underline">
                 {t('Accedi')}

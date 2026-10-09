@@ -1,4 +1,5 @@
 import type { Locale } from './config';
+import { apiErrorText, knownApiErrorText } from './api-errors.ts';
 
 // Only interface copy belongs here. User captions, names and messages stay unchanged.
 const translations: Record<string, Record<Locale, string>> = {
@@ -1315,14 +1316,15 @@ export function communityError(
   error: unknown,
   fallback = 'Operazione non riuscita.',
 ): string {
+  const known = knownApiErrorText(locale, error);
+  if (known) return known;
   const message =
     error instanceof Error
       ? error.message
       : typeof error === 'string'
         ? error
         : '';
-  if (translations[message]) return translations[message][locale];
-  if (/^(Accedi |Authentication required)/.test(message))
-    return communityText(locale, 'Accedi per continuare.');
-  return communityText(locale, fallback);
+  if (Object.hasOwn(translations, message)) return translations[message][locale];
+  const localizedFallback = Object.hasOwn(translations, fallback) ? translations[fallback][locale] : undefined;
+  return apiErrorText(locale, error, localizedFallback);
 }

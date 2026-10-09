@@ -128,7 +128,7 @@ export function ReportButton({
     } catch (e) {
       if (viewerRef.current !== actor || contextVersion.current !== version) return;
       setNeedsLogin(e instanceof AccountRequestError && e.status === 401);
-      setMessage(e instanceof AccountRequestError ? t(e.message) : communityError(locale, e, 'Invio non riuscito.'));
+      setMessage(communityError(locale, e, 'Invio non riuscito.'));
     } finally {
       if (contextVersion.current === version) {
         submittingRef.current = false;

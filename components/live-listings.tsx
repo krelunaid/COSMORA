@@ -232,7 +232,7 @@ export function LiveListings({
       <BlockedContentNotice ready={blocksReady} error={blocksError} retry={retryBlocks} />
       {demo && (
         <p className="rounded-xl border border-amber-300/25 bg-amber-300/10 p-3 text-sm text-amber-100">
-          Anteprima dimostrativa: annunci inventati e immagini illustrative, non in vendita.
+          {t('demoNotice')}
         </p>
       )}
       {error && (
@@ -348,7 +348,7 @@ export function LiveListings({
                   {listing.description}
                 </p>
                 {demo ? (
-                  <p className="rounded-xl bg-white/5 p-3 text-sm text-white/65">Scheda di esempio: contatti e acquisto non attivi.</p>
+                  <p className="rounded-xl bg-white/5 p-3 text-sm text-white/65">{t('demoDetailNotice')}</p>
                 ) : (
                   <>
                     <Link

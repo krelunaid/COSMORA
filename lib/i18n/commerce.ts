@@ -2,6 +2,20 @@ import type { Locale } from './config';
 
 // Order: Italian, English, French, German, Spanish. Product text stays as entered by its author.
 export const commerceCopy = {
+  demoNotice: [
+    'Anteprima dimostrativa: annunci inventati e immagini illustrative, non in vendita.',
+    'Demo preview: fictional listings and illustrative images, not for sale.',
+    'Aperçu de démonstration : annonces fictives et images illustratives, sans vente.',
+    'Demo-Vorschau: fiktive Anzeigen und Beispielbilder, nicht zum Verkauf.',
+    'Vista de demostración: anuncios ficticios e imágenes ilustrativas, no están a la venta.',
+  ],
+  demoDetailNotice: [
+    'Scheda di esempio: contatti e acquisto non attivi.',
+    'Example listing: contact and purchase are unavailable.',
+    'Annonce d’exemple : contact et achat indisponibles.',
+    'Beispielanzeige: Kontakt und Kauf sind nicht verfügbar.',
+    'Anuncio de ejemplo: contacto y compra no disponibles.',
+  ],
   marketplace: [
     'Marketplace',
     'Marketplace',

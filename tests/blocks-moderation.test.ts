@@ -107,10 +107,13 @@ void test('block migration uses an atomic invoker trigger and a pair-specific un
 void test('moderation API and UI expose durable block notices with readable context', () => {
   const api = readFileSync(new URL('../app/api/moderation/route.ts', import.meta.url), 'utf8');
   const ui = readFileSync(new URL('../app/moderation/page.tsx', import.meta.url), 'utf8');
+  const translations = readFileSync(new URL('../lib/i18n/moderation.ts', import.meta.url), 'utf8');
   assert.match(api, /source,context_target_type,context_target_id/);
   assert.match(api, /source: r\.source, contextTargetType: r\.context_target_type/);
-  assert.match(ui, /Blocco utente · avviso al gestore/);
-  assert.match(ui, /Avvisi di blocco da esaminare in questa pagina/);
+  assert.match(ui, /isBlockModerationNotice\(report\)[\s\S]*?copy\.blockNotice/);
+  assert.match(ui, /copy\.blockCount/);
+  assert.match(translations, /Blocco utente · avviso al gestore/);
+  assert.match(translations, /Avvisi di blocco da esaminare in questa pagina/);
 });
 
 void test('notice label works with the legacy moderation API and trusts an explicit source', () => {

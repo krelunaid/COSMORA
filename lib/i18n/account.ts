@@ -11,11 +11,11 @@ const copy = {
     'Idioma de la app',
   ],
   languageHint: [
-    'Your device language is used initially. You can change it here.',
-    'All’inizio usiamo la lingua del dispositivo. Puoi cambiarla qui.',
-    'La langue de votre appareil est utilisée au départ. Vous pouvez la modifier ici.',
-    'Anfangs wird die Gerätesprache verwendet. Hier kannst du sie ändern.',
-    'Al principio usamos el idioma del dispositivo. Puedes cambiarlo aquí.',
+    'Choose your language at first launch. You can change it here at any time.',
+    'Scegli la lingua al primo avvio. Puoi cambiarla qui in qualsiasi momento.',
+    'Choisissez votre langue au premier lancement. Vous pouvez la modifier ici à tout moment.',
+    'Wähle deine Sprache beim ersten Start. Du kannst sie hier jederzeit ändern.',
+    'Elige tu idioma al abrir la app por primera vez. Puedes cambiarlo aquí cuando quieras.',
   ],
   navigation: [
     'Main navigation',
