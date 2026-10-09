@@ -1,0 +1,20 @@
+# COSMORA 1.0.2 (40)
+
+Aggiornamento delle lingue preparato il 9 ottobre 2026 dal commit `5ab3dc0`.
+
+## Contenuti
+
+- Scelta di italiano, inglese, francese, tedesco o spagnolo prima della Home al primo avvio, con salvataggio della preferenza e cambio dal Profilo.
+- Traduzioni degli errori di annunci, profilo venditore e Community, dei controlli UI condivisi e della moderazione.
+- I contenuti scritti dagli utenti conservano la propria lingua.
+- Tre screenshot italiani ereditati dalla 1.0.1: `01-home.png`, `02-esplora.png`, `03-eventi.png`, verificati nell'interfaccia Apple della nuova versione.
+
+## Stato verificato
+
+- Sincronizzazione mobile e archivio iOS firmato completati.
+- Bundle `it.kreluna.cosmora`, versione `1.0.2`, build `40`; il selettore di lingua è presente nell'archivio.
+- Caricamento su App Store Connect riuscito il 9 ottobre alle 23:05 (Europe/Rome).
+- App Store Connect mostra la build in elaborazione. La versione è ancora in preparazione per l'invio; non è ancora stata inviata in revisione.
+- Novità italiane e note inglesi per i revisori salvate e verificate dopo il ricaricamento della pagina.
+
+I pacchetti firmati e i log di compilazione/caricamento restano fuori dal repository. Le credenziali di accesso per i revisori sono nei campi riservati di App Store Connect e non sono incluse in questi file.

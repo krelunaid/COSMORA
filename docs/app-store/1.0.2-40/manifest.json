@@ -1,0 +1,19 @@
+{
+  "appStoreId": "6809232374",
+  "bundleId": "it.kreluna.cosmora",
+  "version": "1.0.2",
+  "build": "40",
+  "sourceCommit": "5ab3dc0b283bb2f61cc5a0223b36c6ab083f3197",
+  "createdAt": "2026-10-09T21:08:04.199184+00:00",
+  "archiveSucceeded": true,
+  "uploadSucceeded": true,
+  "uploadStateObserved": "PROCESSING",
+  "releaseStateObserved": "PREPARE_FOR_SUBMISSION",
+  "releaseNotesFile": "release-notes-it.txt",
+  "reviewNotesFile": "review-notes-en.txt",
+  "existingItalianScreenshots": [
+    "01-home.png",
+    "02-esplora.png",
+    "03-eventi.png"
+  ]
+}
