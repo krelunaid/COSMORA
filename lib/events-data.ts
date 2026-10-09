@@ -1,6 +1,9 @@
+import { EVENT_MEDIA } from './event-media.ts';
+
 export type EuropeEvent = {
   name: string;
   city: string;
+  venue?: string;
   country: string;
   flag: string;
   start: string;
@@ -14,7 +17,8 @@ export type EuropeEvent = {
 };
 
 const eventCatalog: EuropeEvent[] = [
-  { name:'Japan Con: Brussels Manga', city:'Brussels', country:'Belgium', flag:'🇧🇪', start:'2026-02-21', end:'2026-02-22', dateLabel:'21–22 FEB 2026', type:'Anime', url:'https://www.brusselsmanga.com/', image:'/editorial/category-manga.svg' },
+  // The organiser's 2026 page confirms the dates and Tour & Taxis venue.
+  { name:'Japan Con: Brussels Manga', city:'Brussels', venue:'Tour & Taxis', country:'Belgium', flag:'🇧🇪', start:'2026-02-21', end:'2026-02-22', dateLabel:'21–22 FEB 2026', type:'Anime', url:'https://www.japancon.be/home', image:'/editorial/category-manga.svg' },
   { name:'Manga-Comic-Con Leipzig', city:'Leipzig', country:'Germany', flag:'🇩🇪', start:'2026-03-19', end:'2026-03-22', dateLabel:'19–22 MAR 2026', type:'Anime', url:'https://www.manga-comic-con.de/en/', image:'/editorial/category-manga.svg' },
   { name:'I Heart Horror', city:'Lint', country:'Belgium', flag:'🇧🇪', start:'2026-03-21', end:'2026-03-22', dateLabel:'21–22 MAR 2026', type:'Pop Culture', url:'https://www.comiccon.group/', image:'/editorial/category-artist.svg' },
   { name:'Heroes Dutch Comic Con Spring', city:'Utrecht', country:'Netherlands', flag:'🇳🇱', start:'2026-03-28', end:'2026-03-29', dateLabel:'28–29 MAR 2026', type:'Pop Culture', url:'https://www.dutchcomiccon.com/', image:'/editorial/category-cosplay.svg' },
@@ -25,7 +29,8 @@ const eventCatalog: EuropeEvent[] = [
   { name:'Comic Con Holland — Den Bosch', city:'Den Bosch', country:'Netherlands', flag:'🇳🇱', start:'2026-05-09', end:'2026-05-10', dateLabel:'9–10 MAY 2026', type:'Pop Culture', url:'https://comiccon.nl/', image:'/editorial/category-figures.svg' },
   { name:'Milano Comics & Games', city:'Milan', country:'Italy', flag:'🇮🇹', start:'2026-05-09', end:'2026-05-10', dateLabel:'9–10 MAY 2026', type:'Gaming', url:'https://www.fieredelfumetto.it/', image:'/editorial/category-gaming.svg' },
   { name:'Comic Barcelona', city:'Barcelona', country:'Spain', flag:'🇪🇸', start:'2026-05-15', end:'2026-05-17', dateLabel:'15–17 MAY 2026', type:'Comics', url:'https://www.comic-barcelona.com/en/home.cfm', image:'/editorial/category-manga.svg' },
-  { name:'IberAnime Lisboa', city:'Lisbon', country:'Portugal', flag:'🇵🇹', start:'2026-05-16', end:'2026-05-17', dateLabel:'16–17 MAY 2026', type:'Anime', url:'https://www.iberanime.com/', image:'/editorial/category-artist.svg' },
+  // https://www.iberanime.com/wp-content/uploads/2025/12/PR-IBERANIME_MADKID-NO-IBERANIME-SANTAREM2026.pdf
+  { name:'IberAnime Santarém', city:'Santarém', venue:'CNEMA', country:'Portugal', flag:'🇵🇹', start:'2026-05-16', end:'2026-05-17', dateLabel:'16–17 MAY 2026', type:'Anime', url:'https://www.iberanime.com/', image:'/editorial/category-artist.svg', internalUrl:'/events/iberanime-santarem-2026' },
   { name:'DoKomi', city:'Düsseldorf', country:'Germany', flag:'🇩🇪', start:'2026-05-29', end:'2026-05-31', dateLabel:'29–31 MAY 2026', type:'Anime', url:'https://www.dokomi.de/en', image:'/editorial/category-artist.svg' },
   { name:'COMICON Bergamo', city:'Bergamo', country:'Italy', flag:'🇮🇹', start:'2026-06-26', end:'2026-06-28', dateLabel:'26–28 JUN 2026', type:'Comics', url:'https://comicon.it/attivita/festival', image:'/editorial/category-manga.svg' },
   { name:'Comic Con Open Air', city:'Vilvoorde', country:'Belgium', flag:'🇧🇪', start:'2026-07-04', end:'2026-07-05', dateLabel:'4–5 JUL 2026', type:'Pop Culture', url:'https://www.comiccon.group/', image:'/editorial/category-cosplay.svg' },
@@ -56,7 +61,7 @@ const eventImages: Record<string, string> = {
   'Comic Con Holland — Den Bosch':'/events/comic-con-holland-den-bosch.svg',
   'Milano Comics & Games':'/events/milano-comics-games.svg',
   'Comic Barcelona':'/events/comic-barcelona.svg',
-  'IberAnime Lisboa':'/events/iberanime-lisboa.svg',
+  'IberAnime Santarém':'/events/iberanime-lisboa.svg',
   'DoKomi':'/events/dokomi.svg',
   'COMICON Bergamo':'/events/comicon-bergamo.svg',
   'Comic Con Open Air':'/events/comic-con-open-air.svg',
@@ -75,4 +80,17 @@ const eventImages: Record<string, string> = {
   'Manga Barcelona':'/events/manga-barcelona.svg',
 };
 
-export const europeEvents: EuropeEvent[] = eventCatalog.map((event) => ({ ...event, image: eventImages[event.name] ?? event.image }));
+export const europeEvents: EuropeEvent[] = eventCatalog.map((event) => {
+  const illustration = eventImages[event.name] ?? event.image;
+  const slug = illustration.split('/').pop()!.replace(/\.svg$/, '');
+  return {
+    ...event,
+    image: EVENT_MEDIA[event.name]?.image ?? illustration,
+    internalUrl: event.internalUrl ?? `/events/${slug}-${event.start.slice(0, 4)}`,
+  };
+});
+
+export function findEventBySlug(slug: string): EuropeEvent | undefined {
+  const resolvedSlug = slug === 'iberanime-lisboa-2026' ? 'iberanime-santarem-2026' : slug;
+  return europeEvents.find((event) => event.internalUrl === `/events/${resolvedSlug}`);
+}

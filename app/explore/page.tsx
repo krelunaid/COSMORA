@@ -34,6 +34,7 @@ import { ProfileDirectory } from '@/components/profile-directory';
 import { DISCOVERY_CARD_CHROME } from '@/lib/mobile-layout';
 import { CrewList } from '@/components/crew-list';
 import { LiveListings } from '@/components/live-listings';
+import { EventCover, EventMediaCredit } from '@/components/event-cover';
 
 const discoveryIcons = {
   bag: ShoppingBag,
@@ -237,19 +238,21 @@ function DiscoveryCard({ item }: { item: ExploreDiscovery }) {
   const { locale } = useI18n();
   const t = communityTranslator(locale);
   const Icon = discoveryIcons[item.icon];
+  const event = item.section === 'Eventi' ? europeEvents.find((entry) => entry.internalUrl === item.href) : undefined;
   return (
+    <article className="discovery-card flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/8 bg-[#111225] transition hover:border-pink-400/25">
     <Link
       href={item.href}
       target={item.href.startsWith('https://') ? '_blank' : undefined}
       rel={item.href.startsWith('https://') ? 'noopener noreferrer' : undefined}
-      className="discovery-card flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-white/8 bg-[#111225] transition hover:border-pink-400/25"
+      className="flex min-w-0 flex-1 flex-col"
     >
       <div
         className={`discovery-card-media relative aspect-[5/4] w-full shrink-0 overflow-hidden bg-[#17172b] ${item.imageFit === 'contain' ? 'discovery-card-media-logo p-3' : ''}`}
       >
-        <Image
+        {event ? <div className="absolute inset-0"><EventCover event={event} showDetails={false} className="h-full w-full" sizes="(max-width: 430px) 50vw, 215px" /></div> : <Image
           src={item.image}
-          alt={item.title}
+          alt=""
           fill
           sizes="(max-width: 430px) 50vw, 215px"
           className={
@@ -258,7 +261,7 @@ function DiscoveryCard({ item }: { item: ExploreDiscovery }) {
           style={{
             objectFit: item.imageFit === 'contain' ? 'contain' : 'cover',
           }}
-        />
+        />}
         <span className="absolute left-2 top-2 grid size-7 place-items-center rounded-lg border border-white/10 bg-[#090a18]/80 backdrop-blur">
           <Icon className="size-3.5 text-pink-300" />
         </span>
@@ -277,5 +280,7 @@ function DiscoveryCard({ item }: { item: ExploreDiscovery }) {
         </p>
       </div>
     </Link>
+    {event && <EventMediaCredit event={event} className="border-t border-white/5 px-3 py-2" />}
+    </article>
   );
 }

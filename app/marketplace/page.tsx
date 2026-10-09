@@ -83,25 +83,24 @@ function MarketplaceContent({
           </Link>
         </div>
         {focused && details && copy && (
-          <div className="flex items-center gap-4">
-            <div className="relative size-20 shrink-0 overflow-hidden rounded-2xl border border-white/15">
+          <div>
+            <div className="relative flex min-h-44 items-end overflow-hidden rounded-2xl border border-white/15 bg-[#17172b] p-4">
               <Image
                 src={details.image}
                 alt=""
                 fill
                 priority
-                sizes="80px"
+                sizes="(max-width: 430px) calc(100vw - 32px), 398px"
                 className="object-cover"
               />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-2xl font-semibold leading-tight">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent" />
+              <h1 className="relative text-3xl font-semibold leading-tight">
                 {t(category)}
               </h1>
-              <p className="mt-2 text-sm leading-relaxed text-white/65">
-                {copy.intro}
-              </p>
             </div>
+            <p className="mt-3 text-sm leading-relaxed text-white/70">
+              {copy.intro}
+            </p>
           </div>
         )}
       </header>

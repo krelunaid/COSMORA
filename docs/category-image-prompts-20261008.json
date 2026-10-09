@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-08",
+  "generator": "Built-in image_gen",
+  "purpose": "Original illustrative category covers for COSMORA, not real listings, people or advertised products.",
+  "direction": "Varied natural colors requested by user, no violet cast; original manga drawing and richer trading-card scene.",
+  "images": [
+    {
+      "key": "mangaNatural",
+      "file": "category-manga-v2.png",
+      "prompt": "Use case: illustration-story. Square category cover for MANGA AND COMIC BOOKS. It must instantly read as printed COMICS, not an animation poster. Close-up of an OPEN manga/comic book filling almost the whole square, slightly diagonal on a warm cream desk. Its paper pages contain LARGE unmistakable inked comic PANELS with white gutters, expressive original manga characters in dynamic action, black-and-white screentone in some panels and vivid red turquoise yellow illustration in others. One large panel features a windswept black-haired adventurer with turquoise scarf and red jacket, next panels show a cheerful auburn-haired adventurer and a green countryside; ORIGINAL characters, no recognizable franchise. A second colorful illustrated closed comic book peeks underneath along one edge. Beautiful crisp paper texture, clearly defined panel borders and a couple EMPTY speech balloons, hand-drawn black linework, editorial photograph of richly drawn books. Strong focus on drawings and comic layout, not blank book spines or distant books; clearly readable even at small thumbnail size. Natural bright daylight, no purple/violet wash, no lettering, no logos or watermark. Art and book edges centered, bottom fifth less busy for UI label.",
+      "sourceFile": "exec-6091449f-fb0b-4c23-9717-979a9b49adef.png",
+      "asset": "public/editorial/category-manga-v2.png"
+    },
+    {
+      "key": "cosplayNatural",
+      "file": "category-cosplay-v2.png",
+      "prompt": "Use case: photorealistic-natural. Create a square vibrant category cover for COSPLAY. A fictional adult female cosplayer in an original handmade fantasy adventurer costume, copper red braided hair, rich forest green and cream fabrics, warm brown leather armor details and golden brass clasps, holding a small handcrafted prop, confident cheerful expression, beautiful believable fabric and craftsmanship. Waist-up portrait outdoors at a convention garden with softly blurred daylight background and a little bunting, natural skin and daylight colors. Rich emerald green, rust orange, cream and warm gold palette. Centered strong silhouette immediately recognizable as cosplay in a small tile. No recognizable franchise costume, no logos or lettering, no watermark, no purple or violet color wash. Natural photographic look, not CGI. Leave bottom fifth less busy for a UI label later.",
+      "sourceFile": "exec-d4b1e5fc-18e4-44d8-9599-2cf9f4b95e9a.png",
+      "asset": "public/editorial/category-cosplay-v2.png"
+    },
+    {
+      "key": "cardsNatural",
+      "file": "category-cards-v2.png",
+      "prompt": "Use case: product-mockup. Square colorful editorial category cover for collectible trading game cards. A rich believable tabletop collection of ORIGINAL fantasy battle cards: five fanned shiny sleeved cards foreground depicting a red fire dragon, a blue sea creature, green forest guardian, yellow mechanical bird and silver robot, clear contemporary collectible game card borders. Behind them an open binder with colorful cards in individual pockets, a red deck box, a few faceted turquoise and amber gaming dice. Rich but tidy, clear hierarchy, close macro view, sunlit pale wooden table, natural bright colors red blue emerald gold, subtle foil reflections. Modern collectible card game hobby. No copyrighted game characters, no brand logos, no readable text, no watermark. Absolutely NOT tarot or divination, no astrology, no occult, no violet wash. Main fanned cards prominent center; enough breathing room, bottom fifth quieter for a category label.",
+      "sourceFile": "exec-66d5eb3d-32c3-4cd4-8f6a-eb4a96881bfe.png",
+      "asset": "public/editorial/category-cards-v2.png"
+    },
+    {
+      "key": "figuresNatural",
+      "file": "category-figures-v2.png",
+      "prompt": "Use case: product-mockup. Square category cover showing a REALISTIC PHYSICAL ANIME COLLECTIBLE FIGURINE, not a human cosplayer, not an astronaut, not an illustration. Premium macro product photograph of a 25cm painted resin anime statue: original adult fantasy adventurer woman with expressive anime eyes and flowing dark teal hair, stylish cream and rich blue layered adventure outfit with a coral-red scarf and gold details, opaque modest clothing, dynamic mid-step pose holding a decorative crystal staff. Recognizable Japanese anime collectible aesthetic, finely sculpted hair strands and crisp hand-painted details. Clearly visible round black display base with a small rocky landscape, statue standing on a pale oak collector shelf; one other small blurred anime figurine in background. Physical toy scale visible, polished resin material, natural warm daylight, elegant real hobby collectible photography. Rich blue, teal, red, cream and gold colors, no purple color wash. Original character, no recognizable franchise, no real brand/logos/text/watermark. Whole figure including display base centered and filling most of frame, immediately recognizable at small tile size; lower fifth simpler for UI label. NOT a person, NOT a doll face in uncanny realism, NOT a spaceship robot.",
+      "sourceFile": "exec-c7a362c3-42df-4c1e-b352-61ad98f740d9.png",
+      "asset": "public/editorial/category-figures-v2.png"
+    },
+    {
+      "key": "gamingNatural",
+      "file": "category-gaming-v2.png",
+      "prompt": "Use case: product-mockup. Square colorful editorial cover for a VIDEOGAMES category. Original unbranded blue and ivory game controller resting diagonally on a light oak gaming desk, clearly visible controls with a few small yellow/red accent buttons; nearby coral red headphones, distant monitor softly blurred showing a cheerful original green landscape game, warm sunlit modern gaming nook. Premium believable product photography, crisp detail on controller, blue, red, cream and leafy green color palette. Natural balanced daylight, no violet lighting, no dark neon wash. Controller prominent center, recognizable at tiny thumbnail size. No brand logos, no recognizable game art, no readable text, no watermark or interface. Leave bottom fifth quieter for a UI label later.",
+      "sourceFile": "exec-9239adb2-2d51-4823-9552-127289069dc7.png",
+      "asset": "public/editorial/category-gaming-v2.png"
+    },
+    {
+      "key": "artistNatural",
+      "file": "category-artist-v2.png",
+      "prompt": "Use case: photorealistic-natural. Square colorful editorial cover for CREATORS AND ARTISANS in a cosplay/collectibles marketplace app. Close-up of an anonymous adult artisan's hands carefully using a fine paintbrush to paint a small ORIGINAL turquoise and coral dragon figurine, with an open watercolor palette, jars of brushes, terracotta and yellow paint pots and a few sewing threads on a pale wooden workbench. Beautiful real tactile textures, bright natural daylight from workshop window, warm cream surroundings and multicolored materials. Hands only, no face or identifiable real person, realistic craft photography, not CGI. Clear main act of painting in central upper two thirds, avoid clutter, bottom fifth quieter for UI label. No recognizable franchise, logos, lettering, watermark; no violet/purple color cast.",
+      "sourceFile": "exec-232cc69c-c85e-46a1-9cc6-8bc9b619d47a.png",
+      "asset": "public/editorial/category-artist-v2.png"
+    },
+    {
+      "key": "crewColor",
+      "file": "category-crew-v2.png",
+      "prompt": "Use case: photorealistic-natural. Square editorial category cover for CREW AND MEETUPS in a cosplay and comics app. Three fictional adult friends wearing varied ORIGINAL casual cosplay costumes planning their visit together outdoors at a convention garden. A young adult woman in forest-green cape, an adult man with a blue sci-fi costume jacket and an adult woman with a red fantasy scarf, relaxed natural expressions, looking together at an unfolded simple venue map held between them. Clear friendly group interaction, no individual central celebrity, waist-up group portrait, full faces inside frame and visible at thumbnail size. Natural daylight, lively balanced green blue warm orange and red colors, softly blurred convention booths and bunting. High-quality realistic editorial photography, believable hands and costumes, no identifiable real persons, no recognizable franchise costumes or characters, no readable lettering, no logos or watermark. No purple wash. Lower fifth calmer for a UI label. Illustrative fictional cover, not evidence of real attendees.",
+      "sourceFile": "exec-f3f72bef-ea60-4e70-b814-6d0ac0cc63f5.png",
+      "asset": "public/editorial/category-crew-v2.png"
+    },
+    {
+      "key": "communityColor",
+      "file": "category-community-v2.png",
+      "prompt": "Use case: photorealistic-natural. Square editorial cover for a COSPLAY, MANGA AND COLLECTIBLES COMMUNITY. A warm cheerful hobby gathering at a sunlit wooden studio table: cropped hands of three fictional adult friends sharing an ORIGINAL painted turquoise dragon figurine and leafing through an open manga sketchbook with clearly visible small comic panels, red and yellow paint jars, a few colorful original trading cards and a camera near the edge. Emphasis on sharing creations and collections, not shopping, not event calendar. Slightly angled overhead close view, tactile realistic resin figurine and paper, vivid turquoise coral red golden yellow and natural cream colors, balanced tidy composition instantly readable at thumbnail size. Polished documentary-style fictional editorial photo, daylight, no identifiable real face, no recognizable franchise artwork, no brands, no readable text or watermark, no violet cast. Main figurine/sketchbook centered in upper two-thirds. Bottom fifth quieter for UI label.",
+      "sourceFile": "exec-2408964c-d8e8-4c82-b1c1-62d180a0f26e.png",
+      "asset": "public/editorial/category-community-v2.png"
+    }
+  ]
+}

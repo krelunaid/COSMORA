@@ -9,6 +9,7 @@ import { useI18n } from '@/components/i18n-provider';
 import { europeEvents } from '@/lib/events-data';
 import { formatEventDates } from '@/lib/event-selection';
 import { eventMessages } from '@/lib/i18n/events';
+import { EventCover, EventMediaCredit } from '@/components/event-cover';
 
 const officialSite = 'https://lucca2026.luccacomicsandgames.com/it/home';
 
@@ -26,6 +27,10 @@ export default function LuccaEventPage() {
     <MobileShell className="flex flex-col">
       <ScreenHeader title="Lucca 2026" back="/events" />
       <div className="flex-1 space-y-4 px-4 pb-5 pt-2">
+        <figure className="overflow-hidden rounded-[24px] border border-white/10 bg-[#111225]">
+          <EventCover event={event} className="aspect-video w-full" />
+          <EventMediaCredit event={event} className="px-3 py-2.5" />
+        </figure>
         <header className="px-1 pb-1">
           <h1 className="text-2xl font-bold leading-tight">Lucca Comics <span className="text-pink-300">&amp; Games</span></h1>
           <p className="mt-2 text-sm text-violet-200">{formatEventDates(event, locale)} · Lucca</p>
