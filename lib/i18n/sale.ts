@@ -40,6 +40,17 @@ export const saleCopy = {
     'Auszahlungen einrichten',
     'Configurar cobros',
   ],
+  salesFeeTitle: ['Commissioni sulle vendite', 'Sales fees', 'Frais de vente', 'Verkaufsgebühren', 'Comisiones de venta'],
+  salesFeePolicy: [
+    'Commissione prevista COSMORA: 5% del prezzo dell’articolo, spedizione esclusa. I costi del pagamento saranno indicati separatamente al venditore prima di attivare gli incassi.',
+    'Planned COSMORA fee: 5% of the item price, excluding shipping. Payment processing costs will be disclosed separately to the seller before payouts are enabled.',
+    'Commission prévue COSMORA : 5 % du prix de l’article, hors livraison. Les frais de paiement seront indiqués séparément au vendeur avant l’activation des versements.',
+    'Geplante COSMORA-Gebühr: 5 % des Artikelpreises, ohne Versand. Zahlungsgebühren werden Verkäufern vor der Aktivierung der Auszahlungen separat mitgeteilt.',
+    'Comisión prevista de COSMORA: 5 % del precio del artículo, sin envío. Los costes del pago se indicarán por separado al vendedor antes de activar los cobros.',
+  ],
+  salesPaymentsUnavailable: ['Acquisti e incassi nell’app non ancora disponibili.', 'In-app purchases and payouts are not available yet.', 'Les achats et versements dans l’application ne sont pas encore disponibles.', 'Käufe und Auszahlungen in der App sind noch nicht verfügbar.', 'Las compras y los cobros en la app aún no están disponibles.'],
+  payoutReady: ['Configurazione di prova pronta.', 'Test setup ready.', 'Configuration de test prête.', 'Testkonfiguration bereit.', 'Configuración de prueba lista.'],
+  payoutIncomplete: ['Configurazione degli incassi da completare o verificare.', 'Payout setup needs completion or verification.', 'La configuration des versements doit être complétée ou vérifiée.', 'Auszahlungskonfiguration muss vervollständigt oder geprüft werden.', 'La configuración de cobros necesita completarse o verificarse.'],
   payoutExplanation: [
     'Anche se vendi come privato, non serve una carta di credito. Stripe ti guida nella verifica dei dati e nell’aggiunta del conto per ricevere gli accrediti. Non inserire IBAN o documenti nella descrizione pubblica.',
     'Private sellers do not need a credit card. Stripe guides you through verification and adding a bank account to receive payouts. Do not put bank details or identity documents in your public description.',

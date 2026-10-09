@@ -1,5 +1,7 @@
 # COSMORA — commissione sulle vendite del 9 ottobre 2026
 
+Questo documento descrive la prima preparazione del 9 ottobre. Il lavoro successivo su onboarding, inventario di prova e rimborsi è riportato nello [stato del 10 ottobre](./readiness-20261010.md); le limitazioni descritte sotto sono riferite a quella prima modifica.
+
 Il titolare ha confermato una commissione COSMORA del **5% sul prezzo dell’articolo**. La spedizione è esclusa dalla base. I costi del pagamento sono previsti separatamente a carico del venditore: la loro configurazione Stripe deve ancora essere completata. Noleggi e lavori personalizzati mantengono le regole precedenti; questa modifica riguarda soltanto le vendite.
 
 ## Preparazione nel codice

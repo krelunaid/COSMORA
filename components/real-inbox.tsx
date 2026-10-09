@@ -8,7 +8,6 @@ import { MobileNav, MobileShell } from '@/components/mobile-shell';
 import { accountHttp, AccountRequestError } from '@/lib/account-http';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { orderStatusLabel } from '@/lib/order-status';
-import { paymentsEnabled } from '@/lib/release-features';
 import { useBlockedContent } from '@/components/use-blocked-content';
 import { BlockedContentNotice } from '@/components/blocked-content-notice';
 type Item = { id: string; label: string; detail: string };
@@ -23,7 +22,7 @@ export default function RealInbox() {
   const t = communityTranslator(locale);
   const params = useSearchParams();
   const [tab, setTab] = useState(
-    paymentsEnabled && params.get('tab') === 'orders' ? 'orders' : 'messages',
+    params.get('tab') === 'orders' ? 'orders' : 'messages',
   );
   const [query, setQuery] = useState('');
   const [items, setItems] = useState<Item[]>([]);
@@ -33,7 +32,7 @@ export default function RealInbox() {
   const [itemsViewer, setItemsViewer] = useState('');
   const { blockedIds, blocksRevision, blocksReady, blocksError, retryBlocks, viewerId } = useBlockedContent();
   const locationTab =
-    paymentsEnabled && params.get('tab') === 'orders' ? 'orders' : 'messages';
+    params.get('tab') === 'orders' ? 'orders' : 'messages';
   const [lastLocationTab, setLastLocationTab] = useState(locationTab);
   if (locationTab !== lastLocationTab) {
     setLastLocationTab(locationTab);
@@ -120,7 +119,7 @@ export default function RealInbox() {
     <MobileShell className="flex !h-dvh !min-h-0 flex-col overflow-hidden">
       <header className="px-5 py-5">
         <h1 className="text-2xl font-semibold">
-          {paymentsEnabled ? t('Messaggi e ordini') : t('Messaggi')}
+          {t('Messaggi e ordini')}
         </h1>
       </header>
       <section className="min-h-0 flex-1 overflow-y-auto px-5 pb-24">
@@ -133,7 +132,6 @@ export default function RealInbox() {
             className="mt-2 w-full rounded-xl border border-white/20 bg-[#111225] p-3 text-base"
           />
         </label>
-        {paymentsEnabled && (
           <div className="my-4 grid grid-cols-2">
             {[
               ['messages', t('Messaggi')],
@@ -155,7 +153,6 @@ export default function RealInbox() {
               </button>
             ))}
           </div>
-        )}
         {tab === 'messages' && <BlockedContentNotice ready={blocksReady} error={blocksError} retry={retryBlocks} />}
         {tab === 'messages' && !blocksReady ? null : loading ? (
           <p>{t('Caricamento…')}</p>
