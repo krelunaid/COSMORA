@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
 import { getBlockedAuthorIds } from '@/lib/server/blocked-content';
+import { applyReviewFixtureVisibility, isHiddenReviewFixture } from '@/lib/server/review-fixture-visibility';
 
 const schema = z.object({
   listingId: z.uuid(),
@@ -20,13 +21,16 @@ export async function GET(request: Request) {
   const blocks = await getBlockedAuthorIds(auth.admin, auth.user.id);
   if (blocks.error)
     return NextResponse.json({ error: 'Articoli non disponibili. Riprova.' }, { status: 503 });
-  const { data, error } = await auth.admin
-    .from('saved_items')
-    .select(
-      'listing_id, listings(id,seller_id,slug,title,status,sale_mode,sale_price_cents,listing_images(storage_path,position))',
-    )
-    .eq('user_id', auth.user.id)
-    .eq('kind', kind)
+  const { data, error } = await applyReviewFixtureVisibility(
+    auth.admin.from('saved_items')
+      .select(
+        'listing_id, listings(id,seller_id,slug,title,status,sale_mode,sale_price_cents,listing_images(storage_path,position))',
+      )
+      .eq('user_id', auth.user.id)
+      .eq('kind', kind),
+    'listings.seller_id',
+    auth,
+  )
     .order('created_at', { ascending: false })
     .limit(100);
   if (error)
@@ -49,7 +53,7 @@ export async function GET(request: Request) {
     };
     if (listing && blocks.ids.includes(listing.seller_id)) return null;
     // Preserve a removable saved item without exposing hidden user content.
-    if (!listing || listing.status !== 'active') return {
+    if (!listing || listing.status !== 'active' || isHiddenReviewFixture(listing.seller_id, auth)) return {
       id: row.listing_id, seller_id: '', status: 'unavailable', slug: '', title: '',
       image: null, sale_mode: 'buy', sale_price_cents: null,
     };
@@ -94,11 +98,13 @@ async function mutate(request: Request, remove: boolean) {
       { status: error ? 503 : 200 },
     );
   }
-  const { data: listing } = await auth.admin
-    .from('listings')
-    .select('id,status,seller_id,sale_mode')
-    .eq('id', listingId)
-    .single();
+  const { data: listing } = await applyReviewFixtureVisibility(
+    auth.admin.from('listings')
+      .select('id,status,seller_id,sale_mode')
+      .eq('id', listingId),
+    'seller_id',
+    auth,
+  ).single();
   if (
     !listing ||
     listing.status !== 'active' ||

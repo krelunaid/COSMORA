@@ -13,6 +13,7 @@ import {
   sniffCommunityMediaType,
 } from '@/lib/community-media';
 import { europeEvents } from '@/lib/events-data';
+import { applyReviewFixtureVisibility } from '@/lib/server/review-fixture-visibility';
 import {
   getSupabaseAdmin,
   requireAuthenticatedUser,
@@ -37,6 +38,7 @@ export async function GET(request: Request) {
       'id, author_id, caption, country_code, language_code, created_at, link_label, link_url, post_categories(label), post_media(storage_path,media_type,sort_order)',
     )
     .eq('status', 'ACTIVE');
+  query = applyReviewFixtureVisibility(query, 'author_id', auth);
   if (params.get('q'))
     query = query.ilike(
       'caption',
@@ -73,7 +75,11 @@ export async function GET(request: Request) {
   });
   const ids = [...new Set([...(data ?? []).map((row) => row.author_id), ...linkedProfileIds])];
   const profiles = ids.length
-    ? await admin.from('profiles').select('id,display_name').eq('moderation_hidden', false).in('id', ids)
+    ? await applyReviewFixtureVisibility(
+        admin.from('profiles').select('id,display_name').eq('moderation_hidden', false).in('id', ids),
+        'id',
+        auth,
+      )
     : { data: [] };
   const posts = await Promise.all(
     (data ?? []).map(async (post) => {
@@ -132,11 +138,12 @@ function slugify(value: string) {
 }
 
 async function resolveLink(
-  admin: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
-  userId: string,
+  viewer: NonNullable<Awaited<ReturnType<typeof requireAuthenticatedUser>>>,
   type?: string,
   value?: string,
 ) {
+  const { admin, user } = viewer;
+  const userId = user.id;
   if (!type || !value) return {};
   if (type === 'event') {
     const event = europeEvents.find((e) => e.name === value);
@@ -150,13 +157,15 @@ async function resolveLink(
   if (!z.uuid().safeParse(value).success)
     throw Error('Collegamento non valido.');
   if (type === 'product') {
-    const { data } = await admin
-      .from('listings')
-      .select('slug,title')
-      .eq('id', value)
-      .eq('seller_id', userId)
-      .eq('status', 'active')
-      .maybeSingle();
+    const { data } = await applyReviewFixtureVisibility(
+      admin.from('listings')
+        .select('slug,title')
+        .eq('id', value)
+        .eq('seller_id', userId)
+        .eq('status', 'active'),
+      'seller_id',
+      viewer,
+    ).maybeSingle();
     if (!data) throw Error('Annuncio non disponibile.');
     return {
       link_type: 'PRODUCT',
@@ -165,12 +174,14 @@ async function resolveLink(
     };
   }
   if (type === 'creator') {
-    const { data } = await admin
-      .from('profiles')
-      .select('display_name')
-      .eq('id', value)
-      .eq('moderation_hidden', false)
-      .maybeSingle();
+    const { data } = await applyReviewFixtureVisibility(
+      admin.from('profiles')
+        .select('display_name')
+        .eq('id', value)
+        .eq('moderation_hidden', false),
+      'id',
+      viewer,
+    ).maybeSingle();
     if (!data) throw Error('Profilo non disponibile.');
     return {
       link_type: 'CREATOR',
@@ -178,13 +189,15 @@ async function resolveLink(
       link_url: '/profile/' + value,
     };
   }
-  const { data } = await admin
-    .from('squads')
-    .select('name')
-    .eq('id', value)
-    .eq('status', 'ACTIVE')
-    .eq('is_private', false)
-    .maybeSingle();
+  const { data } = await applyReviewFixtureVisibility(
+    admin.from('squads')
+      .select('name')
+      .eq('id', value)
+      .eq('status', 'ACTIVE')
+      .eq('is_private', false),
+    'owner_id',
+    viewer,
+  ).maybeSingle();
   if (!data) throw Error('Crew non disponibile.');
   return {
     link_type: 'SQUAD',
@@ -241,8 +254,7 @@ export async function POST(request: Request) {
   let connection;
   try {
     connection = await resolveLink(
-      admin,
-      user.id,
+      authenticated,
       parsed.data.connectionType,
       parsed.data.connection,
     );

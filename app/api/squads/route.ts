@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getBlockedAuthorIds } from '@/lib/server/blocked-content';
+import { applyReviewFixtureVisibility } from '@/lib/server/review-fixture-visibility';
 import {
   getSupabaseAdmin,
   requireAuthenticatedUser,
@@ -48,6 +49,7 @@ export async function GET(request: Request) {
     .select(
       'id,owner_id,name,squad_type,description,city,starts_at,approximate_location,max_members,approval_required,rules,fandom,status',
     );
+  query = applyReviewFixtureVisibility(query, 'owner_id', auth);
   if (id) query = query.eq('id', id);
   else query = query.gte('starts_at', new Date().toISOString());
   // Private crews are not listed or exposed through guessed IDs.
@@ -181,11 +183,13 @@ export async function PATCH(request: Request) {
       { error: 'Richiesta non valida.' },
       { status: 400 },
     );
-  const crew = await auth.admin
-    .from('squads')
-    .select('owner_id,is_private')
-    .eq('id', parsed.data.id)
-    .maybeSingle();
+  const crew = await applyReviewFixtureVisibility(
+    auth.admin.from('squads')
+      .select('owner_id,is_private')
+      .eq('id', parsed.data.id),
+    'owner_id',
+    auth,
+  ).maybeSingle();
   if (crew.error || !crew.data || crew.data.is_private)
     return NextResponse.json(
       { error: 'Crew non disponibile.' },

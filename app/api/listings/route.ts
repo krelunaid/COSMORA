@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { rentalsEnabled } from '@/lib/release-features';
 import { parseShipping } from '@/lib/shipping';
 import { getBlockedAuthorIds } from '@/lib/server/blocked-content';
+import { applyReviewFixtureVisibility } from '@/lib/server/review-fixture-visibility';
 
 import {
   getSupabaseAdmin,
@@ -34,6 +35,7 @@ export async function GET(request: Request) {
       'id, slug, seller_id, title, description, category, condition, sale_mode, sale_price_cents, rental_price_cents, rental_days, deposit_cents, shipping_mode, shipping_method, shipping_cost_cents, shipping_time, listing_images(storage_path,position)',
     )
     .eq('status', 'active');
+  query = applyReviewFixtureVisibility(query, 'seller_id', auth);
   if (blocks.ids.length)
     query = query.not('seller_id', 'in', '(' + blocks.ids.join(',') + ')');
   if (!rentalsEnabled) query = query.in('sale_mode', ['buy', 'both']);
