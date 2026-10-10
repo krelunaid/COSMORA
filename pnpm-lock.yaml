@@ -11,6 +11,15 @@ importers:
       '@base-ui/react':
         specifier: 1.7.0
         version: 1.7.0(@date-fns/tz@1.5.0)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@capacitor/android':
+        specifier: 8.5.1
+        version: 8.5.1(@capacitor/core@8.5.1)
+      '@capacitor/app':
+        specifier: 8.1.2
+        version: 8.1.2(@capacitor/core@8.5.1)
+      '@capacitor/browser':
+        specifier: 8.0.5
+        version: 8.0.5(@capacitor/core@8.5.1)
       '@capacitor/camera':
         specifier: ^8.2.4
         version: 8.2.4(@capacitor/core@8.5.1)
@@ -65,6 +74,9 @@ importers:
       react-resizable-panels:
         specifier: 4.5.8
         version: 4.5.8(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      react-router:
+        specifier: 7.18.4
+        version: 7.18.4(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       react-server-dom-webpack:
         specifier: 19.2.6
         version: 19.2.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(webpack@5.110.2(esbuild@0.27.3)(lightningcss@1.33.0)(postcss@8.5.26))
@@ -314,10 +326,25 @@ packages:
       '@types/react':
         optional: true
 
+  '@capacitor/android@8.5.1':
+    resolution: {integrity: sha512-o8fUIPDSEASeXHHrDz26WU7OlyiRb+QqtI9KFdnLS1jUL77o5iGrvegibaZX8rWpiCyDJ6jlUhhhHlfeq3ou9A==}
+    peerDependencies:
+      '@capacitor/core': ^8.5.0
+
+  '@capacitor/app@8.1.2':
+    resolution: {integrity: sha512-uKBlsrXH0IdvUn69e/KKYbZ32A06pcrUdG8LWuZ/6y33YMXZXLEEdNSwl+jKS/SrsTWqnePs8EqSWaiQM3mUGA==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
   '@capacitor/assets@3.0.5':
     resolution: {integrity: sha512-ohz/OUq61Y1Fc6aVSt0uDrUdeOA7oTH4pkWDbv/8I3UrPjH7oPkzYhShuDRUjekNp9RBi198VSFdt0CetpEOzw==}
     engines: {node: '>=10.3.0'}
     hasBin: true
+
+  '@capacitor/browser@8.0.5':
+    resolution: {integrity: sha512-qqcEjUqs9kG1naF+tsD8rERuZ3wuIfXzvoIJEERHI4RNWwNSUqAHHduaKhkyb+t01VyVPa0ydx0mZ/eOskk2Ug==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
 
   '@capacitor/camera@8.2.4':
     resolution: {integrity: sha512-kZIeRkOvtE2dnbq76tEo3ZWKyGfzHFK0txsR56qKAmjAARTg9r86iIUcKZa/y4U1vOHH/gdQae5e3+OAF3wwPQ==}
@@ -3561,6 +3588,16 @@ packages:
       react: ^18.0.0 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
 
+  react-router@7.18.4:
+    resolution: {integrity: sha512-PUPQcMhMGRAslLcvtlPz/kmzBEWPhLdgLFrL7pLNepBL6dX0lWj4WD2cUYVgYCuT3jxvghYFg81cDTj44DhetQ==}
+    engines: {node: '>=20.0.0'}
+    peerDependencies:
+      react: '>=18'
+      react-dom: '>=18'
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+
   react-server-dom-webpack@19.2.6:
     resolution: {integrity: sha512-762YXjBPc6hw2V16k4x1sdnw0mxghcSPzoiOhefGYjiTguJLCImGBUz6EjznPIfqKhWgLtpaQMlBhp66N8dKrw==}
     engines: {node: '>=0.10.0'}
@@ -3702,6 +3739,9 @@ packages:
   serve-static@2.2.1:
     resolution: {integrity: sha512-xRXBn0pPqQTVQiC8wyQrKs2MOlX24zQ0POGaj0kultvoOCstBQM5yvOhAVSUwOMjQtTvsPWoNCHfPGwaaQJhTw==}
     engines: {node: '>= 18'}
+
+  set-cookie-parser@2.7.2:
+    resolution: {integrity: sha512-oeM1lpU/UvhTxw+g3cIfxXHyJRc/uidd3yK1P242gzHds0udQBYzs3y8j4gCCW+ZJ7ad0yctld8RYO+bdurlvw==}
 
   setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
@@ -4522,6 +4562,14 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.14
 
+  '@capacitor/android@8.5.1(@capacitor/core@8.5.1)':
+    dependencies:
+      '@capacitor/core': 8.5.1
+
+  '@capacitor/app@8.1.2(@capacitor/core@8.5.1)':
+    dependencies:
+      '@capacitor/core': 8.5.1
+
   '@capacitor/assets@3.0.5(supports-color@10.2.2)':
     dependencies:
       '@capacitor/cli': 5.7.8(supports-color@10.2.2)
@@ -4542,6 +4590,10 @@ snapshots:
       - encoding
       - react-native-b4a
       - supports-color
+
+  '@capacitor/browser@8.0.5(@capacitor/core@8.5.1)':
+    dependencies:
+      '@capacitor/core': 8.5.1
 
   '@capacitor/camera@8.2.4(@capacitor/core@8.5.1)':
     dependencies:
@@ -7375,6 +7427,14 @@ snapshots:
       react: 19.2.6
       react-dom: 19.2.6(react@19.2.6)
 
+  react-router@7.18.4(react-dom@19.2.6(react@19.2.6))(react@19.2.6):
+    dependencies:
+      cookie: 1.1.1
+      react: 19.2.6
+      set-cookie-parser: 2.7.2
+    optionalDependencies:
+      react-dom: 19.2.6(react@19.2.6)
+
   react-server-dom-webpack@19.2.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(webpack@5.110.2(esbuild@0.27.3)(lightningcss@1.33.0)(postcss@8.5.26)):
     dependencies:
       acorn-loose: 8.5.2
@@ -7558,6 +7618,8 @@ snapshots:
       send: 1.2.1(supports-color@10.2.2)
     transitivePeerDependencies:
       - supports-color
+
+  set-cookie-parser@2.7.2: {}
 
   setprototypeof@1.2.0: {}
 

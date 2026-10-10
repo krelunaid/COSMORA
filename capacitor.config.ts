@@ -1,15 +1,17 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+// iOS and Android currently have separate product identifiers. Use the
+// platform-specific sync scripts so each embedded config receives its own ID.
+const nativeTarget = process.env.COSMORA_NATIVE_TARGET ?? 'ios';
+if (nativeTarget !== 'ios' && nativeTarget !== 'android') {
+  throw new Error('COSMORA_NATIVE_TARGET must be ios or android.');
+}
+
 const config: CapacitorConfig = {
-  appId: 'it.kreluna.cosmora',
+  appId: nativeTarget === 'android' ? 'com.kreluna.cosmora' : 'it.kreluna.cosmora',
   appName: 'COSMORA',
-  webDir: 'dist/client',
+  webDir: 'dist/mobile',
   backgroundColor: '#050617',
-  server: {
-    url: 'https://cosmora-app.andreagadducci.chatgpt.site/?appBuild=26',
-    cleartext: false,
-    allowNavigation: ['cosmora-app.andreagadducci.chatgpt.site'],
-  },
   ios: {
     backgroundColor: '#050617',
     contentInset: 'never',

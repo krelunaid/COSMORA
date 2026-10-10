@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { paymentsEnabled } from '@/lib/release-features';
 import { z } from 'zod';
-import { calculateMarketplaceQuote } from '@/lib/monetization';
+import { calculateMarketplaceQuote, SALE_FEE_POLICY_VERSION } from '@/lib/monetization';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
 import { getAppUrl, getStripe } from '@/lib/stripe/server';
+import { bindTestInventorySession, reserveTestInventory, TestInventoryError } from '@/lib/stripe/inventory';
+import { reconcileCheckout } from '@/lib/stripe/reconcile';
+import { assertTestV2ConnectPaymentReady, EXPECTED_STRIPE_PLATFORM_ACCOUNT_ID, CONNECT_ACCOUNT_TYPE } from '@/lib/stripe/connect-config';
+import { readTestConnectAccount, validateTestConnectReturnUrl } from '@/lib/stripe/connect-onboarding';
 const schema = z
   .object({ listingId: z.uuid(), checkoutKey: z.uuid() })
   .strict();
@@ -32,6 +36,8 @@ export async function POST(request: Request) {
     );
   const { admin, user } = auth;
   try {
+    const platform = await stripe.accounts.retrieve(null);
+    if (platform.id !== EXPECTED_STRIPE_PLATFORM_ACCOUNT_ID) throw new Error('Stripe platform mismatch');
     const previous = await admin
       .from('marketplace_orders')
       .select('*')
@@ -61,7 +67,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Il venditore deve indicare modalità, costo e tempi della consegna prima del checkout.' }, { status: 409 });
       const { data: account } = await admin
         .from('seller_payment_accounts')
-        .select('stripe_account_id')
+        .select('stripe_account_id,account_type')
         .eq('user_id', listing.seller_id)
         .single();
       if (!account?.stripe_account_id)
@@ -69,10 +75,9 @@ export async function POST(request: Request) {
           { error: 'Il venditore deve completare Stripe di test.' },
           { status: 409 },
         );
-      const connected = await stripe.accounts.retrieve(
-        account.stripe_account_id,
-      );
-      if (!connected.charges_enabled || !connected.payouts_enabled || !connected.details_submitted)
+      const connected = account.account_type === CONNECT_ACCOUNT_TYPE
+        ? await readTestConnectAccount(admin, stripe, listing.seller_id) : null;
+      if (!connected || connected.id !== account.stripe_account_id)
         return NextResponse.json(
           {
             error:
@@ -80,6 +85,7 @@ export async function POST(request: Request) {
           },
           { status: 409 },
         );
+      assertTestV2ConnectPaymentReady(connected);
       const quote = calculateMarketplaceQuote({
         kind: 'sale',
         amountCents: listing.sale_price_cents,
@@ -98,8 +104,10 @@ export async function POST(request: Request) {
           shipping_method: listing.shipping_method,
           shipping_time: listing.shipping_time,
           fee_rate_bps: quote.rateBps,
+          fee_policy_version: SALE_FEE_POLICY_VERSION,
           platform_fee_cents: quote.platformFeeCents,
-          seller_net_cents: quote.sellerNetCents + listing.shipping_cost_cents,
+          // Before Stripe processing fees; shipping is not part of the COSMORA fee base.
+          seller_net_cents: quote.sellerAmountBeforeProcessingFeesCents + listing.shipping_cost_cents,
           is_test: true,
           checkout_key: parsed.data.checkoutKey,
           stripe_account_id: account.stripe_account_id,
@@ -118,28 +126,51 @@ export async function POST(request: Request) {
       } else if (inserted.error) throw new Error('order insert');
       else order = inserted.data;
     }
-    if (
-      !order ||
-      order.listing_id !== parsed.data.listingId ||
-      !order.is_test ||
-      order.status !== 'pending'
-    )
+    if (!order || order.listing_id !== parsed.data.listingId || !order.is_test)
       return NextResponse.json(
-        { error: 'Questo tentativo è già concluso. Controlla i tuoi ordini.' },
+        { error: 'Richiesta di acquisto non valida.' },
         { status: 409 },
       );
-    const appUrl = getAppUrl(request);
+    if (order.status !== 'pending')
+      return NextResponse.json({ error: 'Questo tentativo è già concluso. Controlla i tuoi ordini.',
+        code: 'CHECKOUT_ATTEMPT_TERMINAL', orderId: order.id, status: order.status,
+      }, { status: 409 });
+    if (!process.env.APP_URL) throw new Error('Payment return origin missing');
+    const appUrl = getAppUrl();
+    validateTestConnectReturnUrl(appUrl);
     const options = { stripeAccount: order.stripe_account_id };
-    const session = order.stripe_checkout_session_id
+    // Re-check the current account on retries as well as new attempts.
+    const currentAccount = await readTestConnectAccount(admin, stripe, order.seller_id);
+    if (!currentAccount || currentAccount.id !== order.stripe_account_id) throw new Error('Seller account mismatch');
+    assertTestV2ConnectPaymentReady(currentAccount);
+    const reservation = await reserveTestInventory(admin, order.id);
+    if (reservation.state !== 'reserved' || reservation.orderStatus !== 'pending')
+      return NextResponse.json({ error: 'Questo tentativo è già concluso. Controlla i tuoi ordini.',
+        code: 'CHECKOUT_ATTEMPT_TERMINAL', orderId: order.id, status: reservation.orderStatus,
+      }, { status: 409 });
+    // Reuse the stored policy on retries, including orders made before the 5% policy.
+    const orderMetadata = {
+      cosmora_order_id: order.id,
+      cosmora_fee_policy_version: order.fee_policy_version,
+    };
+    // The reservation is read under the order lock and can contain a binding
+    // recovered by a webhook after the earlier order SELECT. Never create from
+    // that stale snapshot when a current session binding already exists.
+    if (reservation.sessionId && order.stripe_checkout_session_id &&
+        reservation.sessionId !== order.stripe_checkout_session_id) throw new Error('Session binding conflict');
+    const sessionId = reservation.sessionId ?? order.stripe_checkout_session_id;
+    const session = sessionId
       ? await stripe.checkout.sessions.retrieve(
-          order.stripe_checkout_session_id,
+          sessionId,
           {},
           options,
         )
       : await stripe.checkout.sessions.create(
           {
             mode: 'payment',
-            payment_method_types: ['card'],
+            // Stable across retries: Stripe compares the complete idempotent request.
+            integration_identifier: 'cosmora_checkout_' + order.id.replace(/-/g, '').slice(0, 8)
+              .split('').map((digit: string) => String.fromCharCode(97 + parseInt(digit, 16))).join(''),
             client_reference_id: order.id,
             line_items: [
               {
@@ -157,13 +188,13 @@ export async function POST(request: Request) {
             ],
             payment_intent_data: {
               application_fee_amount: order.platform_fee_cents,
-              metadata: { cosmora_order_id: order.id },
+              metadata: orderMetadata,
             },
-            metadata: { cosmora_order_id: order.id },
+            metadata: orderMetadata,
             custom_text: {
               submit: {
                 message:
-                  'Solo test. Non usare una carta reale. Nessun articolo sarà riservato o spedito.',
+                  'Solo test. Non usare una carta reale. La prenotazione riguarda soltanto l’inventario di prova; nessuna merce reale sarà riservata o spedita.',
               },
             },
             success_url: appUrl + '/checkout?order=' + order.id,
@@ -171,22 +202,38 @@ export async function POST(request: Request) {
           },
           { ...options, idempotencyKey: 'cosmora-test-' + order.id },
         );
-    if (session.livemode || !session.url || session.status !== 'open')
+    if (session.livemode || session.metadata?.cosmora_order_id !== order.id ||
+        session.amount_total !== order.amount_cents || session.currency !== order.currency.toLowerCase())
+      throw new Error('Session/order mismatch');
+    await bindTestInventorySession(admin, order.id, { sessionId: session.id, expiresAt: session.expires_at });
+    if (!session.url || session.status !== 'open') {
+      await reconcileCheckout(session, order.stripe_account_id);
+      const current = await admin.from('marketplace_orders').select('status')
+        .eq('id', order.id).eq('buyer_id', user.id).eq('checkout_key', parsed.data.checkoutKey).single();
+      if (current.error) throw current.error;
       return NextResponse.json(
-        { error: 'Sessione terminata. Controlla lo stato negli ordini.' },
+        { error: 'Sessione terminata. Controlla lo stato negli ordini.', orderId: order.id,
+          code: current.data.status !== 'pending' ? 'CHECKOUT_ATTEMPT_TERMINAL' : 'CHECKOUT_AWAITING_RESULT',
+          status: current.data.status },
         { status: 409 },
       );
-    const saved = await admin
-      .from('marketplace_orders')
-      .update({ stripe_checkout_session_id: session.id })
-      .eq('id', order.id);
-    if (saved.error) throw new Error('session save');
+    }
     return NextResponse.json({
       url: session.url,
       orderId: order.id,
       isTest: true,
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof TestInventoryError) {
+      const unavailable = error.code === 'UNAVAILABLE';
+      const recovery = error.code === 'RECOVERY_REQUIRED';
+      return NextResponse.json({
+        code: 'CHECKOUT_' + error.code,
+        error: unavailable ? 'Articolo già impegnato in un altro ordine di prova.'
+          : recovery ? 'Tentativo da recuperare con l’assistenza. Non avviare un nuovo pagamento.'
+          : 'Prenotazione di prova non verificata. Nessun nuovo checkout aperto.',
+      }, { status: unavailable || recovery ? 409 : 503 });
+    }
     return NextResponse.json(
       {
         error:

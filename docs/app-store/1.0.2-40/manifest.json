@@ -1,0 +1,30 @@
+{
+  "appStoreId": "6809232374",
+  "bundleId": "it.kreluna.cosmora",
+  "version": "1.0.2",
+  "build": "40",
+  "sourceCommit": "5ab3dc0b283bb2f61cc5a0223b36c6ab083f3197",
+  "createdAt": "2026-10-09T21:08:04.199184+00:00",
+  "archiveSucceeded": true,
+  "uploadSucceeded": true,
+  "uploadStateObserved": "PROCESSED",
+  "buildId": "17d0eea5-28b8-402c-b2f3-9b4ac3fc9c9c",
+  "releaseStateObserved": "WAITING_FOR_REVIEW",
+  "submissionId": "261d23a7-1dca-44b6-bf29-265b2b14297b",
+  "submissionUrl": "https://appstoreconnect.apple.com/apps/6809232374/distribution/reviewsubmissions/details/261d23a7-1dca-44b6-bf29-265b2b14297b",
+  "submittedAtObserved": "2026-10-09 23:37 Europe/Rome",
+  "releaseAfterApproval": "AUTOMATIC_IMMEDIATE",
+  "releaseNotesFile": "release-notes-it.txt",
+  "additionalReleaseNotesFiles": [
+    "release-notes-en.txt",
+    "release-notes-fr.txt",
+    "release-notes-de.txt",
+    "release-notes-es.txt"
+  ],
+  "reviewNotesFile": "review-notes-en.txt",
+  "existingItalianScreenshots": [
+    "01-home.png",
+    "02-esplora.png",
+    "03-eventi.png"
+  ]
+}

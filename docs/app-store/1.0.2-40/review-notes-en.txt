@@ -1,0 +1,22 @@
+COSMORA — App Review information, 9 October 2026
+Version 1.0.2 (40).
+
+UPDATE AND LANGUAGE
+First launch shows a language selector when no app language preference is saved. Italian, English, French, German and Spanish are available. A supported device language is preselected; English is the fallback. Select English and tap Continue for the steps below. Existing preferences are retained, so returning users may go directly to Home. Change language at any time in Profile > App language.
+This update localizes service errors for listings, seller registration and Community, moderation labels and shared close/carousel controls. User-written posts, listing descriptions, messages and historical moderation details retain their original language.
+
+PURPOSE AND ACCESS
+Independent community for cosplay enthusiasts, collectors, creators and event attendees: physical-item discovery, seller contact, media, crews/meetups and event information. Not affiliated with referenced organisers or entertainment brands.
+Public browsing requires no login. Publishing, favourites, messaging and participation require an account. Please use the dedicated review credentials supplied in the fields above. Profile offers login/signup; email signup may require confirmation. Explore opens listings; Events opens the catalogue; Create opens publishing. Sellers complete a profile; submitted posts/listings enter moderation.
+Account deletion: Profile > Delete my account > enter the displayed word > confirm. Use a disposable account for deletion. Support: https://cosmora.kreluna.it/support.
+
+REPORTING AND BLOCKING
+Profile > Report or block a user offers user search and Blocked users. To repeat the demo: unblock the author if needed, then Home's top-left menu > Community > “CONTENUTO DI PROVA — Segnalazione e blocco” by “COSMORA — Prova moderazione”. Report opens a reason/details form. Block user hides the author's content after server confirmation, prevents messaging and creates a moderation notice. Blocked users permits unblocking and repeating. The review account itself is labelled as yours and is not a blocking target. Terms and zero-tolerance content rules are presented before authenticated participation.
+
+PREVIOUS PHYSICAL-DEVICE EVIDENCE
+The previous evidence conversation is 4850e6d6-40ca-496f-a93a-6a169a759b62. Its iPhone recordings demonstrate the existing safety and account flows: 6 Oct 16:47 reply, ScreenRecording_10-06-2026 16-40-55_1.MP4 (build 37): post 00:12, block/removal 00:15, blocked list 00:20–00:22, unblock 00:24–00:26, post returns 00:28. 15:53 reply, ScreenRecording_10-06-2026 15-44-25_1.MP4 (build 36): report success at 01:00. 17:06 reply, COSMORA-Apple-Video-termini-build37-privacy.mp4: terms/zero-tolerance 00:00–00:13, consent 00:13.50, Google login and profile. These are earlier recordings, not new recordings of build 40.
+
+SERVICES, PAYMENTS AND REGIONS
+Bundled UI; COSMORA APIs on Sites; Supabase authentication/database/storage; Aruba SMTP; Apple/Google login; Leaflet/OpenStreetMap; official organiser links. Optional U2-Net/ONNX background removal runs locally after consent; selected media uploads to COSMORA storage.
+Payments, deposits, rentals, subscriptions and paid digital features are disabled/absent. Physical listings show asking prices/contact; COSMORA does not collect payments or ship items.
+Same core features across regions; selected European events. Original category artwork; event images/logos with source/licence links and archive labels where applicable; model/map attribution. Upload rules require rights and provide moderation/reporting.

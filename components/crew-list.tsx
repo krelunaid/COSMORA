@@ -1,6 +1,13 @@
 'use client';
+import { apiFetch } from '@/lib/api-fetch';
+import { useI18n } from '@/components/i18n-provider';
+import { communityTranslator } from '@/lib/i18n/community';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
 import Link from '@/components/app-link';
+import { useBlockedContent } from '@/components/use-blocked-content';
+import { BlockedContentNotice } from '@/components/blocked-content-notice';
+import { withoutBlockedAuthors } from '@/lib/blocked-content';
 export type Crew = {
   id: string;
   owner_id: string;
@@ -18,37 +25,64 @@ export type Crew = {
   approval_required: boolean;
   requests?: Array<{ user_id: string }>;
 };
-export function CrewList() {
+export function CrewList({ query = '' }: { query?: string }) {
+  const { locale } = useI18n();
+  const t = communityTranslator(locale);
   const [crews, setCrews] = useState<Crew[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { blockedIds, blocksRevision, blocksReady, blocksError, retryBlocks } = useBlockedContent();
   useEffect(() => {
     const controller = new AbortController();
-    fetch('/api/squads', { signal: controller.signal })
-      .then(async (r) => {
+    setLoading(true);
+    setError('');
+    void (async () => {
+      try {
+        const session = await getSupabaseBrowserClient()?.auth.getSession();
+        if (controller.signal.aborted) return;
+        if (session?.error) throw session.error;
+        const token = session?.data.session?.access_token;
+        const r = await apiFetch('/api/squads', {
+          signal: controller.signal,
+          headers: token ? { Authorization: 'Bearer ' + token } : {},
+        });
         const d = (await r.json()) as { squads: Crew[]; error?: string };
         if (!r.ok) throw Error(d.error);
-        setCrews(d.squads);
-      })
-      .catch((e) => {
-        if (e.name !== 'AbortError')
-          setError('Non riesco a caricare le crew. Riprova tra poco.');
-      })
-      .finally(() => setLoading(false));
+        if (!controller.signal.aborted) setCrews(d.squads);
+      } catch {
+        if (!controller.signal.aborted)
+          setError(t('Non riesco a caricare le crew. Riprova tra poco.'));
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    })();
     return () => controller.abort();
-  }, []);
+  }, [t, blocksRevision]);
+  const needle = query.trim().toLocaleLowerCase(locale);
+  const visible = (blocksReady ? withoutBlockedAuthors(crews, blockedIds, (crew) => crew.owner_id) : []).filter(
+    (crew) =>
+      !needle ||
+      `${crew.name} ${crew.description} ${crew.city}`
+        .toLocaleLowerCase(locale)
+        .includes(needle),
+  );
   return (
     <div className="space-y-4">
-      {loading ? (
-        <output>Caricamento crew…</output>
+      <BlockedContentNotice ready={blocksReady} error={blocksError} retry={retryBlocks} />
+      {!blocksReady ? null : loading ? (
+        <output>{t('Caricamento crew…')}</output>
       ) : error ? (
         <p role="alert">{error}</p>
-      ) : !crews.length ? (
+      ) : !visible.length ? (
         <p className="rounded-2xl border border-white/10 p-5 text-white/70">
-          Non ci sono ancora crew o incontri in programma. Organizza il primo.
+          {t(
+            needle
+              ? 'Nessun risultato trovato.'
+              : 'Non ci sono ancora crew o incontri in programma. Organizza il primo.',
+          )}
         </p>
       ) : (
-        crews.map((c) => (
+        visible.map((c) => (
           <Link
             href={'/squads/' + c.id}
             key={c.id}
@@ -56,19 +90,19 @@ export function CrewList() {
           >
             <p className="text-sm text-pink-300">
               {c.squad_type === 'COSPLAY_SQUAD'
-                ? 'Crew cosplay'
-                : 'Incontro pubblico'}
+                ? t('Crew cosplay')
+                : t('Incontro pubblico')}
             </p>
             <h2 className="mt-2 text-xl font-semibold">{c.name}</h2>
             <p className="mt-2 text-white/75">
               {c.city} ·{' '}
-              {new Date(c.starts_at).toLocaleString('it-IT', {
+              {new Date(c.starts_at).toLocaleString(locale, {
                 dateStyle: 'medium',
                 timeStyle: 'short',
               })}
             </p>
             <p className="mt-2 text-sm text-white/65">
-              {c.memberCount}/{c.max_members} partecipanti
+              {c.memberCount}/{c.max_members} {t('partecipanti')}
             </p>
           </Link>
         ))

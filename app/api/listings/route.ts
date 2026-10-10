@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { rentalsEnabled } from '@/lib/release-features';
 import { parseShipping } from '@/lib/shipping';
+import { getBlockedAuthorIds } from '@/lib/server/blocked-content';
+import { applyReviewFixtureVisibility } from '@/lib/server/review-fixture-visibility';
 
 import {
   getSupabaseAdmin,
@@ -15,6 +17,12 @@ export async function GET(request: Request) {
       { error: 'Catalogo non disponibile.' },
       { status: 503 },
     );
+  const auth = await requireAuthenticatedUser(request);
+  if (request.headers.has('authorization') && !auth)
+    return NextResponse.json({ error: 'Accesso non disponibile.' }, { status: 401 });
+  const blocks = await getBlockedAuthorIds(admin, auth?.user.id);
+  if (blocks.error)
+    return NextResponse.json({ error: 'Catalogo non disponibile.' }, { status: 503 });
   const params = new URL(request.url).searchParams;
   const slug = params.get('slug');
   const offset = Math.max(
@@ -27,6 +35,9 @@ export async function GET(request: Request) {
       'id, slug, seller_id, title, description, category, condition, sale_mode, sale_price_cents, rental_price_cents, rental_days, deposit_cents, shipping_mode, shipping_method, shipping_cost_cents, shipping_time, listing_images(storage_path,position)',
     )
     .eq('status', 'active');
+  query = applyReviewFixtureVisibility(query, 'seller_id', auth);
+  if (blocks.ids.length)
+    query = query.not('seller_id', 'in', '(' + blocks.ids.join(',') + ')');
   if (!rentalsEnabled) query = query.in('sale_mode', ['buy', 'both']);
   if (slug) query = query.eq('slug', slug);
   const category = params.get('category');
@@ -62,20 +73,44 @@ export async function GET(request: Request) {
       { error: 'Catalogo non disponibile. Riprova.' },
       { status: 503 },
     );
+  const sellerIds = [
+    ...new Set((data ?? []).map((listing) => listing.seller_id)),
+  ];
+  const sellerProfiles = sellerIds.length
+    ? await admin
+        .from('seller_details')
+        .select('user_id,seller_type')
+        .in('user_id', sellerIds)
+    : { data: [], error: null };
+  if (sellerProfiles.error)
+    return NextResponse.json(
+      { error: 'Informazioni sui venditori non disponibili. Riprova.' },
+      { status: 503 },
+    );
+  const sellerTypes = new Map(
+    (sellerProfiles.data ?? []).map((profile) => [
+      profile.user_id,
+      profile.seller_type,
+    ]),
+  );
+  const paths = (data ?? []).flatMap((listing) => listing.listing_images.map((image) => image.storage_path));
+  const signed = paths.length ? await admin.storage.from('listing-images').createSignedUrls(paths, 3600) : { data: [], error: null };
+  if (signed.error) return NextResponse.json({ error: 'Immagini non disponibili. Riprova.' }, { status: 503 });
+  const imageUrls = new Map((signed.data ?? []).map((image) => [image.path, image.signedUrl]));
   const listings = (data ?? []).map((listing) => ({
     ...listing,
+    seller_type: sellerTypes.get(listing.seller_id) ?? null,
     images: listing.listing_images
       .sort((a, b) => a.position - b.position)
       .map(
         (image) =>
-          admin.storage.from('listing-images').getPublicUrl(image.storage_path)
-            .data.publicUrl,
-      ),
+          imageUrls.get(image.storage_path) || '',
+      ).filter(Boolean),
     listing_images: undefined,
   }));
   return NextResponse.json(
-    { listings, hasMore: listings.length === 24 },
-    { headers: { 'Cache-Control': 'no-store' } },
+    { listings, hasMore: listings.length === 24, userId: auth?.user.id },
+    { headers: { 'Cache-Control': 'private, no-store' } },
   );
 }
 
@@ -84,7 +119,12 @@ const listingSchema = z.object({
   description: z.string().trim().min(10).max(5000),
   category: z.string().trim().min(2).max(60),
   condition: z.string().trim().min(2).max(30),
-  saleMode: z.enum(['buy', 'rent', 'both']).refine((mode) => rentalsEnabled || mode === 'buy', 'Il noleggio non è disponibile in questa versione.'),
+  saleMode: z
+    .enum(['buy', 'rent', 'both'])
+    .refine(
+      (mode) => rentalsEnabled || mode === 'buy',
+      'Il noleggio non è disponibile in questa versione.',
+    ),
   salePrice: z.coerce.number().min(0).optional(),
   rentalPrice: z.coerce.number().min(0).optional(),
   rentalDays: z.coerce.number().int().min(1).optional(),
@@ -119,8 +159,14 @@ export async function POST(request: Request) {
 
   const form = await request.formData();
   let shipping;
-  try { shipping = parseShipping(form); }
-  catch (error) { return NextResponse.json({ error: (error as Error).message }, { status: 400 }); }
+  try {
+    shipping = parseShipping(form);
+  } catch (error) {
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 400 },
+    );
+  }
   const parsed = listingSchema.safeParse({
     title: form.get('title'),
     description: form.get('description'),
@@ -249,7 +295,7 @@ export async function POST(request: Request) {
     if (!imageInsert.error) {
       const activated = await admin
         .from('listings')
-        .update({ status: 'active' })
+        .update({ status: 'pending_review' })
         .eq('id', id);
       if (activated.error) throw activated.error;
     }
@@ -264,5 +310,5 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ listing: inserted.data }, { status: 201 });
+  return NextResponse.json({ listing: { ...inserted.data, status: 'pending_review' } }, { status: 201 });
 }

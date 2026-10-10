@@ -63,9 +63,9 @@ try {
       );
       const value = await page.evaluate(async () => {
         const file = new File(
-          [await (await fetch('/mobile-category-manga.jpg')).blob()],
-          'test.jpg',
-          { type: 'image/jpeg' },
+          [await (await fetch('/brand/cosmora-app-icon.png')).blob()],
+          'test.png',
+          { type: 'image/png' },
         );
         const phases = [];
         const start = performance.now();

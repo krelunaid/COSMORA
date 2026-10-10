@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
 const schema = z.object({
-  targetType: z.enum(['POST', 'SQUAD', 'USER']),
+  targetType: z.enum(['POST', 'SQUAD', 'USER', 'LISTING']),
   targetId: z.uuid(),
   reason: z.enum([
     'SPAM',
@@ -17,6 +17,7 @@ const schema = z.object({
     'OTHER',
   ]),
   details: z.string().trim().max(2000).default(''),
+  contextMessageId: z.uuid().optional(),
 });
 export async function POST(request: Request) {
   const auth = await requireAuthenticatedUser(request);
@@ -32,22 +33,36 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   const data = result.data;
-  const target = await auth.admin
+  const target = data.targetType === 'USER' ? await (async () => {
+    const result = await auth.admin.auth.admin.getUserById(data.targetId);
+    return { data: result.data.user ? { id: result.data.user.id } : null, error: result.error?.status === 404 ? null : result.error };
+  })() : await auth.admin
     .from(
       data.targetType === 'POST'
         ? 'community_posts'
         : data.targetType === 'SQUAD'
           ? 'squads'
+          : data.targetType === 'LISTING'
+            ? 'listings'
           : 'profiles',
     )
     .select('id')
     .eq('id', data.targetId)
     .maybeSingle();
+  if (target.error) return NextResponse.json({ error: 'Segnalazione non disponibile.' }, { status: 503 });
   if (!target.data)
     return NextResponse.json(
       { error: 'Contenuto non disponibile.' },
       { status: 404 },
     );
+  // A private message may be disclosed to moderators only by a participant,
+  // and only when reporting the other participant who sent that message.
+  if (data.contextMessageId) {
+    if (data.targetType !== 'USER') return NextResponse.json({ error: 'Contesto non valido.' }, { status: 400 });
+    const context = await auth.admin.from('direct_messages').select('id').eq('id', data.contextMessageId).eq('sender_id', data.targetId).eq('recipient_id', auth.user.id).maybeSingle();
+    if (context.error) return NextResponse.json({ error: 'Segnalazione non disponibile.' }, { status: 503 });
+    if (!context.data) return NextResponse.json({ error: 'Messaggio non disponibile.' }, { status: 404 });
+  }
   const recent = await auth.admin
     .from('reports')
     .select('id', { count: 'exact', head: true })
@@ -71,6 +86,7 @@ export async function POST(request: Request) {
       target_id: data.targetId,
       reason: data.reason,
       details: data.details,
+      context_message_id: data.contextMessageId || null,
     });
   return error
     ? NextResponse.json({ error: 'Invio non riuscito.' }, { status: 503 })

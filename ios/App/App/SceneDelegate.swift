@@ -14,21 +14,31 @@ public class CosmoraAuthPlugin: CAPPlugin, CAPBridgedPlugin, ASWebAuthentication
     @objc func authenticate(_ call: CAPPluginCall) {
         guard let raw = call.getString("url"), let url = URL(string: raw),
               url.scheme == "https", url.host == "pwdpwgonvnuwmgfiidut.supabase.co",
-              url.path == "/auth/v1/authorize" else {
+              url.path == "/auth/v1/authorize", url.user == nil, url.password == nil,
+              url.port == nil, url.fragment == nil else {
             call.reject("Indirizzo di accesso non valido.")
             return
         }
-        DispatchQueue.main.async {
+        let redirects = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?
+            .filter { $0.name == "redirect_to" } ?? []
+        let callbacks = ["com.kreluna.cosmora://auth/callback", "it.kreluna.cosmora://auth/callback"]
+        guard redirects.count == 1, let destination = redirects.first?.value,
+              callbacks.contains(destination), let callbackScheme = URL(string: destination)?.scheme else {
+            call.reject("Destinazione di accesso non valida.")
+            return
+        }
+        DispatchQueue.main.async { [self] in
             guard self.authSession == nil, self.bridge?.viewController?.view.window != nil else {
                 call.reject("Accesso già in corso o app non disponibile.")
                 return
             }
-            let session = ASWebAuthenticationSession(url: url, callbackURLScheme: "com.kreluna.cosmora") { [weak self] callback, error in
+            let session = ASWebAuthenticationSession(url: url, callbackURLScheme: callbackScheme) { [weak self] callback, error in
                 DispatchQueue.main.async {
                     self?.authSession = nil
                     guard error == nil, let callback = callback,
-                          callback.scheme == "com.kreluna.cosmora", callback.host == "auth",
-                          callback.path == "/callback" else {
+                          callback.scheme == callbackScheme, callback.host == "auth",
+                          callback.path == "/callback", callback.port == nil,
+                          callback.user == nil, callback.password == nil else {
                         call.reject("Accesso annullato o non completato. Riprova.")
                         return
                     }

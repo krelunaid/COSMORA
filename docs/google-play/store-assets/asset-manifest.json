@@ -1,0 +1,31 @@
+{
+  "createdFor": "Google Play listing",
+  "applicationVersion": "1.0.1 (39)",
+  "sourceAssets": [
+    "brand/cosmora-app-icon.png",
+    "editorial/category-cosplay-v2.png",
+    "editorial/category-manga-v2.png",
+    "editorial/category-figures-v2.png",
+    "editorial/category-cards-v2.png",
+    "editorial/category-gaming-v2.png",
+    "editorial/category-artist-v2.png"
+  ],
+  "files": {
+    "cosmora-icon-512.png": {
+      "width": 512,
+      "height": 512,
+      "format": "png",
+      "channels": 3,
+      "hasAlpha": false,
+      "bytes": 387840
+    },
+    "cosmora-feature-graphic-1024x500.png": {
+      "width": 1024,
+      "height": 500,
+      "format": "png",
+      "channels": 3,
+      "hasAlpha": false,
+      "bytes": 554721
+    }
+  }
+}

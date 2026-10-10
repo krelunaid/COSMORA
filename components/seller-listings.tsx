@@ -1,6 +1,7 @@
 'use client';
 import { useI18n } from '@/components/i18n-provider';
 import { saleText, type SaleKey } from '@/lib/i18n/sale';
+import { apiErrorText } from '@/lib/i18n/api-errors';
 import { rentalsEnabled } from '@/lib/release-features';
 import { useEffect, useState } from 'react';
 import Link from '@/components/app-link';
@@ -28,6 +29,8 @@ const statusLabels: Record<string, SaleKey> = {
   paused: 'paused',
   draft: 'draft',
   sold: 'sold',
+  pending_review: 'pendingReview',
+  moderated: 'moderated',
 };
 const field =
   'mt-2 w-full rounded-xl border border-white/20 bg-[#111225] p-3 text-base';
@@ -43,7 +46,7 @@ function ListingEditor({
   const t = (key: SaleKey) => saleText(locale, key);
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<Error | string>('');
   const [notice, setNotice] = useState('');
   async function save(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -77,9 +80,9 @@ function ListingEditor({
       );
       onSaved(result.listing);
       setEditing(false);
-      setNotice(t('saved'));
-    } catch {
-      setError('failed');
+      setNotice(t(result.listing.status === 'pending_review' ? 'reviewVisibility' : 'saved'));
+    } catch (error) {
+      setError(error instanceof Error ? error : 'failed');
     } finally {
       setBusy(false);
     }
@@ -220,7 +223,7 @@ function ListingEditor({
           <p className="text-sm text-white/70">{t('pauseHint')}</p>
           {error && (
             <p role="alert" className="text-base text-amber-200">
-              {t(error === 'invalid' ? 'invalid' : 'error')}
+              {error === 'invalid' ? t('invalid') : apiErrorText(locale, error, t('error'))}
             </p>
           )}
           <div className="flex flex-wrap gap-3">
@@ -279,7 +282,7 @@ export function SellerListings() {
   const [offset, setOffset] = useState(0);
   const [retry, setRetry] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<Error | string>('');
   useEffect(() => {
     const controller = new AbortController();
     accountRequest<Page>(`/api/seller/listings?offset=${offset}`, {
@@ -288,8 +291,8 @@ export function SellerListings() {
       .then((value) => {
         if (!controller.signal.aborted) setPage(value);
       })
-      .catch(() => {
-        if (!controller.signal.aborted) setError('failed');
+      .catch((error) => {
+        if (!controller.signal.aborted) setError(error instanceof Error ? error : 'failed');
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);
@@ -308,7 +311,7 @@ export function SellerListings() {
       ) : error ? (
         <div className="space-y-3">
           <p role="alert" className="text-amber-200">
-            {error}
+            {apiErrorText(locale, error, t('error'))}
           </p>
           <Button
             onClick={() => {

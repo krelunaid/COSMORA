@@ -13,6 +13,8 @@ import {
   sniffCommunityMediaType,
 } from '@/lib/community-media';
 import { europeEvents } from '@/lib/events-data';
+import { applyReviewFixtureVisibility } from '@/lib/server/review-fixture-visibility';
+import { applyPublicProfileVisibility } from '@/lib/server/public-profile-visibility';
 import {
   getSupabaseAdmin,
   requireAuthenticatedUser,
@@ -37,6 +39,7 @@ export async function GET(request: Request) {
       'id, author_id, caption, country_code, language_code, created_at, link_label, link_url, post_categories(label), post_media(storage_path,media_type,sort_order)',
     )
     .eq('status', 'ACTIVE');
+  query = applyReviewFixtureVisibility(query, 'author_id', auth);
   if (params.get('q'))
     query = query.ilike(
       'caption',
@@ -67,12 +70,22 @@ export async function GET(request: Request) {
       { error: 'Non è stato possibile caricare i post.' },
       { status: 503 },
     );
-  const ids = [...new Set((data ?? []).map((row) => row.author_id))];
+  const linkedProfileIds = (data ?? []).flatMap((row) => {
+    const id = typeof row.link_url === 'string' && row.link_url.startsWith('/profile/') ? row.link_url.slice('/profile/'.length) : '';
+    return z.uuid().safeParse(id).success ? [id] : [];
+  });
+  const ids = [...new Set([...(data ?? []).map((row) => row.author_id), ...linkedProfileIds])];
   const profiles = ids.length
-    ? await admin.from('profiles').select('id,display_name').in('id', ids)
+    ? await applyReviewFixtureVisibility(
+        admin.from('profiles').select('id,display_name').eq('moderation_hidden', false).in('id', ids),
+        'id',
+        auth,
+      )
     : { data: [] };
   const posts = await Promise.all(
     (data ?? []).map(async (post) => {
+      const linkedProfileId = typeof post.link_url === 'string' && post.link_url.startsWith('/profile/') ? post.link_url.slice('/profile/'.length) : null;
+      const linkedProfile = linkedProfileId ? profiles.data?.find((profile) => profile.id === linkedProfileId) : null;
       const media = post.post_media.sort((a, b) => a.sort_order - b.sort_order);
       const urls = media.length
         ? await admin.storage.from('community-media').createSignedUrls(
@@ -82,6 +95,7 @@ export async function GET(request: Request) {
         : { data: [] };
       return {
         ...post,
+        ...(linkedProfileId ? { link_label: linkedProfile?.display_name || null, link_url: linkedProfile ? post.link_url : null } : {}),
         author:
           profiles.data?.find((p) => p.id === post.author_id)?.display_name ||
           'Utente COSMORA',
@@ -125,11 +139,12 @@ function slugify(value: string) {
 }
 
 async function resolveLink(
-  admin: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
-  userId: string,
+  viewer: NonNullable<Awaited<ReturnType<typeof requireAuthenticatedUser>>>,
   type?: string,
   value?: string,
 ) {
+  const { admin, user } = viewer;
+  const userId = user.id;
   if (!type || !value) return {};
   if (type === 'event') {
     const event = europeEvents.find((e) => e.name === value);
@@ -143,13 +158,15 @@ async function resolveLink(
   if (!z.uuid().safeParse(value).success)
     throw Error('Collegamento non valido.');
   if (type === 'product') {
-    const { data } = await admin
-      .from('listings')
-      .select('slug,title')
-      .eq('id', value)
-      .eq('seller_id', userId)
-      .eq('status', 'active')
-      .maybeSingle();
+    const { data } = await applyReviewFixtureVisibility(
+      admin.from('listings')
+        .select('slug,title')
+        .eq('id', value)
+        .eq('seller_id', userId)
+        .eq('status', 'active'),
+      'seller_id',
+      viewer,
+    ).maybeSingle();
     if (!data) throw Error('Annuncio non disponibile.');
     return {
       link_type: 'PRODUCT',
@@ -158,11 +175,14 @@ async function resolveLink(
     };
   }
   if (type === 'creator') {
-    const { data } = await admin
-      .from('profiles')
-      .select('display_name')
-      .eq('id', value)
-      .maybeSingle();
+    const { data } = await applyPublicProfileVisibility(applyReviewFixtureVisibility(
+      admin.from('profiles')
+        .select('display_name')
+        .eq('id', value)
+        .eq('moderation_hidden', false),
+      'id',
+      viewer,
+    )).maybeSingle();
     if (!data) throw Error('Profilo non disponibile.');
     return {
       link_type: 'CREATOR',
@@ -170,13 +190,15 @@ async function resolveLink(
       link_url: '/profile/' + value,
     };
   }
-  const { data } = await admin
-    .from('squads')
-    .select('name')
-    .eq('id', value)
-    .eq('status', 'ACTIVE')
-    .eq('is_private', false)
-    .maybeSingle();
+  const { data } = await applyReviewFixtureVisibility(
+    admin.from('squads')
+      .select('name')
+      .eq('id', value)
+      .eq('status', 'ACTIVE')
+      .eq('is_private', false),
+    'owner_id',
+    viewer,
+  ).maybeSingle();
   if (!data) throw Error('Crew non disponibile.');
   return {
     link_type: 'SQUAD',
@@ -233,8 +255,7 @@ export async function POST(request: Request) {
   let connection;
   try {
     connection = await resolveLink(
-      admin,
-      user.id,
+      authenticated,
       parsed.data.connectionType,
       parsed.data.connection,
     );
@@ -272,7 +293,9 @@ export async function POST(request: Request) {
       { status: 500 },
     );
 
-  const moderation = moderateText('Community post', parsed.data.caption);
+  const signal = moderateText('Community post', parsed.data.caption);
+  // Text heuristics are a review signal, never an approval of attached media.
+  const moderation = { ...signal, status: 'PENDING_REVIEW' as const };
   const id = crypto.randomUUID();
   const post = await admin
     .from('community_posts')
@@ -284,7 +307,7 @@ export async function POST(request: Request) {
       country_code: user.user_metadata?.country_code ?? null,
       language_code: user.user_metadata?.language_code ?? 'it',
       status: 'DRAFT',
-      risk_score: moderation.status === 'ACTIVE' ? 0 : 1,
+      risk_score: signal.status === 'ACTIVE' ? 0 : 1,
       ...connection,
     })
     .select('id, status')

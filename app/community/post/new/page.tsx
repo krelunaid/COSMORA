@@ -1,4 +1,8 @@
 'use client';
+import { CommunityRulesNotice } from '@/components/community-rules-notice';
+import { apiFetch } from '@/lib/api-fetch';
+import { useI18n } from '@/components/i18n-provider';
+import { communityTranslator, communityError } from '@/lib/i18n/community';
 
 import { useEffect, useState } from 'react';
 import Link from '@/components/app-link';
@@ -14,8 +18,11 @@ import {
 import { CommunityMediaPicker } from '@/components/community-media-picker';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
 import { accountRequest } from '@/lib/account-client';
+import { AccountRequestError } from '@/lib/account-http';
+import { readFormResponse } from '@/lib/form-response';
 import { moderateText } from '@/lib/community-moderation';
 import { europeEvents } from '@/lib/events-data';
+import { formatEventDates } from '@/lib/event-selection';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 const categories = [
@@ -46,7 +53,7 @@ const connectionTypes = [
   },
   {
     id: 'creator' as const,
-    label: 'Creator',
+    label: 'Profilo',
     description: 'Collega il lavoro al profilo che lo ha realizzato.',
     icon: UserRound,
   },
@@ -59,6 +66,8 @@ const connectionTypes = [
 ];
 
 export default function CreateCommunityPostPage() {
+  const { locale } = useI18n();
+  const t = communityTranslator(locale);
   const [result, setResult] = useState<{
     status: string;
     reasons: string[];
@@ -83,15 +92,18 @@ export default function CreateCommunityPostPage() {
       .catch((e) => {
         if (active) {
           setOptions([]);
-          setConnectionError(e.message);
+          setConnectionError(
+            communityError(locale, e, 'Caricamento non riuscito.'),
+          );
         }
       });
     return () => {
       active = false;
     };
-  }, [connectionType]);
+  }, [connectionType, locale]);
   const [publishing, setPublishing] = useState(false);
-  const [publishError, setPublishError] = useState('');
+  const [publishError, setPublishError] = useState<Error | string>('');
+  const [needsLogin, setNeedsLogin] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaError, setMediaError] = useState('');
   const italianEvents = europeEvents.filter(
@@ -100,42 +112,42 @@ export default function CreateCommunityPostPage() {
   const otherEvents = europeEvents.filter((event) => event.country !== 'Italy');
 
   async function submit(formData: FormData) {
-    const rawCaption = formData.get('caption');
-    const caption = typeof rawCaption === 'string' ? rawCaption : '';
-    const moderation = moderateText('Community post', caption);
-    const supabase = getSupabaseBrowserClient();
-    const session = await supabase?.auth.getSession();
-    const token = session?.data.session?.access_token;
-    if (!token) {
-      window.location.assign('/auth/login');
-      return;
-    }
+    if (publishing) return;
     if (!mediaFiles.length) {
-      setMediaError('Aggiungi almeno una foto o un video.');
+      setMediaError(t('Aggiungi almeno una foto o un video.'));
       return;
     }
     setPublishing(true);
     setPublishError('');
-    formData.delete('media');
-    for (const file of mediaFiles) {
-      formData.append('media', file);
+    setNeedsLogin(false);
+    try {
+      const rawCaption = formData.get('caption');
+      const caption = typeof rawCaption === 'string' ? rawCaption : '';
+      const moderation = moderateText('Community post', caption);
+      const client = getSupabaseBrowserClient();
+      if (!client) throw new Error('Accesso non disponibile. Riprova più tardi.');
+      const session = await client.auth.getSession();
+      if (session.error) throw new Error('Accesso non disponibile. Riprova più tardi.');
+      const token = session.data.session?.access_token;
+      if (!token) throw new AccountRequestError('Accedi per continuare.', 401, 'AUTH_REQUIRED');
+      formData.delete('media');
+      for (const file of mediaFiles) formData.append('media', file);
+      formData.set('connectionType', connectionType);
+      const response = await apiFetch('/api/community/posts', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const payload = await readFormResponse<{
+        moderation?: { status: string; reasons: string[] };
+      }>(response, 'Pubblicazione non riuscita.');
+      setResult(payload.moderation ?? { ...moderation, status: 'PENDING_REVIEW' });
+    } catch (error) {
+      setNeedsLogin(error instanceof AccountRequestError && error.status === 401);
+      setPublishError(error instanceof Error ? error : 'failed');
+    } finally {
+      setPublishing(false);
     }
-    formData.set('connectionType', connectionType);
-    const response = await fetch('/api/community/posts', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
-    const payload = (await response.json().catch(() => null)) as {
-      error?: string;
-      moderation?: { status: string; reasons: string[] };
-    } | null;
-    setPublishing(false);
-    if (!response.ok) {
-      setPublishError(payload?.error ?? 'Pubblicazione non riuscita.');
-      return;
-    }
-    setResult(payload?.moderation ?? moderation);
   }
 
   if (result)
@@ -147,17 +159,23 @@ export default function CreateCommunityPostPage() {
           />
           <h1 className="mt-5 text-2xl font-semibold">
             {result.status === 'ACTIVE'
-              ? 'Post pubblicato'
-              : 'Post inviato in revisione'}
+              ? t('Post pubblicato')
+              : t('Post inviato in revisione')}
           </h1>
           <p className="mt-3 text-sm text-white/50">
-            {result.reasons[0] ?? 'Il post è visibile nella Community.'}
+            {result.reasons[0]
+              ? t(result.reasons[0])
+              : t(
+                  result.status === 'ACTIVE'
+                    ? 'Il post è visibile nella Community.'
+                    : 'Il post sarà visibile dopo la revisione.',
+                )}
           </p>
           <Link
             href="/community"
             className="mt-6 grid h-11 w-full place-items-center rounded-xl bg-gradient-to-r from-pink-500 to-violet-500"
           >
-            Apri Community
+            {t('Apri Community')}
           </Link>
         </div>
       </MobileShell>
@@ -165,8 +183,14 @@ export default function CreateCommunityPostPage() {
 
   return (
     <MobileShell>
-      <ScreenHeader title="Pubblica nella Community" back="/community" />
-      <form action={submit} className="space-y-4 p-4">
+      <ScreenHeader title={t('Pubblica nella Community')} back="/community" />
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void submit(new FormData(event.currentTarget));
+        }}
+        className="space-y-4 p-4"
+      >
         <CommunityMediaPicker
           onFilesChange={setMediaFiles}
           error={mediaError}
@@ -176,13 +200,22 @@ export default function CreateCommunityPostPage() {
           required
           name="caption"
           minLength={12}
-          placeholder="Racconta cosa stai condividendo…"
+          maxLength={2000}
+          aria-label={t('Descrizione')}
+          placeholder={t('Racconta cosa stai condividendo…')}
           className="checkout-input min-h-28 resize-none py-3"
         />
-        <select required name="category" className="checkout-input">
-          <option value="">Scegli la categoria</option>
+        <select
+          required
+          name="category"
+          aria-label={t('Scegli la categoria')}
+          className="checkout-input"
+        >
+          <option value="">{t('Scegli la categoria')}</option>
           {categories.map((category) => (
-            <option key={category}>{category}</option>
+            <option key={category} value={category}>
+              {t(category)}
+            </option>
           ))}
         </select>
 
@@ -191,12 +224,15 @@ export default function CreateCommunityPostPage() {
             <Link2 className="mt-0.5 size-4 shrink-0 text-violet-300" />
             <div>
               <h2 className="text-xs">
-                Collega a…{' '}
-                <span className="font-normal text-white/35">facoltativo</span>
+                {t('Collega a…')}{' '}
+                <span className="font-normal text-white/35">
+                  {t('facoltativo')}
+                </span>
               </h2>
-              <p className="mt-1 text-sm leading-3 text-white/40">
-                Serve per rendere cliccabile nel post un evento, prodotto,
-                creator o crew. Se non ti serve, lascia vuoto.
+              <p className="mt-1 text-sm leading-5 text-white/60">
+                {t(
+                  'Collega un evento, prodotto, profilo o crew al tuo post. Puoi anche lasciare vuoto.',
+                )}
               </p>
             </div>
           </div>
@@ -205,35 +241,44 @@ export default function CreateCommunityPostPage() {
               <button
                 key={id}
                 type="button"
-                onClick={() =>
-                  setConnectionType((current) => (current === id ? '' : id))
-                }
+                aria-pressed={connectionType === id}
+                onClick={() => {
+                  setOptions([]);
+                  setConnectionError('');
+                  setConnectionType((current) => (current === id ? '' : id));
+                }}
                 className={`flex h-10 items-center justify-center gap-2 rounded-xl border text-sm ${connectionType === id ? 'border-pink-400 bg-pink-400/10 text-pink-200' : 'border-white/8 text-white/50'}`}
               >
                 <Icon className="size-3.5" />
-                {label}
+                {t(label)}
               </button>
             ))}
           </div>
           {connectionType && (
-            <p className="rounded-lg bg-white/[.035] p-2 text-sm leading-3 text-white/45">
-              {
+            <p className="rounded-lg bg-white/[.035] p-2 text-sm leading-5 text-white/65">
+              {t(
                 connectionTypes.find((item) => item.id === connectionType)
-                  ?.description
-              }
+                  ?.description ?? '',
+              )}
             </p>
           )}
           {connectionType === 'event' && (
-            <select name="connection" required className="checkout-input">
-              <option value="">Scegli un evento</option>
-              <optgroup label="🇮🇹 Italia">
+            <select
+              name="connection"
+              required
+              aria-label={t('Scegli un evento')}
+              className="checkout-input"
+            >
+              <option value="">{t('Scegli un evento')}</option>
+              <optgroup label={'🇮🇹 ' + t('Italia')}>
                 {italianEvents.map((event) => (
                   <option key={event.name} value={event.name}>
-                    {event.name} · {event.city} · {event.dateLabel}
+                    {event.name} · {event.city} ·{' '}
+                    {formatEventDates(event, locale)}
                   </option>
                 ))}
               </optgroup>
-              <optgroup label="Europa">
+              <optgroup label={t('Europa')}>
                 {otherEvents.map((event) => (
                   <option key={event.name} value={event.name}>
                     {event.flag} {event.name} · {event.city}
@@ -246,11 +291,12 @@ export default function CreateCommunityPostPage() {
             <>
               <select
                 name="connection"
+                aria-label={t('Scegli un collegamento')}
                 required
                 className="checkout-input"
                 key={connectionType}
               >
-                <option value="">Scegli un collegamento</option>
+                <option value="">{t('Scegli un collegamento')}</option>
                 {options.map((o) => (
                   <option key={o.value} value={o.value}>
                     {o.label}
@@ -264,27 +310,33 @@ export default function CreateCommunityPostPage() {
               ) : (
                 !options.length && (
                   <p className="text-sm text-white/70">
-                    Nessun contenuto disponibile da collegare. Puoi pubblicare
-                    senza collegamenti.
+                    {t(
+                      'Nessun contenuto disponibile da collegare. Puoi pubblicare senza collegamenti.',
+                    )}
                   </p>
                 )
               )}
             </>
           )}
         </section>
+        <CommunityRulesNotice />
         {publishError && (
           <p role="alert" className="text-sm text-rose-300">
-            {publishError}
+            {communityError(locale, publishError, 'Pubblicazione non riuscita.')}
+            {needsLogin && (
+              <Link href="/auth/login" className="ml-2 underline">
+                {t('Accedi')}
+              </Link>
+            )}
           </p>
         )}
         <button
           disabled={publishing}
           className="h-12 w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-500 text-sm font-medium disabled:opacity-60"
         >
-          {publishing ? 'Pubblicazione…' : 'Pubblica post'}
+          {publishing ? t('Pubblicazione…') : t('Pubblica post')}
         </button>
       </form>
     </MobileShell>
   );
 }
-

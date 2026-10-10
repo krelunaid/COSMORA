@@ -8,11 +8,15 @@ const schema = z.object({
 });
 
 export async function GET(request: Request) {
-  const auth = await requireAuthenticatedUser(request);
+  // Restricted accounts must retain access to their own status, support and deletion.
+  // Profile updates below still use the full mutation guard.
+  const auth = await requireAuthenticatedUser(request, true);
   if (!auth) return NextResponse.json({ error: 'Accedi per vedere il tuo account.' }, { status: 401 });
   const { data, error } = await auth.admin.from('profiles').select('display_name, country').eq('id', auth.user.id).maybeSingle();
   if (error) return NextResponse.json({ error: 'Profilo non disponibile. Riprova.' }, { status: 503 });
-  return NextResponse.json({ email: auth.user.email, displayName: data?.display_name ?? '', country: data?.country ?? '' }, { headers: { 'Cache-Control': 'private, no-store' } });
+  const moderation = await auth.admin.from('user_moderation').select('suspended').eq('user_id', auth.user.id).maybeSingle();
+  if (moderation.error) return NextResponse.json({ error: 'Stato account non disponibile. Riprova.' }, { status: 503 });
+  return NextResponse.json({ email: auth.user.email, displayName: data?.display_name ?? '', country: data?.country ?? '', suspended: moderation.data?.suspended === true, deletionPending: auth.user.app_metadata?.deletion_pending === true }, { headers: { 'Cache-Control': 'private, no-store' } });
 }
 
 export async function PUT(request: Request) {

@@ -1,10 +1,14 @@
 'use client';
 import { useI18n } from '@/components/i18n-provider';
 import { saleText, type SaleKey } from '@/lib/i18n/sale';
+import { apiErrorText } from '@/lib/i18n/api-errors';
 import { paymentsEnabled } from '@/lib/release-features';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { Browser } from '@capacitor/browser';
+import { openHostedStripePage, usesNativeStripeBrowser } from '@/lib/stripe-browser';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
 import { accountRequest } from '@/lib/account-client';
+import { AccountRequestError } from '@/lib/account-http';
 import Link from '@/components/app-link';
 export default function Onboarding() {
   const { locale } = useI18n();
@@ -17,7 +21,11 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<Error | string>('');
+  const [needsLogin, setNeedsLogin] = useState(false);
+  const [connectReady, setConnectReady] = useState<boolean | null>(null);
+  const connecting = useRef(false);
+  const refreshedLink = useRef(false);
   useEffect(() => {
     let active = true;
     accountRequest<{
@@ -30,8 +38,11 @@ export default function Onboarding() {
           setSaved(true);
         }
       })
-      .catch(() => {
-        if (active) setError('failed');
+      .catch((error) => {
+        if (active) {
+          setError(error instanceof Error ? error : 'failed');
+          setNeedsLogin(error instanceof AccountRequestError && error.status === 401);
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -40,9 +51,43 @@ export default function Onboarding() {
       active = false;
     };
   }, []);
+  useEffect(() => {
+    if (!paymentsEnabled || !saved) return;
+    let active = true;
+    const refresh = async () => {
+      try {
+        const current = await accountRequest<{ paymentsReady: boolean }>('/api/stripe/connect');
+        if (active) setConnectReady(current.paymentsReady === true);
+      } catch (reason) {
+        if (active) {
+          setConnectReady(null);
+          setError(reason instanceof Error ? reason : 'failed');
+        }
+      }
+    };
+    // Returning from hosted onboarding is not proof of account/payment readiness.
+    void refresh();
+    if (new URL(window.location.href).searchParams.get('stripe') === 'refresh' && !refreshedLink.current) {
+      refreshedLink.current = true;
+      // Regenerate only a short-lived link, using the same durable account plan.
+      const clean = new URL(window.location.href);
+      clean.searchParams.delete('stripe');
+      window.history.replaceState(window.history.state, '', clean.pathname + clean.search + clean.hash);
+      void connect();
+    }
+    const listener = usesNativeStripeBrowser() ? Browser.addListener('browserFinished', () => { void refresh(); }) : null;
+    const onFocus = () => { void refresh(); };
+    window.addEventListener('focus', onFocus);
+    return () => {
+      active = false;
+      window.removeEventListener('focus', onFocus);
+      void listener?.then((handle) => handle.remove()).catch(() => undefined);
+    };
+  }, [saved]);
   async function save(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
+    setNeedsLogin(false);
     setSaved(false);
     setBusy(true);
     try {
@@ -55,22 +100,29 @@ export default function Onboarding() {
         }),
       });
       setSaved(true);
-    } catch {
-      setError('failed');
+    } catch (error) {
+      setError(error instanceof Error ? error : 'failed');
+      setNeedsLogin(error instanceof AccountRequestError && error.status === 401);
     } finally {
       setBusy(false);
     }
   }
   async function connect() {
+    if (!paymentsEnabled || connecting.current) return;
+    connecting.current = true;
     setBusy(true);
     setError('');
+    setNeedsLogin(false);
     try {
       const r = await accountRequest<{ url: string }>('/api/stripe/connect', {
         method: 'POST',
       });
-      window.location.assign(r.url);
-    } catch {
-      setError('failed');
+      await openHostedStripePage(r.url, 'connect');
+    } catch (error) {
+      setError(error instanceof Error ? error : 'failed');
+      setNeedsLogin(error instanceof AccountRequestError && error.status === 401);
+    } finally {
+      connecting.current = false;
       setBusy(false);
     }
   }
@@ -103,6 +155,7 @@ export default function Onboarding() {
             onInvalid={(event) => {
               event.preventDefault();
               setError('invalid');
+              setNeedsLogin(false);
             }}
             onSubmit={save}
             className="space-y-5"
@@ -243,6 +296,11 @@ export default function Onboarding() {
                 >
                   {t('title')}
                 </Link>
+                <section className="space-y-2 rounded-xl border border-white/15 p-4">
+                  <h2 className="font-semibold">{t('salesFeeTitle')}</h2>
+                  <p className="text-sm text-white/75">{t('salesFeePolicy')}</p>
+                  {!paymentsEnabled && <p className="text-sm text-amber-200">{t('salesPaymentsUnavailable')}</p>}
+                </section>
                 {paymentsEnabled && (
                   <section className="space-y-3 rounded-xl border border-violet-400/25 bg-violet-500/10 p-4">
                     <h2 className="text-lg font-semibold">
@@ -252,6 +310,7 @@ export default function Onboarding() {
                       {t('payoutExplanation')}
                     </p>
                     <p className="text-sm text-amber-200">{t('payoutTest')}</p>
+                    {connectReady !== null && <p role="status">{t(connectReady ? 'payoutReady' : 'payoutIncomplete')}</p>}
                     <button
                       type="button"
                       disabled={busy}
@@ -268,10 +327,12 @@ export default function Onboarding() {
         )}
         {error && (
           <p role="alert" className="mt-4 text-rose-300">
-            {t(error === 'invalid' ? 'invalid' : 'error')}{' '}
-            <Link href="/auth/login" className="underline">
-              {t('login')}
-            </Link>
+            {error === 'invalid' ? t('invalid') : apiErrorText(locale, error, t('error'))}
+            {needsLogin && (
+              <Link href="/auth/login" className="ml-2 underline">
+                {t('login')}
+              </Link>
+            )}
           </p>
         )}
       </div>
