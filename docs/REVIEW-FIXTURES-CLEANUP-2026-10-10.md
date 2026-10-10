@@ -17,3 +17,14 @@
 The browser's current Supabase session only exposes Basket Montecatini. Access to the COSMORA project `pwdpwgonvnuwmgfiidut` is needed to apply this one migration; do not run unrelated pending migrations. No new Store build is needed for the published API filters or database policies.
 
 The focused API changes are mirrored into this mobile repository to preserve the cleanup in future releases. The full mobile repository, including unfinished payment work, was not deployed as the live backend.
+
+## User requested removal of all six existing public profiles
+
+The two Andre profiles and Andrea are now excluded from public profile discovery, ID lookups and creator-link selectors. Their UUIDs are in a separate public-profile filter and do not grant review-fixture access or hide their ordinary content. Future signups are unaffected.
+
+- Focused live source commit: `cc79f24d0293255c7d92b6756781e5bc8ac7c2e1`.
+- Site version 4: `appgprj_6ac23124aa008191b49cfda336e9296b~appgver_e5d0cdb21c588191ae58b74dca8e924c`.
+- Deployment `appgdep_6aca3865c2088191b1f51cc2623cc5ee` succeeded at 13:07 UTC.
+- Public API now returns zero profiles and zero Community posts. The Andrea profile ID also returns zero results.
+
+`supabase/migrations/20261010124500_retired_profile_visibility.sql` is also prepared but **not applied**, pending access to the COSMORA Supabase project. It adds one restrictive profile policy, preserving each user's own private account row. Both database migrations and permanent account deletion remain unexecuted. Only public API visibility has been changed; accounts have not been deleted.

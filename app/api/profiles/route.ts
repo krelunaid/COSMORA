@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getSupabaseAdmin, requireAuthenticatedUser } from '@/lib/supabase/server';
 import { getBlockedAuthorIds } from '@/lib/server/blocked-content';
 import { applyReviewFixtureVisibility } from '@/lib/server/review-fixture-visibility';
+import { applyPublicProfileVisibility } from '@/lib/server/public-profile-visibility';
 export async function GET(request: Request) {
   const admin = getSupabaseAdmin();
   if (!admin)
@@ -25,6 +26,7 @@ export async function GET(request: Request) {
     .select('id,display_name,country,created_at')
     .eq('moderation_hidden', false);
   query = applyReviewFixtureVisibility(query, 'id', auth);
+  query = applyPublicProfileVisibility(query);
   if (blocks.ids.length)
     query = query.not('id', 'in', '(' + blocks.ids.join(',') + ')');
   if (id) query = query.eq('id', id);

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
 import { applyReviewFixtureVisibility } from '@/lib/server/review-fixture-visibility';
+import { applyPublicProfileVisibility } from '@/lib/server/public-profile-visibility';
 export async function GET(request: Request) {
   const a = await requireAuthenticatedUser(request);
   if (!a)
@@ -20,11 +21,11 @@ export async function GET(request: Request) {
           a,
         ).limit(100)
       : type === 'creator'
-        ? await applyReviewFixtureVisibility(
+        ? await applyPublicProfileVisibility(applyReviewFixtureVisibility(
             a.admin.from('profiles').select('id,display_name').eq('moderation_hidden', false),
             'id',
             a,
-          ).limit(100)
+          )).limit(100)
         : type === 'crew'
           ? await applyReviewFixtureVisibility(
               a.admin.from('squads')

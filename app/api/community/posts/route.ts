@@ -14,6 +14,7 @@ import {
 } from '@/lib/community-media';
 import { europeEvents } from '@/lib/events-data';
 import { applyReviewFixtureVisibility } from '@/lib/server/review-fixture-visibility';
+import { applyPublicProfileVisibility } from '@/lib/server/public-profile-visibility';
 import {
   getSupabaseAdmin,
   requireAuthenticatedUser,
@@ -174,14 +175,14 @@ async function resolveLink(
     };
   }
   if (type === 'creator') {
-    const { data } = await applyReviewFixtureVisibility(
+    const { data } = await applyPublicProfileVisibility(applyReviewFixtureVisibility(
       admin.from('profiles')
         .select('display_name')
         .eq('id', value)
         .eq('moderation_hidden', false),
       'id',
       viewer,
-    ).maybeSingle();
+    )).maybeSingle();
     if (!data) throw Error('Profilo non disponibile.');
     return {
       link_type: 'CREATOR',
