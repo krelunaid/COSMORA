@@ -57,8 +57,9 @@ export async function GET(request: Request) {
       { error: 'Profilo non disponibile.' },
       { status: 503 },
     );
+  const accountDisplayName = registeredAccountName(a.user.user_metadata);
   return NextResponse.json(
-    { profile: data },
+    { profile: data, accountDisplayName },
     { headers: { 'Cache-Control': 'private, no-store' } },
   );
 }
@@ -76,6 +77,14 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   const d = p.data;
+  const registeredDisplayName = registeredAccountName(a.user.user_metadata);
+  if (d.sellerType === 'private' && registeredDisplayName.length < 2)
+    return NextResponse.json(
+      { error: 'Completa prima il nome del tuo account COSMORA.' },
+      { status: 400 },
+    );
+  const publicDisplayName =
+    d.sellerType === 'shop' ? d.legalName : registeredDisplayName;
   if (
     d.sellerType === 'shop' &&
     [
@@ -97,7 +106,7 @@ export async function POST(request: Request) {
       user_id: a.user.id,
       seller_type: d.sellerType,
       country_code: d.country,
-      details: d,
+      details: { ...d, displayName: publicDisplayName },
       updated_at: new Date().toISOString(),
     });
   if (details.error)
@@ -109,7 +118,7 @@ export async function POST(request: Request) {
     .from('profiles')
     .upsert({
       id: a.user.id,
-      display_name: d.displayName,
+      display_name: publicDisplayName,
       role: d.sellerType === 'shop' ? 'pro_shop' : 'seller',
       country: d.country,
       updated_at: new Date().toISOString(),
@@ -123,4 +132,13 @@ export async function POST(request: Request) {
       { status: 503 },
     );
   return NextResponse.json({ ok: true });
+}
+
+function registeredAccountName(metadata: Record<string, unknown> | undefined) {
+  for (const key of ['display_name', 'full_name', 'name']) {
+    const value = metadata?.[key];
+    if (typeof value === 'string' && value.trim().length >= 2)
+      return value.trim();
+  }
+  return '';
 }

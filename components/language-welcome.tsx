@@ -40,7 +40,7 @@ export function LanguageStartup({ locale }: { locale: Locale }) {
     >
       <div className="flex flex-col items-center gap-6">
         <CosmoraBrand />
-        <output className="text-sm text-white/60">
+        <output className="sr-only" aria-live="polite">
           {languageWelcomeMessages[locale].loading}
         </output>
       </div>

@@ -15,6 +15,7 @@ export default function Onboarding() {
   const t = (key: SaleKey) => saleText(locale, key);
 
   const [type, setType] = useState('private');
+  const [accountDisplayName, setAccountDisplayName] = useState('');
   const [values, setValues] = useState<Record<string, string>>({
     country: 'IT',
   });
@@ -29,12 +30,20 @@ export default function Onboarding() {
   useEffect(() => {
     let active = true;
     accountRequest<{
+      accountDisplayName: string;
       profile: { seller_type: string; details: Record<string, string> } | null;
     }>('/api/seller/profile')
       .then((d) => {
+        if (active) setAccountDisplayName(d.accountDisplayName);
         if (active && d.profile) {
           setType(d.profile.seller_type);
-          setValues(d.profile.details);
+          setValues({
+            ...d.profile.details,
+            displayName:
+              d.profile.seller_type === 'shop'
+                ? d.profile.details.legalName || d.profile.details.displayName
+                : d.accountDisplayName,
+          });
           setSaved(true);
         }
       })
@@ -96,6 +105,7 @@ export default function Onboarding() {
         body: JSON.stringify({
           ...values,
           sellerType: type,
+          displayName: type === 'shop' ? values.legalName : accountDisplayName,
           businessType: type === 'private' ? 'individual' : values.businessType,
         }),
       });
@@ -127,7 +137,7 @@ export default function Onboarding() {
     }
   }
   const fields = [
-    ['displayName', t('publicName')],
+    ...(type === 'private' ? [['displayName', t('publicName')]] : []),
     ['email', t('email')],
     ['phone', t('phone')],
     ['description', t('bio')],
@@ -173,6 +183,10 @@ export default function Onboarding() {
                   aria-pressed={type === v}
                   onClick={() => {
                     setType(v);
+                    setValues((current) => ({
+                      ...current,
+                      displayName: v === 'shop' ? current.legalName || '' : accountDisplayName,
+                    }));
                     setSaved(false);
                   }}
                   className={
@@ -204,6 +218,7 @@ export default function Onboarding() {
                 </select>
               </label>
             )}
+            <p className="-mt-3 text-sm text-white/60">{t(type === 'shop' ? 'shopSellerNameHelp' : 'privateSellerNameHelp')}</p>
             {fields.map(([name, label]) => (
               <label key={name} className="block">
                 {label}
@@ -223,9 +238,14 @@ export default function Onboarding() {
                     ].includes(name)
                   }
                   maxLength={2000}
-                  value={values[name] || ''}
+                  value={name === 'displayName' ? accountDisplayName : values[name] || ''}
+                  readOnly={name === 'displayName'}
                   onChange={(e) => {
-                    setValues((v) => ({ ...v, [name]: e.target.value }));
+                    setValues((v) => ({
+                      ...v,
+                      [name]: e.target.value,
+                      ...(name === 'legalName' ? { displayName: e.target.value } : {}),
+                    }));
                     setSaved(false);
                   }}
                   className="checkout-input mt-2"

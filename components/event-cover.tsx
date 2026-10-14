@@ -12,8 +12,11 @@ export function EventCover({ event, className = '', sizes = '(max-width: 600px) 
   const copy = eventPresentationMessages[locale];
   const media = EVENT_MEDIA[event.name];
   const label = media?.kind === 'logo' ? copy.officialLogo : media?.archive ? copy.archive : media ? copy.photo : copy.editorial;
+  // Photos should use the full cover area. Only official marks need contain so
+  // their complete logo remains visible without cropping.
+  const imageFit = media?.kind === 'logo' ? 'object-contain' : 'object-cover';
   return <div className={`relative isolate overflow-hidden bg-[#111225] ${className}`}>
-    <Image src={event.image} alt={media ? `${event.name}${media.imageYear ? ` · ${media.imageYear}` : ''}` : ''} fill sizes={sizes} priority={priority} className={media ? 'object-contain' : 'object-cover'} />
+    <Image src={event.image} alt={media ? `${event.name}${media.imageYear ? ` · ${media.imageYear}` : ''}` : ''} fill sizes={sizes} priority={priority} className={imageFit} />
     {!media && showDetails && <>
       <div className="absolute inset-0 bg-gradient-to-r from-[#100d28]/80 via-[#100d28]/20 to-transparent" />
       <div className="absolute inset-y-0 left-5 flex max-w-[64%] flex-col justify-center gap-2 sm:left-7">
