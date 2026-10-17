@@ -13,10 +13,12 @@ test('selects the ongoing event before future events regardless of catalog order
 });
 
 test('selects the nearest upcoming event and handles an exhausted catalog', () => {
-  assert.equal(selectFeaturedEvent(europeEvents, '2026-09-27')?.name, 'Romics Fall');
+  assert.equal(selectFeaturedEvent(europeEvents, '2026-09-28')?.name, 'Romics Fall');
   assert.equal(selectFeaturedEvent(europeEvents, '2026-11-02')?.name, 'Heroes Dutch Comic Con Winter');
-  assert.equal(selectFeaturedEvent(europeEvents, '2026-11-23')?.name, 'Manga Barcelona');
-  assert.equal(selectFeaturedEvent(europeEvents, '2026-12-09'), undefined);
+  assert.equal(selectFeaturedEvent(europeEvents, '2026-11-23')?.name, 'CCON Comic Con Stuttgart');
+  assert.equal(selectFeaturedEvent(europeEvents, '2026-09-27')?.name, 'Japan Weekend Madrid');
+  assert.equal(selectFeaturedEvent(europeEvents, '2026-12-09')?.name, 'FANTASY BASEL');
+  assert.equal(selectFeaturedEvent(europeEvents, '2027-05-18'), undefined);
   assert.equal(selectFeaturedEvent([], '2026-09-27'), undefined);
 });
 

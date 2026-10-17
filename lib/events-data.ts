@@ -39,14 +39,19 @@ const eventCatalog: EuropeEvent[] = [
   { name:'Elftopia', city:'Deinze', country:'Belgium', flag:'🇧🇪', start:'2026-08-08', end:'2026-08-09', dateLabel:'8–9 AUG 2026', type:'Pop Culture', url:'https://www.elftopia.be/', image:'/editorial/category-cosplay.svg' },
   { name:'gamescom', city:'Cologne', country:'Germany', flag:'🇩🇪', start:'2026-08-26', end:'2026-08-30', dateLabel:'26–30 AUG 2026', type:'Gaming', url:'https://www.gamescom.global/', image:'/editorial/category-gaming.svg', featured:true },
   { name:'BD Comic Strip Festival', city:'Brussels', country:'Belgium', flag:'🇧🇪', start:'2026-09-19', end:'2026-09-20', dateLabel:'19–20 SEP 2026', type:'Comics', url:'https://www.visit.brussels/en/visitors/agenda/bd-comic-strip-festival/home-page', image:'/editorial/category-manga.svg' },
+  { name:'Japan Weekend Madrid', city:'Madrid', venue:'Riyadh Air Metropolitano', country:'Spain', flag:'🇪🇸', start:'2026-09-26', end:'2026-09-27', dateLabel:'26–27 SEP 2026', type:'Anime', url:'https://www.japanweekend.com/madrid/', image:'/events/japan-weekend-madrid.svg' },
   { name:'Romics Fall', city:'Rome', country:'Italy', flag:'🇮🇹', start:'2026-10-01', end:'2026-10-04', dateLabel:'1–4 OCT 2026', type:'Comics', url:'https://www.romics.it/', image:'/editorial/category-artist.svg' },
   { name:'Comic Con Holland — Greater Amsterdam', city:'Vijfhuizen', country:'Netherlands', flag:'🇳🇱', start:'2026-10-10', end:'2026-10-11', dateLabel:'10–11 OCT 2026', type:'Pop Culture', url:'https://comiccon.nl/', image:'/editorial/category-figures.svg' },
   { name:'Paris Games Week', city:'Paris', country:'France', flag:'🇫🇷', start:'2026-10-22', end:'2026-10-25', dateLabel:'22–25 OCT 2026', type:'Gaming', url:'https://www.parisgamesweek.com/en', image:'/editorial/category-gaming.svg' },
+  { name:'MCM London Comic Con', city:'London', venue:'ExCeL London', country:'United Kingdom', flag:'🇬🇧', start:'2026-10-23', end:'2026-10-25', dateLabel:'23–25 OCT 2026', type:'Pop Culture', url:'https://www.mcmcomiccon.com/london/en-us.html', image:'/events/mcm-london-comic-con.svg' },
   { name:'Comic Con Brussels Fall', city:'Brussels', country:'Belgium', flag:'🇧🇪', start:'2026-10-24', end:'2026-10-25', dateLabel:'24–25 OCT 2026', type:'Pop Culture', url:'https://comicconbrussels.com/', image:'/editorial/category-cosplay.svg' },
   { name:'Lucca Comics & Games', city:'Lucca', country:'Italy', flag:'🇮🇹', start:'2026-10-28', end:'2026-11-01', dateLabel:'28 OCT–1 NOV 2026', type:'Pop Culture', url:'https://www.luccacomicsandgames.com/', image:'/editorial/hero.svg', featured:true, internalUrl:'/events/lucca-comics-2026' },
   { name:'FACTS Fall', city:'Ghent', country:'Belgium', flag:'🇧🇪', start:'2026-10-31', end:'2026-11-01', dateLabel:'31 OCT–1 NOV 2026', type:'Pop Culture', url:'https://www.facts.be/en/', image:'/editorial/category-figures.svg' },
   { name:'Heroes Dutch Comic Con Winter', city:'Utrecht', country:'Netherlands', flag:'🇳🇱', start:'2026-11-21', end:'2026-11-22', dateLabel:'21–22 NOV 2026', type:'Pop Culture', url:'https://www.dutchcomiccon.com/', image:'/editorial/category-cosplay.svg' },
+  { name:'VIECC Vienna Comic Con', city:'Vienna', venue:'VIECON – Messe Wien', country:'Austria', flag:'🇦🇹', start:'2026-11-21', end:'2026-11-22', dateLabel:'21–22 NOV 2026', type:'Pop Culture', url:'https://viecc.com/', image:'/events/viecc-vienna-comic-con.svg' },
+  { name:'CCON Comic Con Stuttgart', city:'Stuttgart', venue:'Messe Stuttgart', country:'Germany', flag:'🇩🇪', start:'2026-11-28', end:'2026-11-29', dateLabel:'28–29 NOV 2026', type:'Pop Culture', url:'https://www.comiccon.de/', image:'/events/ccon-comic-con-stuttgart.svg' },
   { name:'Manga Barcelona', city:'Barcelona', country:'Spain', flag:'🇪🇸', start:'2026-12-05', end:'2026-12-08', dateLabel:'5–8 DEC 2026', type:'Anime', url:'https://www.manga-barcelona.com/en/home.cfm', image:'/editorial/category-manga.svg', featured:true },
+  { name:'FANTASY BASEL', city:'Basel', venue:'Messe Basel', country:'Switzerland', flag:'🇨🇭', start:'2027-05-15', end:'2027-05-17', dateLabel:'15–17 MAY 2027', type:'Pop Culture', url:'https://www.fantasybasel.ch/en', image:'/events/fantasy-basel.svg' },
 ];
 
 const eventImages: Record<string, string> = {
@@ -78,6 +83,11 @@ const eventImages: Record<string, string> = {
   'FACTS Fall':'/events/facts-fall.svg',
   'Heroes Dutch Comic Con Winter':'/events/heroes-dutch-comic-con-winter.svg',
   'Manga Barcelona':'/events/manga-barcelona.svg',
+  'Japan Weekend Madrid':'/events/japan-weekend-madrid.svg',
+  'MCM London Comic Con':'/events/mcm-london-comic-con.svg',
+  'VIECC Vienna Comic Con':'/events/viecc-vienna-comic-con.svg',
+  'CCON Comic Con Stuttgart':'/events/ccon-comic-con-stuttgart.svg',
+  'FANTASY BASEL':'/events/fantasy-basel.svg',
 };
 
 export const europeEvents: EuropeEvent[] = eventCatalog.map((event) => {

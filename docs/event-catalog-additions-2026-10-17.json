@@ -1,0 +1,50 @@
+{
+  "verifiedAt": "2026-10-17",
+  "events": [
+    {
+      "name": "Japan Weekend Madrid",
+      "start": "2026-09-26",
+      "end": "2026-09-27",
+      "venue": "Riyadh Air Metropolitano",
+      "source": "https://www.japanweekend.com/madrid/",
+      "status": "past; next dates not confirmed by the organiser",
+      "image": "/events/licensed/japan-weekend-madrid-2022.jpg"
+    },
+    {
+      "name": "MCM London Comic Con",
+      "start": "2026-10-23",
+      "end": "2026-10-25",
+      "venue": "ExCeL London",
+      "source": "https://www.mcmcomiccon.com/london/en-us.html",
+      "status": "upcoming",
+      "image": "/events/licensed/mcm-london-2017.jpg"
+    },
+    {
+      "name": "VIECC Vienna Comic Con",
+      "start": "2026-11-21",
+      "end": "2026-11-22",
+      "venue": "VIECON – Messe Wien",
+      "source": "https://viecc.com/info/",
+      "status": "upcoming",
+      "image": "/events/licensed/vienna-comic-con-2023.jpg"
+    },
+    {
+      "name": "CCON Comic Con Stuttgart",
+      "start": "2026-11-28",
+      "end": "2026-11-29",
+      "venue": "Messe Stuttgart",
+      "source": "https://www.comiccon.de/",
+      "status": "upcoming",
+      "image": "/events/licensed/comic-con-stuttgart-2018.jpg"
+    },
+    {
+      "name": "FANTASY BASEL",
+      "start": "2027-05-15",
+      "end": "2027-05-17",
+      "venue": "Messe Basel",
+      "source": "https://www.fantasybasel.ch/en/contact",
+      "status": "upcoming",
+      "image": "/events/licensed/fantasy-basel-2024.jpg"
+    }
+  ]
+}

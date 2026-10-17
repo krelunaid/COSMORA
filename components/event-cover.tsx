@@ -12,9 +12,8 @@ export function EventCover({ event, className = '', sizes = '(max-width: 600px) 
   const copy = eventPresentationMessages[locale];
   const media = EVENT_MEDIA[event.name];
   const label = media?.kind === 'logo' ? copy.officialLogo : media?.archive ? copy.archive : media ? copy.photo : copy.editorial;
-  // Photos should use the full cover area. Only official marks need contain so
-  // their complete logo remains visible without cropping.
-  const imageFit = media?.kind === 'logo' ? 'object-contain' : 'object-cover';
+  // Preserve official marks and photos whose composition or credits must stay intact.
+  const imageFit = media?.kind === 'logo' || media?.fit === 'contain' ? 'object-contain' : 'object-cover';
   return <div className={`relative isolate overflow-hidden bg-[#111225] ${className}`}>
     <Image src={event.image} alt={media ? `${event.name}${media.imageYear ? ` · ${media.imageYear}` : ''}` : ''} fill sizes={sizes} priority={priority} className={imageFit} />
     {!media && showDetails && <>
@@ -25,7 +24,7 @@ export function EventCover({ event, className = '', sizes = '(max-width: 600px) 
         <span className="text-sm font-medium text-white/80">{event.flag} {event.city}</span>
       </div>
     </>}
-    <span className="absolute bottom-2 right-2 max-w-[90%] rounded-md bg-[#080913]/90 px-2 py-1 text-[10px] leading-4 text-white/85">{label}{media?.imageYear ? ` · ${media.imageYear}` : ''}</span>
+    <span className={`absolute bottom-2 ${media?.labelPosition === 'left' ? 'left-2' : 'right-2'} max-w-[90%] rounded-md bg-[#080913]/90 px-2 py-1 text-[10px] leading-4 text-white/85`}>{label}{media?.imageYear ? ` · ${media.imageYear}` : ''}</span>
   </div>;
 }
 

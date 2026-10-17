@@ -8,6 +8,9 @@ export type EventMedia = {
   imageYear: number | null;
   kind: 'photo' | 'logo';
   archive: boolean;
+  /** Preserve the full photograph, including embedded credits and watermarks. */
+  fit?: 'contain';
+  labelPosition?: 'left';
 };
 
 // Only verified assets are mapped. Other events use their COSMORA typographic cover.
@@ -151,5 +154,61 @@ export const EVENT_MEDIA: Partial<Record<string, EventMedia>> = {
     "imageYear": null,
     "kind": "logo",
     "archive": false
+  },
+  "Japan Weekend Madrid": {
+    "image": "/events/licensed/japan-weekend-madrid-2022.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Subwoolfer_in_Madrid_Japan_Weekend_2022_-_7.jpg",
+    "credit": "Artistosteles / Wikimedia Commons",
+    "licenseLabel": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "imageYear": 2022,
+    "kind": "photo",
+    "archive": true,
+    "fit": "contain"
+  },
+  "MCM London Comic Con": {
+    "image": "/events/licensed/mcm-london-2017.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:MCM_London_Comic_Con,_May_2017.jpg",
+    "credit": "Simon King / Wikimedia Commons",
+    "licenseLabel": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "imageYear": 2017,
+    "kind": "photo",
+    "archive": true,
+    "fit": "contain"
+  },
+  "VIECC Vienna Comic Con": {
+    "image": "/events/licensed/vienna-comic-con-2023.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Vienna_Comic_Con_2023.jpg",
+    "credit": "Shisma / Wikimedia Commons",
+    "licenseLabel": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "imageYear": 2023,
+    "kind": "photo",
+    "archive": true,
+    "fit": "contain"
+  },
+  "CCON Comic Con Stuttgart": {
+    "image": "/events/licensed/comic-con-stuttgart-2018.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Comic_Con_Germany_2018_by-RaBoe_016.jpg",
+    "credit": "© Ra Boe / Wikipedia",
+    "licenseLabel": "CC BY-SA 3.0 de",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
+    "imageYear": 2018,
+    "kind": "photo",
+    "archive": true,
+    "fit": "contain"
+  },
+  "FANTASY BASEL": {
+    "image": "/events/licensed/fantasy-basel-2024.jpg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Nintendo_Zone_and_Merchandise_Area.jpg",
+    "credit": "HeidiCat2018 / Wikimedia Commons",
+    "licenseLabel": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "imageYear": 2024,
+    "kind": "photo",
+    "archive": true,
+    "fit": "contain",
+    "labelPosition": "left"
   }
 };
