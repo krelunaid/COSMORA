@@ -66,6 +66,9 @@ export default function HomePage() {
           </div> : <>
           {event ? <div className="absolute inset-0"><EventCover event={event} priority showDetails={false} className="h-full w-full" sizes="(max-width: 640px) 100vw, 430px" /></div> : <Image src="/editorial/hero.svg" alt="" fill priority sizes="(max-width: 640px) 100vw, 430px" className="object-cover object-center" />}
           <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/65 to-transparent" />
+          {viecc && <div className="absolute right-3 top-3 z-10 grid size-14 place-items-center rounded-xl border border-white/20 bg-white p-1.5 shadow-lg">
+            <Image src="/events/viecc-official/logo.png" alt="VIECC Vienna Comic Con" width={48} height={48} className="h-full w-full object-contain" />
+          </div>}
           <div className="relative flex h-full flex-col items-start justify-center gap-2 p-4">
             {event ? <>
               <span className="rounded-full bg-fuchsia-500/25 px-3 py-1 text-xs font-semibold text-pink-200">{viecc ? vieccSpotlight[locale].label : event.start <= today ? copy.ongoing : copy.featured}</span>
