@@ -12,6 +12,16 @@ import { formatEventDates, selectFeaturedEvent } from '@/lib/event-selection';
 import { eventMessages } from '@/lib/i18n/events';
 import { MARKET_CATEGORIES } from '@/lib/marketplace-categories';
 import { EVENT_MEDIA } from '@/lib/event-media';
+import type { Locale } from '@/lib/i18n/config';
+
+const vieccName = 'VIECC Vienna Comic Con';
+const vieccSpotlight: Record<Locale, { label: string; thanks: string }> = {
+  en: { label: 'Featured event', thanks: 'Thanks to VIECC for providing event information and photos.' },
+  it: { label: 'Evento in evidenza', thanks: 'Grazie a VIECC per le informazioni e le foto dell’evento.' },
+  fr: { label: 'Événement à la une', thanks: 'Merci à VIECC pour les informations et les photos de l’événement.' },
+  de: { label: 'Event im Fokus', thanks: 'Vielen Dank an VIECC für die Eventinformationen und Fotos.' },
+  es: { label: 'Evento destacado', thanks: 'Gracias a VIECC por la información y las fotos del evento.' },
+};
 
 const categories = [
   { label: 'cosplay', category: 'Cosplay', image: MARKET_CATEGORIES.Cosplay.image },
@@ -26,7 +36,8 @@ export default function HomePage() {
   const { locale } = useI18n();
   const copy = eventMessages[locale];
   const today = useEventDay();
-  const event = selectFeaturedEvent(europeEvents, today);
+  const viecc = europeEvents.find((item) => item.name === vieccName && item.end >= today);
+  const event = viecc ?? selectFeaturedEvent(europeEvents, today);
   const eventMedia = event ? EVENT_MEDIA[event.name] : undefined;
   const eventLinkClass = 'flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-violet-600 px-4 py-2 text-sm font-semibold';
   const eventAction = event ? (event.internalUrl ? <Link href={event.internalUrl} className={eventLinkClass}>{copy.discover}<ChevronRight className="size-4 shrink-0" /></Link> : <a href={event.url} target="_blank" rel="noopener noreferrer" className={eventLinkClass}>{copy.discover}<ChevronRight className="size-4 shrink-0" /></a>) : null;
@@ -43,7 +54,7 @@ export default function HomePage() {
           {event && eventMedia?.kind === 'logo' ? <div className="flex h-full flex-col items-start justify-center gap-2 bg-neutral-950 p-3 min-[360px]:p-4">
             <div className="grid w-full grid-cols-[minmax(0,1fr)_clamp(88px,28vw,120px)] items-center gap-3">
               <div className="min-w-0">
-                <span className="inline-flex rounded-full bg-fuchsia-500/25 px-3 py-1 text-xs font-semibold text-pink-200">{event.start <= today ? copy.ongoing : copy.featured}</span>
+                <span className="inline-flex rounded-full bg-fuchsia-500/25 px-3 py-1 text-xs font-semibold text-pink-200">{viecc ? vieccSpotlight[locale].label : event.start <= today ? copy.ongoing : copy.featured}</span>
                 <h1 className="mt-2 text-[clamp(1.1rem,5vw,1.4rem)] font-bold leading-tight">{event.name}</h1>
               </div>
               <div className="relative aspect-[1.4] w-full rounded-xl border border-white/10 bg-black">
@@ -57,7 +68,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/65 to-transparent" />
           <div className="relative flex h-full flex-col items-start justify-center gap-2 p-4">
             {event ? <>
-              <span className="rounded-full bg-fuchsia-500/25 px-3 py-1 text-xs font-semibold text-pink-200">{event.start <= today ? copy.ongoing : copy.featured}</span>
+              <span className="rounded-full bg-fuchsia-500/25 px-3 py-1 text-xs font-semibold text-pink-200">{viecc ? vieccSpotlight[locale].label : event.start <= today ? copy.ongoing : copy.featured}</span>
               <h1 className="max-w-[90%] text-[clamp(1.35rem,5.5vw,1.8rem)] font-bold leading-tight">{event.name}</h1>
               <p className="text-sm leading-relaxed text-white/85">{formatEventDates(event, locale)}<br />{event.flag} {event.city}</p>
               {eventAction}
@@ -69,6 +80,7 @@ export default function HomePage() {
           </div>
           </>}
         </article>
+        {viecc && <p className="px-1 pt-1 text-[11px] leading-relaxed text-white/65">{vieccSpotlight[locale].thanks}</p>}
         {event && <EventMediaCredit event={event} className="shrink-0 px-1" />}
         </div>
         <section className="home-categories-section">
