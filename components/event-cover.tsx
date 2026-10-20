@@ -7,13 +7,13 @@ import { EVENT_MEDIA } from '@/lib/event-media';
 import { eventPresentationMessages } from '@/lib/event-presentations';
 import { eventMessages } from '@/lib/i18n/events';
 
-export function EventCover({ event, className = '', sizes = '(max-width: 600px) 100vw, 600px', showDetails = true, priority = false }: { event: EuropeEvent; className?: string; sizes?: string; showDetails?: boolean; priority?: boolean }) {
+export function EventCover({ event, className = '', sizes = '(max-width: 600px) 100vw, 600px', showDetails = true, priority = false, fit }: { event: EuropeEvent; className?: string; sizes?: string; showDetails?: boolean; priority?: boolean; fit?: 'cover' | 'contain' }) {
   const { locale } = useI18n();
   const copy = eventPresentationMessages[locale];
   const media = EVENT_MEDIA[event.name];
   const label = media?.kind === 'logo' ? copy.officialLogo : media?.archive ? copy.archive : media ? copy.photo : copy.editorial;
-  // Preserve official marks and photos whose composition or credits must stay intact.
-  const imageFit = media?.kind === 'logo' || media?.fit === 'contain' ? 'object-contain' : 'object-cover';
+  // Always preserve official marks; photo crops can be chosen for their placement.
+  const imageFit = media?.kind === 'logo' || (fit ?? media?.fit) === 'contain' ? 'object-contain' : 'object-cover';
   return <div className={`relative isolate overflow-hidden bg-[#111225] ${className}`}>
     <Image src={event.image} alt={media ? `${event.name}${media.imageYear ? ` · ${media.imageYear}` : ''}` : ''} fill sizes={sizes} priority={priority} className={imageFit} />
     {!media && showDetails && <>
