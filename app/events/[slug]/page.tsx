@@ -11,6 +11,7 @@ import { findEventBySlug } from '@/lib/events-data';
 import { formatEventDates } from '@/lib/event-selection';
 import { eventPresentationMessages } from '@/lib/event-presentations';
 import { eventCountry, eventMessages } from '@/lib/i18n/events';
+import { VieccShowcase } from '@/components/viecc-showcase';
 
 export default function EventShowcasePage() {
   const { slug } = useParams<{ slug: string }>();
@@ -21,6 +22,7 @@ export default function EventShowcasePage() {
   const event = findEventBySlug(slug);
 
   if (!event) return <MobileShell className="flex flex-col"><ScreenHeader title={details.showcase} back="/events" /><div className="flex-1 px-5 py-16 text-center"><h1 className="text-xl font-semibold">{details.unavailable}</h1><Link href="/events" className="mt-5 inline-flex min-h-11 items-center gap-2 text-pink-200"><ArrowLeft className="size-4" />{details.back}</Link></div><MobileNav active="explore" /></MobileShell>;
+  if (event.name === 'VIECC Vienna Comic Con') return <VieccShowcase event={event} />;
 
   const past = event.end < today;
   const ongoing = !past && event.start <= today;

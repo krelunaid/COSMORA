@@ -4,7 +4,7 @@ export type EventMedia = {
   sourceUrl: string;
   credit: string;
   licenseLabel: string;
-  licenseUrl: string;
+  licenseUrl?: string;
   imageYear: number | null;
   kind: 'photo' | 'logo';
   archive: boolean;
@@ -178,12 +178,11 @@ export const EVENT_MEDIA: Partial<Record<string, EventMedia>> = {
     "fit": "contain"
   },
   "VIECC Vienna Comic Con": {
-    "image": "/events/licensed/vienna-comic-con-2023.jpg",
-    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Vienna_Comic_Con_2023.jpg",
-    "credit": "Shisma / Wikimedia Commons",
-    "licenseLabel": "CC BY-SA 3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "imageYear": 2023,
+    "image": "/events/viecc-official/cosplay-01.jpg",
+    "sourceUrl": "https://viecc.com/",
+    "credit": "FRB Media – Fotograf: Eugen Nemecek / VIECC",
+    "licenseLabel": "Provided by the organiser for the COSMORA event presentation",
+    "imageYear": 2025,
     "kind": "photo",
     "archive": true,
     "fit": "contain"
