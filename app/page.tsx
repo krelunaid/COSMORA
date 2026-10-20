@@ -39,7 +39,9 @@ export default function HomePage() {
   const viecc = europeEvents.find((item) => item.name === vieccName && item.end >= today);
   const event = viecc ?? selectFeaturedEvent(europeEvents, today);
   const eventMedia = event ? EVENT_MEDIA[event.name] : undefined;
-  const eventLinkClass = 'flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-violet-600 px-4 py-2 text-sm font-semibold';
+  const eventLinkClass = viecc
+    ? 'flex min-h-9 items-center gap-1.5 rounded-xl bg-gradient-to-r from-pink-500 to-violet-600 px-3 py-1.5 text-xs font-semibold shadow-lg'
+    : 'flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-violet-600 px-4 py-2 text-sm font-semibold';
   const eventAction = event ? (event.internalUrl ? <Link href={event.internalUrl} className={eventLinkClass}>{copy.discover}<ChevronRight className="size-4 shrink-0" /></Link> : <a href={event.url} target="_blank" rel="noopener noreferrer" className={eventLinkClass}>{copy.discover}<ChevronRight className="size-4 shrink-0" /></a>) : null;
   return (
     <MobileShell className="home-shell flex flex-col">
@@ -65,15 +67,15 @@ export default function HomePage() {
             {eventAction}
           </div> : <>
           {event ? <div className="absolute inset-0"><EventCover event={event} priority showDetails={false} className="h-full w-full" sizes="(max-width: 640px) 100vw, 430px" /></div> : <Image src="/editorial/hero.svg" alt="" fill priority sizes="(max-width: 640px) 100vw, 430px" className="object-cover object-center" />}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/65 to-transparent" />
-          {viecc && <div className="absolute right-3 top-3 z-10 grid size-14 place-items-center rounded-xl border border-white/20 bg-white p-1.5 shadow-lg">
-            <Image src="/events/viecc-official/logo.png" alt="VIECC Vienna Comic Con" width={48} height={48} className="h-full w-full object-contain" />
+          <div className={`absolute inset-0 ${viecc ? 'bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.32)_45%,rgba(0,0,0,0.94)_100%)]' : 'bg-gradient-to-r from-black/95 via-black/65 to-transparent'}`} />
+          {viecc && <div className="absolute right-3 top-3 z-10 grid size-20 place-items-center rounded-2xl border border-white/70 bg-white p-2 shadow-2xl">
+            <Image src="/events/viecc-official/logo.png" alt="VIECC Vienna Comic Con" width={64} height={64} className="h-full w-full object-contain" />
           </div>}
-          <div className="relative flex h-full flex-col items-start justify-center gap-2 p-4">
+          <div className={`relative flex h-full flex-col items-start ${viecc ? 'justify-end gap-1.5 p-3' : 'justify-center gap-2 p-4'}`}>
             {event ? <>
-              <span className="rounded-full bg-fuchsia-500/25 px-3 py-1 text-xs font-semibold text-pink-200">{viecc ? vieccSpotlight[locale].label : event.start <= today ? copy.ongoing : copy.featured}</span>
-              <h1 className="max-w-[90%] text-[clamp(1.35rem,5.5vw,1.8rem)] font-bold leading-tight">{event.name}</h1>
-              <p className="text-sm leading-relaxed text-white/85">{formatEventDates(event, locale)}<br />{event.flag} {event.city}</p>
+              <span className={`rounded-full bg-fuchsia-500/25 px-3 py-1 text-xs font-semibold text-pink-200 ${viecc ? 'absolute left-3 top-3 backdrop-blur-md' : ''}`}>{viecc ? vieccSpotlight[locale].label : event.start <= today ? copy.ongoing : copy.featured}</span>
+              <h1 className={`${viecc ? 'max-w-full text-[clamp(1.05rem,4.6vw,1.25rem)] drop-shadow-lg' : 'max-w-[90%] text-[clamp(1.35rem,5.5vw,1.8rem)]'} font-bold leading-tight`}>{event.name}</h1>
+              {viecc ? <p className="text-xs font-medium text-white/95 drop-shadow-lg">{formatEventDates(event, locale)} · {event.flag} {event.city}</p> : <p className="text-sm leading-relaxed text-white/85">{formatEventDates(event, locale)}<br />{event.flag} {event.city}</p>}
               {eventAction}
             </> : <>
               <h1 className="text-2xl font-bold leading-tight">{copy.noUpcoming}</h1>
