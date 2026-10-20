@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { getBlockedAuthorIds } from '@/lib/server/blocked-content';
+import { applyReviewFixtureVisibility } from '@/lib/server/review-fixture-visibility';
 import {
   getSupabaseAdmin,
   requireAuthenticatedUser,
 } from '@/lib/supabase/server';
 import {
-  moderateText,
   validatePublicLocation,
 } from '@/lib/community-moderation';
 const schema = z.object({
@@ -34,6 +35,11 @@ export async function GET(request: Request) {
       { status: 503 },
     );
   const auth = await requireAuthenticatedUser(request);
+  if (request.headers.has('authorization') && !auth)
+    return NextResponse.json({ error: 'Accesso non disponibile.' }, { status: 401 });
+  const blocks = await getBlockedAuthorIds(admin, auth?.user.id);
+  if (blocks.error)
+    return NextResponse.json({ error: 'Crew non disponibili.' }, { status: 503 });
   const params = new URL(request.url).searchParams;
   const id = params.get('id');
   if (id && !z.uuid().safeParse(id).success)
@@ -43,10 +49,13 @@ export async function GET(request: Request) {
     .select(
       'id,owner_id,name,squad_type,description,city,starts_at,approximate_location,max_members,approval_required,rules,fandom,status',
     );
+  query = applyReviewFixtureVisibility(query, 'owner_id', auth);
   if (id) query = query.eq('id', id);
   else query = query.gte('starts_at', new Date().toISOString());
   // Private crews are not listed or exposed through guessed IDs.
   query = query.eq('is_private', false);
+  if (blocks.ids.length)
+    query = query.not('owner_id', 'in', '(' + blocks.ids.join(',') + ')');
   if (auth) query = query.or('status.eq.ACTIVE,owner_id.eq.' + auth.user.id);
   else query = query.eq('status', 'ACTIVE');
   const { data, error } = await query.order('starts_at').limit(50);
@@ -114,7 +123,6 @@ export async function POST(request: Request) {
       { error: 'Hai già creato diverse crew. Riprova tra un’ora.' },
       { status: 429 },
     );
-  const moderation = moderateText(d.name, d.description);
   const { data, error } = await auth.admin
     .from('squads')
     .insert({
@@ -129,7 +137,7 @@ export async function POST(request: Request) {
       approval_required: d.approval,
       rules: d.rules,
       fandom: d.fandom,
-      status: moderation.status,
+      status: 'PENDING_REVIEW',
       is_private: false,
     })
     .select('id,status')
@@ -175,11 +183,13 @@ export async function PATCH(request: Request) {
       { error: 'Richiesta non valida.' },
       { status: 400 },
     );
-  const crew = await auth.admin
-    .from('squads')
-    .select('owner_id,is_private')
-    .eq('id', parsed.data.id)
-    .maybeSingle();
+  const crew = await applyReviewFixtureVisibility(
+    auth.admin.from('squads')
+      .select('owner_id,is_private')
+      .eq('id', parsed.data.id),
+    'owner_id',
+    auth,
+  ).maybeSingle();
   if (crew.error || !crew.data || crew.data.is_private)
     return NextResponse.json(
       { error: 'Crew non disponibile.' },

@@ -1,3 +1,16 @@
+import { apiFetch } from './api-fetch.ts';
+
+export class AccountRequestError extends Error {
+  readonly status: number;
+  readonly code?: string;
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = 'AccountRequestError';
+    this.status = status;
+    this.code = code;
+  }
+}
+
 // Never retry mutations automatically: a lost response may still represent a saved write.
 export async function accountHttp<T>(
   path: string,
@@ -11,11 +24,12 @@ export async function accountHttp<T>(
   let timedOut = false;
   const timer = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
   try {
-    const response = await fetch(path, { ...options, signal: controller.signal, cache: 'no-store' });
+    const response = await apiFetch(path, { ...options, signal: controller.signal, cache: 'no-store' });
     const result: unknown = await response.json().catch(() => null);
     if (!response.ok) {
       const error = result && typeof result === 'object' && 'error' in result ? result.error : null;
-      throw new Error(typeof error === 'string' ? error : 'Servizio temporaneamente non disponibile. Riprova.');
+      const code = result && typeof result === 'object' && 'code' in result && typeof result.code === 'string' ? result.code : undefined;
+      throw new AccountRequestError(typeof error === 'string' ? error : 'Servizio temporaneamente non disponibile. Riprova.', response.status, code);
     }
     if (result === null) throw new Error('Risposta del servizio non valida. Riprova.');
     return result as T;

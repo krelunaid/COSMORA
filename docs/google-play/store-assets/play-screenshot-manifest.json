@@ -1,0 +1,63 @@
+{
+  "version": "1.0.1 (39)",
+  "requestedScreens": 4,
+  "renderedScreens": 4,
+  "files": [
+    {
+      "file": "play-01-home.png",
+      "sourceCapture": "01-home.jpg",
+      "sourceWidth": 612,
+      "sourceHeight": 772,
+      "scale": 1.5,
+      "width": 1080,
+      "height": 1920,
+      "channels": 3,
+      "hasAlpha": false,
+      "bytes": 1034077,
+      "title": "Le tue passioni, in un solo posto",
+      "composition": "Complete real app capture, brand header and decorative background; no additional device or app UI."
+    },
+    {
+      "file": "play-02-esplora.png",
+      "sourceCapture": "02-esplora.jpg",
+      "sourceWidth": 612,
+      "sourceHeight": 772,
+      "scale": 1.5,
+      "width": 1080,
+      "height": 1920,
+      "channels": 3,
+      "hasAlpha": false,
+      "bytes": 1037909,
+      "title": "Trova la tua community",
+      "composition": "Complete real app capture, brand header and decorative background; no additional device or app UI."
+    },
+    {
+      "file": "play-03-eventi.png",
+      "sourceCapture": "03-eventi.jpg",
+      "sourceWidth": 612,
+      "sourceHeight": 772,
+      "scale": 1.5,
+      "width": 1080,
+      "height": 1920,
+      "channels": 3,
+      "hasAlpha": false,
+      "bytes": 744539,
+      "title": "Esplora gli eventi",
+      "composition": "Complete real app capture, brand header and decorative background; no additional device or app UI."
+    },
+    {
+      "file": "play-04-guida-evento.png",
+      "sourceCapture": "04-guida-evento.jpg",
+      "sourceWidth": 612,
+      "sourceHeight": 772,
+      "scale": 1.5,
+      "width": 1080,
+      "height": 1920,
+      "channels": 3,
+      "hasAlpha": false,
+      "bytes": 730208,
+      "title": "Informazioni e link ufficiali",
+      "composition": "Complete real app capture, brand header and decorative background; no additional device or app UI."
+    }
+  ]
+}

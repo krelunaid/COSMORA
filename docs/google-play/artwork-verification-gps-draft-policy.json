@@ -1,0 +1,219 @@
+{
+  "createdAt": "2026-10-09T16:18:41.791Z",
+  "sourceRoot": "/Users/andreagadducci/Documents/Codex/2026-09-27/l-x20/work/COSMORA",
+  "sourceCommit": "d24409d3be81e211c6ab844a2163ee66754b4588",
+  "aabFile": "COSMORA-Android-1.0.1-39-gps-draft-policy.aab",
+  "aabSha256": "88088cd37c7b2e254066405f160b3a08b469659aa0343ce2f076d0325b0b375b",
+  "categoryV2Count": 8,
+  "licensedEventCount": 12,
+  "matchedArtworkAssets": 20,
+  "comparedLayers": [
+    "source",
+    "dist/mobile",
+    "Android embedded assets",
+    "signed AAB"
+  ],
+  "allMobileAssetsMatched": 149,
+  "assets": [
+    {
+      "source": "public/editorial/category-artist-v2.png",
+      "aabEntry": "base/assets/public/editorial/category-artist-v2.png",
+      "bytes": 2441562,
+      "sourceSha256": "d4f8a578c388a51966f7e4d4ed6ccb4517fb76e1f2df1f8221c2057d3ad21e3f",
+      "mobileSha256": "d4f8a578c388a51966f7e4d4ed6ccb4517fb76e1f2df1f8221c2057d3ad21e3f",
+      "embeddedSha256": "d4f8a578c388a51966f7e4d4ed6ccb4517fb76e1f2df1f8221c2057d3ad21e3f",
+      "aabSha256": "d4f8a578c388a51966f7e4d4ed6ccb4517fb76e1f2df1f8221c2057d3ad21e3f",
+      "matched": true
+    },
+    {
+      "source": "public/editorial/category-cards-v2.png",
+      "aabEntry": "base/assets/public/editorial/category-cards-v2.png",
+      "bytes": 3048916,
+      "sourceSha256": "197222a90b3c1b51c610d44641ff6ccf1dc1d8848d775dc011e002ca0f241ac9",
+      "mobileSha256": "197222a90b3c1b51c610d44641ff6ccf1dc1d8848d775dc011e002ca0f241ac9",
+      "embeddedSha256": "197222a90b3c1b51c610d44641ff6ccf1dc1d8848d775dc011e002ca0f241ac9",
+      "aabSha256": "197222a90b3c1b51c610d44641ff6ccf1dc1d8848d775dc011e002ca0f241ac9",
+      "matched": true
+    },
+    {
+      "source": "public/editorial/category-community-v2.png",
+      "aabEntry": "base/assets/public/editorial/category-community-v2.png",
+      "bytes": 2660002,
+      "sourceSha256": "6e6e360189ba233155ed6106dc59bb5a1ad1cf24ac9e374aad416baf93ff3351",
+      "mobileSha256": "6e6e360189ba233155ed6106dc59bb5a1ad1cf24ac9e374aad416baf93ff3351",
+      "embeddedSha256": "6e6e360189ba233155ed6106dc59bb5a1ad1cf24ac9e374aad416baf93ff3351",
+      "aabSha256": "6e6e360189ba233155ed6106dc59bb5a1ad1cf24ac9e374aad416baf93ff3351",
+      "matched": true
+    },
+    {
+      "source": "public/editorial/category-cosplay-v2.png",
+      "aabEntry": "base/assets/public/editorial/category-cosplay-v2.png",
+      "bytes": 2544990,
+      "sourceSha256": "1c9220c058aa3c7bc61de74997d8136ed2abc7e39f4a4a82b98a925b11aa4cba",
+      "mobileSha256": "1c9220c058aa3c7bc61de74997d8136ed2abc7e39f4a4a82b98a925b11aa4cba",
+      "embeddedSha256": "1c9220c058aa3c7bc61de74997d8136ed2abc7e39f4a4a82b98a925b11aa4cba",
+      "aabSha256": "1c9220c058aa3c7bc61de74997d8136ed2abc7e39f4a4a82b98a925b11aa4cba",
+      "matched": true
+    },
+    {
+      "source": "public/editorial/category-crew-v2.png",
+      "aabEntry": "base/assets/public/editorial/category-crew-v2.png",
+      "bytes": 2668975,
+      "sourceSha256": "a44e61c018df496994471beada90526a2462ed784afb268609640f9bada3078c",
+      "mobileSha256": "a44e61c018df496994471beada90526a2462ed784afb268609640f9bada3078c",
+      "embeddedSha256": "a44e61c018df496994471beada90526a2462ed784afb268609640f9bada3078c",
+      "aabSha256": "a44e61c018df496994471beada90526a2462ed784afb268609640f9bada3078c",
+      "matched": true
+    },
+    {
+      "source": "public/editorial/category-figures-v2.png",
+      "aabEntry": "base/assets/public/editorial/category-figures-v2.png",
+      "bytes": 2247799,
+      "sourceSha256": "aa338ce8a4f2fbe0cae8611814c9ababd5166fb7b82b819010189b64b9e408fe",
+      "mobileSha256": "aa338ce8a4f2fbe0cae8611814c9ababd5166fb7b82b819010189b64b9e408fe",
+      "embeddedSha256": "aa338ce8a4f2fbe0cae8611814c9ababd5166fb7b82b819010189b64b9e408fe",
+      "aabSha256": "aa338ce8a4f2fbe0cae8611814c9ababd5166fb7b82b819010189b64b9e408fe",
+      "matched": true
+    },
+    {
+      "source": "public/editorial/category-gaming-v2.png",
+      "aabEntry": "base/assets/public/editorial/category-gaming-v2.png",
+      "bytes": 2148221,
+      "sourceSha256": "1bb4497e9cf707648d93d9a3b6e42934de8f163830b8e4e46f93f31586280f1b",
+      "mobileSha256": "1bb4497e9cf707648d93d9a3b6e42934de8f163830b8e4e46f93f31586280f1b",
+      "embeddedSha256": "1bb4497e9cf707648d93d9a3b6e42934de8f163830b8e4e46f93f31586280f1b",
+      "aabSha256": "1bb4497e9cf707648d93d9a3b6e42934de8f163830b8e4e46f93f31586280f1b",
+      "matched": true
+    },
+    {
+      "source": "public/editorial/category-manga-v2.png",
+      "aabEntry": "base/assets/public/editorial/category-manga-v2.png",
+      "bytes": 3649300,
+      "sourceSha256": "520b4975ea85f1adaf650f1c7472af37632a23a7dec04211cdc8530cb5e70c64",
+      "mobileSha256": "520b4975ea85f1adaf650f1c7472af37632a23a7dec04211cdc8530cb5e70c64",
+      "embeddedSha256": "520b4975ea85f1adaf650f1c7472af37632a23a7dec04211cdc8530cb5e70c64",
+      "aabSha256": "520b4975ea85f1adaf650f1c7472af37632a23a7dec04211cdc8530cb5e70c64",
+      "matched": true
+    },
+    {
+      "source": "public/events/licensed/animagic-2018.jpg",
+      "aabEntry": "base/assets/public/events/licensed/animagic-2018.jpg",
+      "bytes": 265091,
+      "sourceSha256": "c6c4a10e935cd3275ef68748bf48daedeca32d20020b2113620956015e0fdcb0",
+      "mobileSha256": "c6c4a10e935cd3275ef68748bf48daedeca32d20020b2113620956015e0fdcb0",
+      "embeddedSha256": "c6c4a10e935cd3275ef68748bf48daedeca32d20020b2113620956015e0fdcb0",
+      "aabSha256": "c6c4a10e935cd3275ef68748bf48daedeca32d20020b2113620956015e0fdcb0",
+      "matched": true
+    },
+    {
+      "source": "public/events/licensed/bd-comic-strip-festival-2023.jpg",
+      "aabEntry": "base/assets/public/events/licensed/bd-comic-strip-festival-2023.jpg",
+      "bytes": 373502,
+      "sourceSha256": "883cf51cdbe740335ac85eec9dca48b543fd8f20f32d13799a9ddc15208f88a5",
+      "mobileSha256": "883cf51cdbe740335ac85eec9dca48b543fd8f20f32d13799a9ddc15208f88a5",
+      "embeddedSha256": "883cf51cdbe740335ac85eec9dca48b543fd8f20f32d13799a9ddc15208f88a5",
+      "aabSha256": "883cf51cdbe740335ac85eec9dca48b543fd8f20f32d13799a9ddc15208f88a5",
+      "matched": true
+    },
+    {
+      "source": "public/events/licensed/comic-barcelona-2017.jpg",
+      "aabEntry": "base/assets/public/events/licensed/comic-barcelona-2017.jpg",
+      "bytes": 147749,
+      "sourceSha256": "3c719d68651d1ef0352c8da34b205222cfd1cc2e5a4c7e22f215aa8555227d30",
+      "mobileSha256": "3c719d68651d1ef0352c8da34b205222cfd1cc2e5a4c7e22f215aa8555227d30",
+      "embeddedSha256": "3c719d68651d1ef0352c8da34b205222cfd1cc2e5a4c7e22f215aa8555227d30",
+      "aabSha256": "3c719d68651d1ef0352c8da34b205222cfd1cc2e5a4c7e22f215aa8555227d30",
+      "matched": true
+    },
+    {
+      "source": "public/events/licensed/comic-con-brussels-logo.jpg",
+      "aabEntry": "base/assets/public/events/licensed/comic-con-brussels-logo.jpg",
+      "bytes": 71773,
+      "sourceSha256": "7a3705842ff42bf92442abc316641295df8bfefe7344a211f0c084e549160f44",
+      "mobileSha256": "7a3705842ff42bf92442abc316641295df8bfefe7344a211f0c084e549160f44",
+      "embeddedSha256": "7a3705842ff42bf92442abc316641295df8bfefe7344a211f0c084e549160f44",
+      "aabSha256": "7a3705842ff42bf92442abc316641295df8bfefe7344a211f0c084e549160f44",
+      "matched": true
+    },
+    {
+      "source": "public/events/licensed/comic-con-holland-official-logo.webp",
+      "aabEntry": "base/assets/public/events/licensed/comic-con-holland-official-logo.webp",
+      "bytes": 73854,
+      "sourceSha256": "1ce7122804760cb3617ca190b613e20dc4fdb89170aeed8224d3e5c09d5ceb05",
+      "mobileSha256": "1ce7122804760cb3617ca190b613e20dc4fdb89170aeed8224d3e5c09d5ceb05",
+      "embeddedSha256": "1ce7122804760cb3617ca190b613e20dc4fdb89170aeed8224d3e5c09d5ceb05",
+      "aabSha256": "1ce7122804760cb3617ca190b613e20dc4fdb89170aeed8224d3e5c09d5ceb05",
+      "matched": true
+    },
+    {
+      "source": "public/events/licensed/comicon-napoli-2026.png",
+      "aabEntry": "base/assets/public/events/licensed/comicon-napoli-2026.png",
+      "bytes": 1013299,
+      "sourceSha256": "7146998a11930e1caedf631f37759a210ce86ee95d61c5331a91b6851bef49e5",
+      "mobileSha256": "7146998a11930e1caedf631f37759a210ce86ee95d61c5331a91b6851bef49e5",
+      "embeddedSha256": "7146998a11930e1caedf631f37759a210ce86ee95d61c5331a91b6851bef49e5",
+      "aabSha256": "7146998a11930e1caedf631f37759a210ce86ee95d61c5331a91b6851bef49e5",
+      "matched": true
+    },
+    {
+      "source": "public/events/licensed/japan-expo-2026.jpg",
+      "aabEntry": "base/assets/public/events/licensed/japan-expo-2026.jpg",
+      "bytes": 224749,
+      "sourceSha256": "d0974a66a41a7f5cd211ae7e02dae18b0040ef70c8a524b25f882f74281950b7",
+      "mobileSha256": "d0974a66a41a7f5cd211ae7e02dae18b0040ef70c8a524b25f882f74281950b7",
+      "embeddedSha256": "d0974a66a41a7f5cd211ae7e02dae18b0040ef70c8a524b25f882f74281950b7",
+      "aabSha256": "d0974a66a41a7f5cd211ae7e02dae18b0040ef70c8a524b25f882f74281950b7",
+      "matched": true
+    },
+    {
+      "source": "public/events/licensed/lucca-comics-2017.jpg",
+      "aabEntry": "base/assets/public/events/licensed/lucca-comics-2017.jpg",
+      "bytes": 177211,
+      "sourceSha256": "5b8abdf9ad098c08b33cf939bb1820bb84a4198c88d394856af7308b12d97d9e",
+      "mobileSha256": "5b8abdf9ad098c08b33cf939bb1820bb84a4198c88d394856af7308b12d97d9e",
+      "embeddedSha256": "5b8abdf9ad098c08b33cf939bb1820bb84a4198c88d394856af7308b12d97d9e",
+      "aabSha256": "5b8abdf9ad098c08b33cf939bb1820bb84a4198c88d394856af7308b12d97d9e",
+      "matched": true
+    },
+    {
+      "source": "public/events/licensed/manga-barcelona-2024.jpg",
+      "aabEntry": "base/assets/public/events/licensed/manga-barcelona-2024.jpg",
+      "bytes": 192476,
+      "sourceSha256": "ae4970fcb6b277e38c8af89eee7ff5e0139d2d1ca8ee882d31acc2552d63df31",
+      "mobileSha256": "ae4970fcb6b277e38c8af89eee7ff5e0139d2d1ca8ee882d31acc2552d63df31",
+      "embeddedSha256": "ae4970fcb6b277e38c8af89eee7ff5e0139d2d1ca8ee882d31acc2552d63df31",
+      "aabSha256": "ae4970fcb6b277e38c8af89eee7ff5e0139d2d1ca8ee882d31acc2552d63df31",
+      "matched": true
+    },
+    {
+      "source": "public/events/licensed/paris-games-week-2016.jpg",
+      "aabEntry": "base/assets/public/events/licensed/paris-games-week-2016.jpg",
+      "bytes": 100427,
+      "sourceSha256": "c93ea73c3243717bd1ba7a17efcaa8d30346a81a0c34d1188313da8e65b9abdf",
+      "mobileSha256": "c93ea73c3243717bd1ba7a17efcaa8d30346a81a0c34d1188313da8e65b9abdf",
+      "embeddedSha256": "c93ea73c3243717bd1ba7a17efcaa8d30346a81a0c34d1188313da8e65b9abdf",
+      "aabSha256": "c93ea73c3243717bd1ba7a17efcaa8d30346a81a0c34d1188313da8e65b9abdf",
+      "matched": true
+    },
+    {
+      "source": "public/events/licensed/romics-fall-2024.jpg",
+      "aabEntry": "base/assets/public/events/licensed/romics-fall-2024.jpg",
+      "bytes": 53239,
+      "sourceSha256": "dd1ebdf8392fa2ea4ab37f378a132c1672d3625c922b0f9ecf96601a2a7d2951",
+      "mobileSha256": "dd1ebdf8392fa2ea4ab37f378a132c1672d3625c922b0f9ecf96601a2a7d2951",
+      "embeddedSha256": "dd1ebdf8392fa2ea4ab37f378a132c1672d3625c922b0f9ecf96601a2a7d2951",
+      "aabSha256": "dd1ebdf8392fa2ea4ab37f378a132c1672d3625c922b0f9ecf96601a2a7d2951",
+      "matched": true
+    },
+    {
+      "source": "public/events/licensed/romics-spring-2025.jpg",
+      "aabEntry": "base/assets/public/events/licensed/romics-spring-2025.jpg",
+      "bytes": 140896,
+      "sourceSha256": "60a02c793aefa282474cfaf6bfb5b098b16c619fc9c226dbed943a974949aef6",
+      "mobileSha256": "60a02c793aefa282474cfaf6bfb5b098b16c619fc9c226dbed943a974949aef6",
+      "embeddedSha256": "60a02c793aefa282474cfaf6bfb5b098b16c619fc9c226dbed943a974949aef6",
+      "aabSha256": "60a02c793aefa282474cfaf6bfb5b098b16c619fc9c226dbed943a974949aef6",
+      "matched": true
+    }
+  ]
+}

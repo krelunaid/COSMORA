@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   const { data, error } = await query.order('created_at', { ascending: false }).limit(100);
   if (error) return NextResponse.json({ error: 'Messaggi non disponibili. Riprova.' }, { status: 503 });
   const ids = [...new Set([...(data ?? []).flatMap((row) => [row.sender_id, row.recipient_id]), ...(peer ? [peer] : [])])];
-  const profiles = ids.length ? await auth.admin.from('profiles').select('id, display_name').in('id', ids) : { data: [] };
+  const profiles = ids.length ? await auth.admin.from('profiles').select('id, display_name').eq('moderation_hidden', false).in('id', ids) : { data: [] };
   return NextResponse.json({ userId: auth.user.id, messages: data ?? [], profiles: profiles.data ?? [] }, { headers: privateHeaders });
 }
 
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   if (!parsed.success || parsed.data.recipientId === auth.user.id) return NextResponse.json({ error: 'Destinatario o messaggio non valido (massimo 4000 caratteri).' }, { status: 400 });
   const { recipientId, id, body } = parsed.data;
   const [recipient, blocks, recent] = await Promise.all([
-    auth.admin.from('profiles').select('id').eq('id', recipientId).maybeSingle(),
+    auth.admin.from('profiles').select('id').eq('id', recipientId).eq('moderation_hidden', false).maybeSingle(),
     auth.admin.from('user_blocks').select('blocker_id').or(`and(blocker_id.eq.${auth.user.id},blocked_id.eq.${recipientId}),and(blocker_id.eq.${recipientId},blocked_id.eq.${auth.user.id})`).limit(1),
     auth.admin.from('direct_messages').select('id', { count: 'exact', head: true }).eq('sender_id', auth.user.id).gte('created_at', new Date(Date.now() - 60000).toISOString()),
   ]);

@@ -1,0 +1,5 @@
+"NSCameraUsageDescription" = "COSMORA usa la cámara para hacer fotos y vídeos que publicar en la comunidad.";
+"NSPhotoLibraryUsageDescription" = "COSMORA accede a tus fotos para adjuntarlas a las publicaciones de la comunidad.";
+"NSPhotoLibraryAddUsageDescription" = "COSMORA puede guardar en tu fototeca las fotos que haces en la app.";
+"NSMicrophoneUsageDescription" = "COSMORA usa el micrófono cuando grabas un vídeo para la comunidad.";
+"NSLocationWhenInUseUsageDescription" = "COSMORA usa tu ubicación cuando pulsas «Dónde estoy» para mostrar tu posición en el mapa del evento.";

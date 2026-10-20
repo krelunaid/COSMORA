@@ -1,20 +1,26 @@
-import { findSimilarSquad, moderateText, validatePublicLocation } from '@/lib/community-moderation';
+import { z } from 'zod';
+import { moderateText, validatePublicLocation } from '@/lib/community-moderation';
 import { communityPolicy } from '@/lib/server/community-policy';
+import { requireAuthenticatedUser } from '@/lib/supabase/server';
 
-const attempts = new Map<string, number[]>();
+const schema = z.object({
+  kind: z.enum(['post', 'squad']), title: z.string().trim().max(100).default(''),
+  description: z.string().trim().max(3000).default(''), event: z.string().max(150).optional(),
+  location: z.string().trim().max(200).optional(), date: z.iso.date().optional(),
+}).strict();
 
 export async function POST(request: Request) {
-  const userId = request.headers.get('x-user-id');
-  if (!userId) return Response.json({ error: 'Authentication required.' }, { status: 401 });
-  const now = Date.now();
-  const recent = (attempts.get(userId) ?? []).filter((time) => now - time < 3_600_000);
-  if (recent.length >= communityPolicy.standard.creationsPerHour) return Response.json({ error: 'Creation rate limit reached.' }, { status: 429 });
-  attempts.set(userId, [...recent, now]);
-
-  const body = await request.json() as { kind: 'post' | 'squad'; title?: string; description?: string; event?: string; location?: string; date?: string };
-  if (body.kind === 'squad' && body.location && !validatePublicLocation(body.location)) return Response.json({ error: 'Private addresses are not allowed.' }, { status: 422 });
-  if (body.kind === 'squad' && body.date && new Date(`${body.date}T23:59:59`) < new Date()) return Response.json({ error: 'Date must be in the future.' }, { status: 422 });
-  const duplicate = body.kind === 'squad' ? findSimilarSquad(body.title ?? '', body.event ?? '') : undefined;
-  const moderation = moderateText(body.title ?? 'Community post', body.description ?? '');
-  return Response.json({ ...moderation, duplicate: duplicate ? { slug: duplicate.slug, name: duplicate.name } : null });
+  const auth = await requireAuthenticatedUser(request);
+  if (!auth) return Response.json({ error: 'Accedi per continuare.' }, { status: 401 });
+  const input = schema.safeParse(await request.json().catch(() => null));
+  if (!input.success) return Response.json({ error: 'Contenuto non valido.' }, { status: 400 });
+  const body = input.data;
+  const recent = await auth.admin.from(body.kind === 'post' ? 'community_posts' : 'squads')
+    .select('id', { count: 'exact', head: true }).eq(body.kind === 'post' ? 'author_id' : 'owner_id', auth.user.id)
+    .gte('created_at', new Date(Date.now() - 3600000).toISOString());
+  if (recent.error) return Response.json({ error: 'Verifica non disponibile.' }, { status: 503 });
+  if ((recent.count ?? 0) >= communityPolicy.standard.creationsPerHour) return Response.json({ error: 'Limite di creazione raggiunto. Riprova più tardi.' }, { status: 429 });
+  if (body.kind === 'squad' && body.location && !validatePublicLocation(body.location)) return Response.json({ error: 'Gli indirizzi privati non sono consentiti.' }, { status: 422 });
+  if (body.kind === 'squad' && body.date && new Date(body.date + 'T23:59:59') < new Date()) return Response.json({ error: 'Scegli una data futura.' }, { status: 422 });
+  return Response.json({ ...moderateText(body.title || 'Community post', body.description), status: 'PENDING_REVIEW', duplicate: null }, { headers: { 'Cache-Control': 'private, no-store' } });
 }

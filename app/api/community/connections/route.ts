@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
+import { applyReviewFixtureVisibility } from '@/lib/server/review-fixture-visibility';
+import { applyPublicProfileVisibility } from '@/lib/server/public-profile-visibility';
 export async function GET(request: Request) {
   const a = await requireAuthenticatedUser(request);
   if (!a)
@@ -10,22 +12,30 @@ export async function GET(request: Request) {
   const type = new URL(request.url).searchParams.get('type');
   const result =
     type === 'product'
-      ? await a.admin
-          .from('listings')
-          .select('id,title')
-          .eq('seller_id', a.user.id)
-          .eq('status', 'active')
-          .limit(100)
+      ? await applyReviewFixtureVisibility(
+          a.admin.from('listings')
+            .select('id,title')
+            .eq('seller_id', a.user.id)
+            .eq('status', 'active'),
+          'seller_id',
+          a,
+        ).limit(100)
       : type === 'creator'
-        ? await a.admin.from('profiles').select('id,display_name').limit(100)
+        ? await applyPublicProfileVisibility(applyReviewFixtureVisibility(
+            a.admin.from('profiles').select('id,display_name').eq('moderation_hidden', false),
+            'id',
+            a,
+          )).limit(100)
         : type === 'crew'
-          ? await a.admin
-              .from('squads')
-              .select('id,name')
-              .eq('status', 'ACTIVE')
-              .eq('is_private', false)
-              .gte('starts_at', new Date().toISOString())
-              .limit(100)
+          ? await applyReviewFixtureVisibility(
+              a.admin.from('squads')
+                .select('id,name')
+                .eq('status', 'ACTIVE')
+                .eq('is_private', false)
+                .gte('starts_at', new Date().toISOString()),
+              'owner_id',
+              a,
+            ).limit(100)
           : null;
   if (!result || result.error)
     return NextResponse.json(

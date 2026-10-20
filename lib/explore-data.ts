@@ -1,4 +1,5 @@
 import type { DiscoveryCardContent } from './mobile-layout';
+import { MARKET_CATEGORIES } from './marketplace-categories.ts';
 
 export const exploreSections = [
   'Per te',
@@ -22,7 +23,7 @@ export const exploreDiscoveries: ExploreDiscovery[] = [
     section: 'Prodotti',
     title: 'Cosplay e accessori',
     meta: 'Esplora gli annunci e contatta i venditori',
-    image: '/mobile-category-cosplay.jpg',
+    image: MARKET_CATEGORIES.Cosplay.image,
     href: '/marketplace?category=Cosplay',
     icon: 'bag',
   },
@@ -30,7 +31,7 @@ export const exploreDiscoveries: ExploreDiscovery[] = [
     section: 'Prodotti',
     title: 'Manga & Comics',
     meta: 'Edizioni e collezioni',
-    image: '/mobile-category-manga.jpg',
+    image: MARKET_CATEGORIES.Comics.image,
     href: '/marketplace?category=Comics',
     icon: 'bag',
   },
@@ -38,7 +39,7 @@ export const exploreDiscoveries: ExploreDiscovery[] = [
     section: 'Prodotti',
     title: 'Figures',
     meta: 'Figure e collectibles',
-    image: '/mobile-category-figures.jpg',
+    image: MARKET_CATEGORIES.Figures.image,
     href: '/marketplace?category=Figures',
     icon: 'bag',
   },
@@ -46,7 +47,7 @@ export const exploreDiscoveries: ExploreDiscovery[] = [
     section: 'Eventi',
     title: 'Lucca Comics & Games 2026',
     meta: 'Lucca · 28 OTT–1 NOV',
-    image: '/events/lucca-comics-games-mobile.jpg',
+    image: '/events/lucca-comics-games.svg',
     href: '/events/lucca-comics-2026',
     icon: 'calendar',
     imageFit: 'contain',
@@ -55,7 +56,7 @@ export const exploreDiscoveries: ExploreDiscovery[] = [
     section: 'Eventi',
     title: 'gamescom 2026',
     meta: 'Colonia · 26–30 AGO',
-    image: '/events/gamescom-mobile.jpg',
+    image: '/events/gamescom.svg',
     href: '/events',
     icon: 'calendar',
   },
@@ -63,7 +64,7 @@ export const exploreDiscoveries: ExploreDiscovery[] = [
     section: 'Creator',
     title: 'Creator e venditori',
     meta: 'Scopri i profili della community',
-    image: '/mobile-category-artist.jpg',
+    image: '/editorial/category-artist-v2.png',
     href: '/explore?section=Creator',
     icon: 'user',
   },
@@ -71,7 +72,7 @@ export const exploreDiscoveries: ExploreDiscovery[] = [
     section: 'Crew',
     title: 'Crew e incontri',
     meta: 'Trova una squadra o organizza un incontro',
-    image: '/community/squad-example-mobile.jpg',
+    image: '/editorial/category-crew-v2.png',
     href: '/squads',
     icon: 'users',
   },
@@ -79,7 +80,7 @@ export const exploreDiscoveries: ExploreDiscovery[] = [
     section: 'Community',
     title: 'Community COSMORA',
     meta: 'Post, collezioni e making of',
-    image: '/community/meetup-example-mobile.jpg',
+    image: '/editorial/category-community-v2.png',
     href: '/community',
     icon: 'sparkles',
   },
@@ -89,13 +90,14 @@ export function filterExploreDiscoveries(
   items: readonly ExploreDiscovery[],
   section: ExploreSection,
   query: string,
+  sectionLabel: (section: ExploreSection) => string = (value) => value,
 ) {
   const needle = query.trim().toLowerCase();
   return items.filter(
     (item) =>
       (section === 'Per te' || item.section === section) &&
       (!needle ||
-        `${item.title} ${item.meta} ${item.section}`
+        `${item.title} ${item.meta} ${sectionLabel(item.section)}`
           .toLowerCase()
           .includes(needle)),
   );

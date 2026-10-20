@@ -1,5 +1,6 @@
 'use client';
 
+import { accountMessages } from '@/lib/i18n/account';
 import { useState } from 'react';
 import Link from '@/components/app-link';
 import {
@@ -47,6 +48,7 @@ export function MobileNav({
 }) {
   const [createOpen, setCreateOpen] = useState(false);
   const { locale, setLocale, messages } = useI18n();
+  const t = accountMessages[locale];
   const links = [
     { key: 'home', label: messages.nav.home, href: '/', icon: Home },
     {
@@ -72,7 +74,7 @@ export function MobileNav({
             if (node && !node.open) node.showModal();
           }}
           onClose={() => setCreateOpen(false)}
-          aria-label="Crea in COSMORA"
+          aria-label={t.createMenu}
           className="fixed inset-0 m-0 flex h-dvh max-h-none w-screen max-w-none items-end justify-center border-0 bg-black/70 p-0 text-white backdrop-blur-sm"
         >
           <section
@@ -80,12 +82,12 @@ export function MobileNav({
           >
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="text-base font-semibold">Crea</p>
-                <p className="text-xs text-white/65">Scegli cosa vuoi fare.</p>
+                <p className="text-base font-semibold">{messages.nav.create}</p>
+                <p className="text-xs text-white/65">{t.chooseAction}</p>
               </div>
               <button
                 onClick={() => setCreateOpen(false)}
-                aria-label="Close create menu"
+                aria-label={t.closeCreate}
                 className="grid size-11 place-items-center rounded-full bg-white/5"
               >
                 <X className="size-4" />
@@ -95,24 +97,24 @@ export function MobileNav({
               <CreateAction
                 href="/community/post/new"
                 icon={Camera}
-                title="Post"
-                description="Condividi cosplay, collezioni e momenti."
+                title={t.post}
+                description={t.postDescription}
               />
               <CreateAction
                 href="/sell"
                 icon={ShoppingBag}
-                title="Vendi"
-                description="Pubblica un prodotto nel marketplace."
+                title={messages.nav.sell}
+                description={t.sellDescription}
               />
               <CreateAction
                 href="/squads/create"
                 icon={UsersRound}
-                title="Crew cosplay / Incontro"
-                description="Forma una crew di personaggi oppure organizza un ritrovo pubblico."
+                title={t.crew}
+                description={t.crewDescription}
               />
             </div>
             <label className="mt-4 flex items-center justify-between border-t border-white/8 pt-4 text-xs text-white/50">
-              App language
+              {t.language}
               <select
                 value={locale}
                 onChange={(event) => setLocale(event.target.value as Locale)}
@@ -135,7 +137,7 @@ export function MobileNav({
       <nav
         className={`mobile-nav-bar ${MOBILE_NAV_POSITION_CLASS} ${PHONE_SHELL_MAX_WIDTH_CLASS} fixed bottom-0 z-40 grid h-[calc(64px+env(safe-area-inset-bottom))] grid-cols-5 border-t border-white/10 bg-[#080918]/98 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:bottom-3 sm:h-16 sm:rounded-b-[34px] sm:px-2 sm:pb-0`}
         style={MOBILE_NAV_BAR_INLINE_STYLE}
-        aria-label="Main navigation"
+        aria-label={t.navigation}
       >
         {links.map(({ key, label, href, icon: Icon }) =>
           key === 'create' ? (
@@ -156,6 +158,7 @@ export function MobileNav({
               key={key}
               href={href}
               prefetch
+              aria-current={active === key ? 'page' : undefined}
               className={`flex min-w-0 touch-manipulation flex-col items-center justify-center gap-1 px-0.5 text-sm font-medium sm:text-xs ${active === key ? 'text-fuchsia-300' : 'text-white/60'}`}
             >
               <Icon className="size-5" />
@@ -219,6 +222,7 @@ export function ScreenHeader({
 }
 
 export function SellerChip() {
+  const { locale } = useI18n();
   return (
     <Link href="/profile/stardust-atelier" className="flex items-center gap-2">
       <span className="grid size-7 place-items-center rounded-full bg-gradient-to-br from-pink-400 to-violet-600 text-xs font-bold">
@@ -226,7 +230,9 @@ export function SellerChip() {
       </span>
       <span>
         <b className="block text-xs">Stardust Atelier</b>
-        <small className="block text-xs text-white/65">Verified Seller</small>
+        <small className="block text-xs text-white/65">
+          {accountMessages[locale].verifiedSeller}
+        </small>
       </span>
     </Link>
   );

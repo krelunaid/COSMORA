@@ -1,0 +1,33 @@
+{
+  "version": "1.0.1",
+  "build": 39,
+  "capture": "Unedited app screenshots captured using Device Hub on iPhone 14 Plus simulator, iOS 26.5",
+  "files": [
+    {
+      "name": "01-home.png",
+      "width": 1284,
+      "height": 2778,
+      "sha256": "8474de322d98505b3446cfb0afbb2bee84eaa146b9f1a175832bda01b23012fd"
+    },
+    {
+      "name": "02-esplora.png",
+      "width": 1284,
+      "height": 2778,
+      "sha256": "bf21ba90027d3e6f8fb7abd9d33c348d6c7cce7b1084c21bdf3f12fde2c6ba7f"
+    },
+    {
+      "name": "03-eventi.png",
+      "width": 1284,
+      "height": 2778,
+      "sha256": "93d0af03357ce9ecad9d08ea52300938f7ebec3189e3533af3854d9f53e2a639"
+    }
+  ],
+  "app_store": {
+    "app_id": "6809232374",
+    "locale": "it-IT",
+    "gallery_count": 3,
+    "submitted": true,
+    "review_state_observed_2026_10_09": "Waiting for Review",
+    "release": "automatic_after_approval"
+  }
+}

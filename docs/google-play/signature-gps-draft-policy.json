@@ -1,0 +1,10 @@
+{
+  "signedAt": "2026-10-09T16:15:22.734Z",
+  "inputFile": "app-release.aab",
+  "outputFile": "COSMORA-Android-1.0.1-39-gps-draft-policy.aab",
+  "alias": "cosmora-upload",
+  "inputSha256": "3a34f354ee6d97e9216bec3b68308a254188a714dec763e328986a4b86576cee",
+  "signedSha256": "88088cd37c7b2e254066405f160b3a08b469659aa0343ce2f076d0325b0b375b",
+  "signedBytes": 40267015,
+  "signatureVerified": true
+}

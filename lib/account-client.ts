@@ -1,5 +1,5 @@
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { accountHttp } from '@/lib/account-http';
+import { accountHttp, AccountRequestError } from '@/lib/account-http';
 
 type AccountResponse = {
   email: string;
@@ -24,11 +24,14 @@ type AccountResponse = {
 export async function accountRequest<T = AccountResponse>(
   path: string,
   options: RequestInit = {},
+  timeoutMs = 20000,
 ): Promise<T> {
   const client = getSupabaseBrowserClient();
   if (!client) throw new Error('Accesso non disponibile. Riprova più tardi.');
   const { data, error } = await client.auth.getSession();
-  if (error || !data.session) throw new Error('Accedi per continuare.');
+  if (error) throw new Error('Accesso non disponibile. Riprova più tardi.');
+  if (!data.session)
+    throw new AccountRequestError('Accedi per continuare.', 401, 'AUTH_REQUIRED');
   const headers = new Headers(options.headers);
   headers.set('Authorization', `Bearer ${data.session.access_token}`);
   if (options.body && !(options.body instanceof FormData))
@@ -37,5 +40,5 @@ export async function accountRequest<T = AccountResponse>(
     ...options,
     headers,
     cache: 'no-store',
-  });
+  }, timeoutMs);
 }

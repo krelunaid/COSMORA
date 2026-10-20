@@ -1,0 +1,90 @@
+{
+  "createdAt": "2026-10-09T16:18:41.791Z",
+  "sourceRoot": "/Users/andreagadducci/Documents/Codex/2026-09-27/l-x20/work/COSMORA",
+  "sourceBranch": "fix/cosmora-events-languages",
+  "sourceCommit": "d24409d3be81e211c6ab844a2163ee66754b4588",
+  "sourceWorkingTree": [
+    "M android/app/build.gradle",
+    " M android/app/src/main/AndroidManifest.xml",
+    " M app/community/rules/page.tsx",
+    " M lib/terms-consent.ts",
+    "?? app/child-safety/",
+    "?? components/child-safety-content.tsx",
+    "?? docs/google-play/",
+    "?? lib/i18n/child-safety.ts",
+    "?? scripts/sign-android-release.mjs"
+  ],
+  "androidTarget": "android",
+  "aabFile": "COSMORA-Android-1.0.1-39-gps-draft-policy.aab",
+  "aabBytes": 40267015,
+  "aabSha256": "88088cd37c7b2e254066405f160b3a08b469659aa0343ce2f076d0325b0b375b",
+  "package": "com.kreluna.cosmora",
+  "versionCode": 39,
+  "versionName": "1.0.1",
+  "minSdkVersion": 24,
+  "targetSdkVersion": 36,
+  "compileSdkVersion": 36,
+  "permissions": [
+    "android.permission.INTERNET",
+    "android.permission.ACCESS_COARSE_LOCATION",
+    "android.permission.ACCESS_FINE_LOCATION",
+    "com.kreluna.cosmora.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+  ],
+  "foregroundLocation": true,
+  "backgroundLocationPermission": false,
+  "advertisingIdPermission": false,
+  "uploadCertificateSha256": "0cd0bba9991a9e9cc37cbe734854667609dcac3b2d6f90db6f5a85816554cc23",
+  "signatureVerified": true,
+  "bundletool": {
+    "version": "1.18.1",
+    "validation": "passed",
+    "validationExitCode": 0,
+    "sourceUrl": "https://github.com/google/bundletool/releases/tag/1.18.1",
+    "toolSha256": "675786493983787ffa11550bdb7c0715679a44e1643f3ff980a529e9c822595c"
+  },
+  "childSafety": {
+    "operatorConfirmed": false,
+    "status": "draft",
+    "draftWarningPackaged": true,
+    "localizedDraftLabels": 5,
+    "routePackaged": true
+  },
+  "artwork": {
+    "categoryV2": 8,
+    "licensedEvent": 12,
+    "exactMatches": 20,
+    "metadata": "artwork-verification-gps-draft-policy.json"
+  },
+  "mobileAssetsMatched": 149,
+  "iosPreservation": {
+    "filesCompared": 181,
+    "changed": 0,
+    "excludedDirectories": [
+      "Pods",
+      "build",
+      "DerivedData"
+    ]
+  },
+  "existingArtifactsPreserved": [
+    {
+      "file": "COSMORA-Android-1.0.1-39.aab",
+      "sha256": "9d3d9abf2c9e84c25d45880e640b2df9d4b934ca3c54d6b56d3207a9d560d429",
+      "unchanged": true
+    },
+    {
+      "file": "build-manifest.json",
+      "sha256": "80544bf2da25e7cf1fe7f95ee6fb06de8da2b46e7d1202d68fba48c8322ffbf2",
+      "unchanged": true
+    },
+    {
+      "file": "artwork-verification.json",
+      "sha256": "cd2de6c868a8ae7fedcb5e7c0239918055616114e63192a0569228ab22da03da",
+      "unchanged": true
+    }
+  ],
+  "uploadedToGooglePlay": false,
+  "deployed": false,
+  "testsRun": false,
+  "deviceLocationVerified": false,
+  "readiness": "Signed and package-validated local Android artifact; operator policy remains draft and no store submission or physical-device verification was performed."
+}

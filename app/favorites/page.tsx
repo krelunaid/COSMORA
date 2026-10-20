@@ -1,3 +1,5 @@
+'use client';
+import { useCommerce } from '@/components/use-commerce';
 import {
   MobileShell,
   MobileNav,
@@ -5,9 +7,10 @@ import {
 } from '@/components/mobile-shell';
 import { SavedItems } from '@/components/saved-items';
 export default function FavoritesPage() {
+  const { t } = useCommerce();
   return (
     <MobileShell>
-      <ScreenHeader title="I tuoi preferiti" back="/profile/me" />
+      <ScreenHeader title={t('favorites')} back="/profile/me" />
       <SavedItems kind="favorite" />
       <MobileNav active="profile" />
     </MobileShell>

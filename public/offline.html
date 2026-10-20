@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#090a19" />
+    <title>COSMORA — Connessione assente</title>
+    <style>
+      :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #090a19; color: #f8fafc; }
+      * { box-sizing: border-box; }
+      body { min-height: 100dvh; margin: 0; display: grid; place-items: center; padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); background: radial-gradient(ellipse at 50% 15%, #31225e 0, #111329 35%, #090a19 76%); }
+      main { width: min(100%, 400px); text-align: center; }
+      img { width: 88px; height: 88px; object-fit: contain; margin-bottom: 22px; }
+      h1 { margin: 0 0 12px; font-size: 26px; letter-spacing: -.02em; }
+      p { margin: 0 auto 26px; max-width: 320px; color: #c4c5d4; font-size: 16px; line-height: 1.55; }
+      button { min-height: 48px; padding: 0 22px; border: 0; border-radius: 14px; background: linear-gradient(100deg, #7c6cf4, #dc58c8); color: white; font-size: 16px; font-weight: 650; }
+      button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/brand/cosmora-app-icon.png" alt="COSMORA" />
+      <h1 id="title">Connessione assente</h1>
+      <p id="message">Per usare COSMORA serve una connessione a Internet. Controlla la rete e riprova.</p>
+      <button id="retry" type="button">Riprova</button>
+    </main>
+    <script>
+      const copy = {
+        it: ['Connessione assente', 'Per usare COSMORA serve una connessione a Internet. Controlla la rete e riprova.', 'Riprova'],
+        en: ['No connection', 'COSMORA needs an internet connection. Check your network and try again.', 'Try again'],
+        fr: ['Pas de connexion', 'COSMORA a besoin d’une connexion Internet. Vérifiez votre réseau et réessayez.', 'Réessayer'],
+        de: ['Keine Verbindung', 'COSMORA benötigt eine Internetverbindung. Prüfen Sie Ihr Netzwerk und versuchen Sie es erneut.', 'Erneut versuchen'],
+        es: ['Sin conexión', 'COSMORA necesita una conexión a Internet. Comprueba tu red e inténtalo de nuevo.', 'Reintentar'],
+      };
+      const language = (navigator.language || 'it').slice(0, 2).toLowerCase();
+      const text = copy[language] || copy.en;
+      document.documentElement.lang = copy[language] ? language : 'en';
+      document.getElementById('title').textContent = text[0];
+      document.getElementById('message').textContent = text[1];
+      const button = document.getElementById('retry');
+      button.textContent = text[2];
+      button.addEventListener('click', () => location.replace('https://cosmora.kreluna.it/?appBuild=28'));
+    </script>
+  </body>
+</html>

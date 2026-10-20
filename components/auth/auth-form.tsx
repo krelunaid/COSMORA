@@ -1,6 +1,22 @@
 'use client';
+import { useI18n } from '@/components/i18n-provider';
+import { accountMessages } from '@/lib/i18n/account';
+import { commerceText } from '@/lib/i18n/commerce';
+import { communityRules } from '@/lib/i18n/community-rules';
+import { authTerms } from '@/lib/i18n/auth-terms';
+import {
+  TERMS_VERSION,
+  createTermsConsent,
+  termsConsentMetadata,
+  termsConsentStore,
+  syncPendingTermsConsent,
+  setAccountDeletionLogin,
+  consumeAccountDeletionLogin,
+} from '@/lib/terms-consent';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Capacitor } from '@capacitor/core';
 import Image from 'next/image';
 import Link from '@/components/app-link';
 import {
@@ -18,25 +34,36 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
-import { signInOnIOS } from '@/lib/supabase/native-auth';
+import { signInOnAndroid, signInOnIOS } from '@/lib/supabase/native-auth';
 import { authRedirect } from '@/lib/supabase/auth-redirect';
 
 type SocialProvider = 'google' | 'apple';
-const schema = z.object({
-  email: z.email('Inserisci un indirizzo email valido.'),
-  password: z.string().min(8, 'Usa almeno 8 caratteri.'),
-  displayName: z
-    .string()
-    .trim()
-    .min(2, 'Inserisci il tuo nome pubblico.')
-    .max(80)
-    .optional(),
-});
+function authSchema(t: (typeof accountMessages)['en']) {
+  return z.object({
+    email: z.email(t.validEmail),
+    password: z.string().min(8, t.passwordLength),
+    displayName: z
+      .string()
+      .trim()
+      .min(2, t.validName)
+      .max(80, t.validName)
+      .optional(),
+  });
+}
 
 export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { locale, messages } = useI18n();
+  const t = accountMessages[locale];
+  const terms = authTerms[locale];
+  const schema = authSchema(t);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
   const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsError, setTermsError] = useState(false);
+  const termsCheckbox = useRef<HTMLInputElement>(null);
   const [providers, setProviders] = useState({ google: false, apple: false });
   const [checking, setChecking] = useState(
     Boolean(
@@ -45,6 +72,8 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
     ),
   );
   const isRegister = mode === 'register';
+  const isDeletionLogin = !isRegister && searchParams.get('purpose') === 'delete';
+  const displayedMessage = message || (status === 'idle' && searchParams.get('nativeAuth') === 'failed' ? t.socialFailed : '');
   useEffect(() => {
     const controller = new AbortController();
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -71,35 +100,57 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       });
     return () => controller.abort();
   }, []);
+  function canContinue() {
+    if (isDeletionLogin || termsAccepted) return true;
+    setTermsError(true);
+    termsCheckbox.current?.focus({ preventScroll: true });
+    termsCheckbox.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    return false;
+  }
+  function prepareConsent(source: 'email-login' | 'email-register' | SocialProvider, email?: string) {
+    setAccountDeletionLogin(isDeletionLogin);
+    if (isDeletionLogin) {
+      termsConsentStore.clearPending();
+      return null;
+    }
+    const consent = createTermsConsent(termsAccepted, locale, source);
+    if (consent) termsConsentStore.record(consent, email);
+    return consent;
+  }
   async function signInWithSocial(provider: SocialProvider) {
-    if (!providers[provider]) return;
+    if (!providers[provider] || status === 'loading' || !canContinue()) return;
     setStatus('loading');
     setMessage('');
     try {
+      prepareConsent(provider);
       const client = getSupabaseBrowserClient();
-      if (!client) throw new Error('Accesso momentaneamente non disponibile.');
-      if (await signInOnIOS(provider, client)) {
-        window.location.assign('/profile/me');
+      if (!client) throw new Error(t.unavailable);
+      const iosDestination = await signInOnIOS(provider, client);
+      if (iosDestination) {
+        router.replace(isDeletionLogin ? '/account/delete' : iosDestination);
+        return;
+      }
+      if (await signInOnAndroid(provider, client)) {
+        setStatus('idle');
+        setMessage(t.completeInBrowser);
         return;
       }
       const { error } = await client.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: authRedirect(window.location.origin, '/profile/me') },
+        options: {
+          redirectTo: authRedirect(window.location.origin, isDeletionLogin ? '/account/delete' : '/profile/me'),
+        },
       });
-      if (error)
-        throw new Error(
-          'Accesso social non riuscito. Riprova oppure usa la tua email.',
-        );
-    } catch (reason) {
-      setMessage(
-        reason instanceof Error
-          ? reason.message
-          : 'Controlla la connessione e riprova.',
-      );
+      if (error) throw new Error(t.socialFailed);
+    } catch {
+      termsConsentStore.clearPending();
+      setAccountDeletionLogin(false);
+      setMessage(t.socialFailed);
       setStatus('idle');
     }
   }
   async function submit(formData: FormData) {
+    if (status === 'loading' || !canContinue()) return;
     setStatus('loading');
     setMessage('');
     try {
@@ -109,48 +160,52 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         displayName: isRegister ? formData.get('displayName') : undefined,
       });
       if (!result.success)
-        throw new Error(
-          result.error.issues[0]?.message || 'Controlla i campi.',
-        );
+        throw new Error(result.error.issues[0]?.message || t.checkFields);
+      const consent = prepareConsent(isRegister ? 'email-register' : 'email-login', result.data.email);
       const client = getSupabaseBrowserClient();
-      if (!client) throw new Error('Accesso momentaneamente non disponibile.');
+      if (!client) throw new Error(t.unavailable);
       if (isRegister) {
         const { data, error } = await client.auth.signUp({
           email: result.data.email,
           password: result.data.password,
           options: {
-            emailRedirectTo: authRedirect(window.location.origin, '/profile/me'),
-            data: { display_name: result.data.displayName, role: 'buyer' },
+            emailRedirectTo: authRedirect(
+              window.location.origin,
+              '/profile/me',
+              Capacitor.isNativePlatform(),
+            ),
+            data: {
+              display_name: result.data.displayName,
+              role: 'buyer',
+              ...(consent ? termsConsentMetadata(consent) : {}),
+            },
           },
         });
-        if (error)
-          throw new Error(
-            'Registrazione non riuscita. Controlla i dati o riprova tra qualche minuto.',
-          );
+        if (error) throw new Error(t.registerFailed);
         if (data.session) {
-          window.location.assign('/profile/me');
+          if (consent) void syncPendingTermsConsent(client, data.session.user, true);
+          router.replace('/profile/me');
           return;
         }
-        setMessage(
-          'Controlla la tua email per confermare l’account. Se sei già registrato, torna ad Accedi o recupera la password.',
-        );
+        setMessage(t.confirmEmail);
         setStatus('success');
         return;
       }
-      const { error } = await client.auth.signInWithPassword({
+      const { data, error } = await client.auth.signInWithPassword({
         email: result.data.email,
         password: result.data.password,
       });
-      if (error)
-        throw new Error(
-          'Accesso non riuscito. Controlla email e password e conferma il tuo indirizzo email.',
-        );
-      window.location.assign('/profile/me');
+      if (error) throw new Error(t.loginFailed);
+      if (consent && data.user) void syncPendingTermsConsent(client, data.user, true);
+      consumeAccountDeletionLogin();
+      router.replace(isDeletionLogin || data.user?.app_metadata?.deletion_pending ? '/account/delete' : '/profile/me');
     } catch (reason) {
+      termsConsentStore.clearPending();
+      setAccountDeletionLogin(false);
       setMessage(
-        reason instanceof Error
+        reason instanceof Error && Object.values(t).includes(reason.message)
           ? reason.message
-          : 'Controlla la connessione e riprova.',
+          : t.connectionFailed,
       );
       setStatus('idle');
     }
@@ -160,7 +215,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       <div className="mx-auto grid max-w-[1040px] overflow-hidden rounded-[28px] border border-white/10 bg-[#0d0d20] shadow-2xl lg:grid-cols-2">
         <section className="relative hidden min-h-[700px] overflow-hidden p-10 lg:flex lg:flex-col lg:justify-between">
           <Image
-            src="/cosmora-hero.jpg"
+            src="/editorial/hero.svg"
             alt=""
             fill
             sizes="520px"
@@ -172,19 +227,19 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
             className="relative flex items-center gap-2 py-3 text-base"
           >
             <ArrowLeft className="size-5" />
-            Torna a COSMORA
+            {t.backCosmora}
           </Link>
           <div className="relative">
             <p className="mb-5 text-sm uppercase tracking-[.2em] text-pink-300">
-              Il tuo universo, le tue passioni
+              {t.universe}
             </p>
             <h2 className="text-4xl font-semibold leading-tight">
-              Trova la tua crew.
+              {t.findCrew}
               <br />
-              Dai vita alle tue idee.
+              {t.ideas}
             </h2>
             <p className="mt-5 text-base leading-relaxed text-white/80">
-              Cosplay, collezioni e incontri. Tutto comincia dalle persone.
+              {t.peopleFirst}
             </p>
           </div>
         </section>
@@ -195,17 +250,41 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
               <span className="brand-wordmark !text-2xl">COSMORA</span>
             </Link>
             <h1 className="text-3xl font-semibold tracking-tight">
-              {isRegister ? 'Entra nel tuo universo' : 'Bentornato'}
+              {isDeletionLogin ? terms.deleteTitle : isRegister ? t.enterUniverse : messages.auth.welcome}
             </h1>
             <p className="mt-3 text-base leading-relaxed text-white/70">
-              {isRegister
-                ? 'Un account per comprare, creare e conoscere la community.'
-                : 'Accedi per ritrovare annunci, messaggi e persone.'}
+              {isDeletionLogin ? terms.deleteDescription : isRegister ? t.registerDescription : t.loginDescription}
             </p>
-            <div
-              className="mt-7 space-y-3"
-              aria-label="Accesso con altri account"
-            >
+            {!isDeletionLogin && (
+              <section aria-labelledby="auth-terms-title" className="mt-6 space-y-3 rounded-xl border border-white/20 bg-white/5 p-4 text-sm leading-relaxed">
+                <h2 id="auth-terms-title" className="text-base font-semibold">{terms.title}</h2>
+                <p>{terms.summary}</p>
+                <p>{terms.moderation}</p>
+                <Link href="/community/rules" className="inline-flex min-h-11 items-center text-pink-300 underline">
+                  {terms.read}
+                </Link>
+                <p className="text-white/60">{terms.version} {TERMS_VERSION}</p>
+                <label className="flex cursor-pointer items-start gap-3 text-base">
+                  <input
+                    ref={termsCheckbox}
+                    type="checkbox"
+                    name="termsConsent"
+                    checked={termsAccepted}
+                    disabled={status === 'loading'}
+                    aria-invalid={termsError}
+                    aria-describedby={termsError ? 'auth-terms-error' : undefined}
+                    onChange={(event) => {
+                      setTermsAccepted(event.target.checked);
+                      if (event.target.checked) setTermsError(false);
+                    }}
+                    className="mt-1 size-5 shrink-0"
+                  />
+                  <span>{terms.accept}</span>
+                </label>
+                {termsError && <p id="auth-terms-error" role="alert" className="text-rose-300">{terms.required}</p>}
+              </section>
+            )}
+            <div className="mt-7 space-y-3" aria-label={t.socialLabel}>
               {(['google', 'apple'] as const).map((provider) => (
                 <Button
                   key={provider}
@@ -233,13 +312,12 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                   )}
                   <span className="flex flex-col items-start">
                     <span>
-                      Continua con {provider === 'google' ? 'Google' : 'Apple'}
+                      {t.continueWith}{' '}
+                      {provider === 'google' ? 'Google' : 'Apple'}
                     </span>
                     {!providers[provider] && (
                       <span className="text-sm font-normal">
-                        {checking
-                          ? 'Verifica disponibilità…'
-                          : 'Non ancora attivo'}
+                        {checking ? t.checking : t.notActive}
                       </span>
                     )}
                   </span>
@@ -248,40 +326,43 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
             </div>
             <div className="my-6 flex items-center gap-3 text-sm text-white/60">
               <span className="h-px flex-1 bg-white/15" />
-              oppure con email
+              {t.orEmail}
               <span className="h-px flex-1 bg-white/15" />
             </div>
-            <form action={submit} className="space-y-4">
+            <form onSubmit={(event) => {
+              event.preventDefault();
+              void submit(new FormData(event.currentTarget));
+            }} className="space-y-4">
               {isRegister && (
                 <Field
                   icon={UserRound}
-                  label="Nome pubblico"
+                  label={messages.auth.name}
                   name="displayName"
                 >
                   <Input
                     id="displayName"
                     name="displayName"
                     autoComplete="nickname"
-                    placeholder="Come ti chiami nella community?"
+                    placeholder={t.nickname}
                     minLength={2}
                     maxLength={80}
                     required
                   />
                 </Field>
               )}
-              <Field icon={Mail} label="Email" name="email">
+              <Field icon={Mail} label={messages.auth.email} name="email">
                 <Input
                   id="email"
                   name="email"
                   type="email"
                   autoComplete="email"
-                  placeholder="nome@gmail.com"
+                  placeholder={t.emailPlaceholder}
                   required
                 />
               </Field>
               <div>
                 <Label htmlFor="password" className="mb-2 text-base">
-                  Password
+                  {messages.auth.password}
                 </Label>
                 <div className="relative">
                   <LockKeyhole className="pointer-events-none absolute left-3 top-4 size-5 text-white/50" />
@@ -292,7 +373,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                     autoComplete={
                       isRegister ? 'new-password' : 'current-password'
                     }
-                    placeholder="Almeno 8 caratteri"
+                    placeholder={t.passwordPlaceholder}
                     minLength={8}
                     required
                     className="!h-13 rounded-xl pl-10 pr-12 !text-base"
@@ -300,9 +381,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    aria-label={
-                      showPassword ? 'Nascondi password' : 'Mostra password'
-                    }
+                    aria-label={showPassword ? t.hidePassword : t.showPassword}
                     className="absolute right-0 top-0 flex size-13 items-center justify-center text-white/65"
                   >
                     {showPassword ? (
@@ -318,7 +397,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                   href="/auth/recovery"
                   className="block py-1 text-right text-sm text-pink-300"
                 >
-                  Password dimenticata?
+                  {t.forgotPassword}
                 </Link>
               )}
               <Button
@@ -330,26 +409,48 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
                   <LoaderCircle className="animate-spin" />
                 )}
                 {status === 'loading'
-                  ? 'Attendi…'
+                  ? t.wait
                   : isRegister
-                    ? 'Crea account'
-                    : 'Accedi'}
+                    ? messages.auth.register
+                    : messages.auth.signIn}
               </Button>
-              {message && (
+              {displayedMessage && (
                 <output className="block rounded-xl border border-white/20 p-4 text-base leading-relaxed text-white/85">
-                  {message}
+                  {displayedMessage}
                 </output>
               )}
             </form>
-            <p className="mt-7 text-center text-base text-white/70">
-              {isRegister ? 'Hai già un account?' : 'Sei nuovo qui?'}{' '}
+            {isDeletionLogin ? (
+              <Link href="/auth/login" className="mt-7 block min-h-11 text-center text-pink-300 underline">{terms.standardLogin}</Link>
+            ) : <p className="mt-7 text-center text-base text-white/70">
+              {isRegister ? t.alreadyAccount : t.newHere}{' '}
               <Link
                 href={isRegister ? '/auth/login' : '/auth/register'}
                 className="font-semibold text-pink-300"
               >
-                {isRegister ? 'Accedi' : 'Crea un account'}
+                {isRegister ? messages.auth.signIn : messages.auth.register}
               </Link>
-            </p>
+            </p>}
+            {!isRegister && !isDeletionLogin && (
+              <Link href="/auth/login?purpose=delete" className="mt-4 block min-h-11 text-center text-sm text-pink-300 underline">{terms.deleteLogin}</Link>
+            )}
+            <nav className="mt-4 flex flex-wrap justify-center gap-x-6 text-sm text-pink-300">
+              <Link href="/community/rules" className="flex min-h-11 items-center underline">
+                {communityRules[locale].title}
+              </Link>
+              <Link
+                href="/privacy"
+                className="flex min-h-11 items-center underline"
+              >
+                {commerceText(locale, 'privacy')}
+              </Link>
+              <Link
+                href="/support"
+                className="flex min-h-11 items-center underline"
+              >
+                {t.support}
+              </Link>
+            </nav>
           </div>
         </section>
       </div>

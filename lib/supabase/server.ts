@@ -21,5 +21,10 @@ export async function requireAuthenticatedUser(request: Request, allowDeleting =
   const { data, error } = await admin.auth.getUser(token);
   if (error || !data.user) return null;
   if (data.user.app_metadata?.deletion_pending && !allowDeleting) return null;
+  if (!allowDeleting) {
+    const moderation = await admin.from('user_moderation').select('user_id').eq('user_id', data.user.id).eq('suspended', true).maybeSingle();
+    // Fail closed if the required moderation migration is not installed.
+    if (moderation.error || moderation.data) return null;
+  }
   return { admin, user: data.user };
 }

@@ -1,4 +1,6 @@
 'use client';
+import { useI18n } from '@/components/i18n-provider';
+import { communityTranslator } from '@/lib/i18n/community';
 
 import { useEffect, useRef, useState } from 'react';
 import { ImagePlus, Trash2, Video } from 'lucide-react';
@@ -7,7 +9,6 @@ import Image from 'next/image';
 import { normalizeCommunityMediaFile } from '@/lib/community-media-client';
 import {
   COMMUNITY_MEDIA_ACCEPT,
-  COMMUNITY_MEDIA_LIMIT_ERROR,
   MAX_COMMUNITY_MEDIA_FILES,
   isAllowedCommunityMediaFile,
   isVideoMedia,
@@ -29,6 +30,8 @@ export function CommunityMediaPicker({
   error: string;
   onError: (message: string) => void;
 }) {
+  const { locale } = useI18n();
+  const t = communityTranslator(locale);
   const inputRef = useRef<HTMLInputElement>(null);
   const itemsRef = useRef<SelectedMedia[]>([]);
   const [items, setItems] = useState<SelectedMedia[]>([]);
@@ -49,6 +52,7 @@ export function CommunityMediaPicker({
   async function addFiles(list: File[] | FileList) {
     const incoming = Array.from(list);
     if (!incoming.length) return;
+    if (busy) return;
     setBusy(true);
     try {
       const remaining = Math.max(
@@ -56,16 +60,27 @@ export function CommunityMediaPicker({
         MAX_COMMUNITY_MEDIA_FILES - itemsRef.current.length,
       );
       const normalized: File[] = [];
+      let rejected = incoming.length > remaining;
       for (const file of incoming.slice(0, remaining)) {
         const next = await normalizeCommunityMediaFile(file);
         if (!isAllowedCommunityMediaFile(next)) {
-          onError(COMMUNITY_MEDIA_LIMIT_ERROR);
+          rejected = true;
+          onError(
+            t(
+              'Inserisci fino a 8 foto o video supportati (massimo 25 MB ciascuno).',
+            ),
+          );
           continue;
         }
         normalized.push(next);
       }
       if (!normalized.length) {
-        if (incoming.length) onError(COMMUNITY_MEDIA_LIMIT_ERROR);
+        if (incoming.length)
+          onError(
+            t(
+              'Inserisci fino a 8 foto o video supportati (massimo 25 MB ciascuno).',
+            ),
+          );
         return;
       }
       commit([
@@ -77,10 +92,18 @@ export function CommunityMediaPicker({
           video: isVideoMedia(file),
         })),
       ]);
-      onError(incoming.length > remaining ? COMMUNITY_MEDIA_LIMIT_ERROR : '');
+      onError(
+        rejected
+          ? t(
+              'Inserisci fino a 8 foto o video supportati (massimo 25 MB ciascuno).',
+            )
+          : '',
+      );
     } catch {
       onError(
-        'Impossibile preparare questa foto. Prova una copia JPG oppure un’altra immagine.',
+        t(
+          'Impossibile preparare questa foto. Prova una copia JPG oppure un’altra immagine.',
+        ),
       );
     } finally {
       setBusy(false);
@@ -102,7 +125,7 @@ export function CommunityMediaPicker({
       accept={COMMUNITY_MEDIA_ACCEPT}
       multiple
       disabled={busy || !canAddMore}
-      aria-label="Foto o video"
+      aria-label={t('Foto o video')}
       onChange={(event) => {
         const files = Array.from(event.target.files ?? []);
         event.target.value = '';
@@ -116,7 +139,7 @@ export function CommunityMediaPicker({
   return (
     <div className="space-y-3">
       <p aria-live="polite" className="text-base text-white/75">
-        Foto o video · {items.length}/{MAX_COMMUNITY_MEDIA_FILES}
+        {t('Foto o video')} · {items.length}/{MAX_COMMUNITY_MEDIA_FILES}
       </p>
       <div className="relative min-h-44 overflow-hidden rounded-2xl border border-dashed border-violet-400/40 bg-violet-500/5">
         {items.length === 0 ? (
@@ -124,11 +147,11 @@ export function CommunityMediaPicker({
             <div className="relative grid aspect-square place-items-center rounded-xl border border-dashed border-pink-400/50">
               <span className="pointer-events-none text-center text-sm text-white/75">
                 <ImagePlus className="mx-auto mb-2 size-7 text-violet-300" />
-                <b className="block text-base text-white">Aggiungi</b>
-                <span>Foto o video</span>
+                <b className="block text-base text-white">{t('Aggiungi')}</b>
+                <span>{t('Foto o video')}</span>
                 {busy && (
                   <small className="mt-2 block text-violet-200">
-                    Preparazione anteprima…
+                    {t('Preparazione anteprima…')}
                   </small>
                 )}
               </span>
@@ -138,7 +161,7 @@ export function CommunityMediaPicker({
               aria-hidden="true"
               className="grid aspect-square place-items-center rounded-xl border border-white/15 bg-white/[0.025] text-sm text-white/60"
             >
-              Le tue anteprime
+              {t('Le tue anteprime')}
             </div>
           </div>
         ) : (
@@ -158,7 +181,7 @@ export function CommunityMediaPicker({
                 ) : (
                   <Image
                     src={item.url}
-                    alt={item.file.name || 'Anteprima'}
+                    alt={item.file.name || t('Anteprima')}
                     fill
                     unoptimized
                     sizes="140px"
@@ -170,7 +193,7 @@ export function CommunityMediaPicker({
                 )}
                 <button
                   type="button"
-                  aria-label={`Rimuovi ${item.file.name || 'file'}`}
+                  aria-label={`${t('Rimuovi')} ${item.file.name || 'file'}`}
                   onClick={() => removeItem(item.id)}
                   className="absolute right-1 top-1 z-20 grid size-11 place-items-center rounded-full bg-black/70"
                 >
@@ -182,7 +205,7 @@ export function CommunityMediaPicker({
               <div className="relative grid aspect-square place-items-center rounded-xl border border-dashed border-pink-400/50 bg-violet-500/10 text-base text-violet-200">
                 <span className="pointer-events-none text-center">
                   <ImagePlus className="mx-auto mb-2 size-8" />
-                  {busy ? 'Preparazione…' : 'Aggiungi altre'}
+                  {busy ? t('Preparazione…') : t('Aggiungi altre')}
                 </span>
                 {fileInput}
               </div>

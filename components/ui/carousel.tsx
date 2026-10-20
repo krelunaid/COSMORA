@@ -8,6 +8,8 @@ import useEmblaCarousel, {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { useI18n } from '@/components/i18n-provider';
+import { uiControls } from '@/lib/i18n/ui-controls';
 
 type CarouselApi = UseEmblaCarouselType[1];
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
@@ -51,6 +53,7 @@ function Carousel({
   children,
   ...props
 }: React.ComponentProps<'div'> & CarouselProps) {
+  const { locale } = useI18n();
   const [carouselRef, api] = useEmblaCarousel(
     {
       ...opts,
@@ -122,7 +125,7 @@ function Carousel({
         onKeyDownCapture={handleKeyDown}
         className={cn('relative', className)}
         role="region"
-        aria-roledescription="carousel"
+        aria-roledescription={uiControls[locale].carousel}
         data-slot="carousel"
         {...props}
       >
@@ -154,12 +157,13 @@ function CarouselContent({ className, ...props }: React.ComponentProps<'div'>) {
 }
 
 function CarouselItem({ className, ...props }: React.ComponentProps<'div'>) {
+  const { locale } = useI18n();
   const { orientation } = useCarousel();
 
   return (
     <div
       role="group"
-      aria-roledescription="slide"
+      aria-roledescription={uiControls[locale].slide}
       data-slot="carousel-item"
       className={cn(
         'min-w-0 shrink-0 grow-0 basis-full',
@@ -177,6 +181,7 @@ function CarouselPrevious({
   size = 'icon-sm',
   ...props
 }: React.ComponentProps<typeof Button>) {
+  const { locale } = useI18n();
   const { orientation, scrollPrev, canScrollPrev } = useCarousel();
 
   return (
@@ -196,7 +201,7 @@ function CarouselPrevious({
       {...props}
     >
       <ChevronLeftIcon className="cn-rtl-flip" />
-      <span className="sr-only">Previous slide</span>
+      <span className="sr-only">{uiControls[locale].previousSlide}</span>
     </Button>
   );
 }
@@ -207,6 +212,7 @@ function CarouselNext({
   size = 'icon-sm',
   ...props
 }: React.ComponentProps<typeof Button>) {
+  const { locale } = useI18n();
   const { orientation, scrollNext, canScrollNext } = useCarousel();
 
   return (
@@ -226,7 +232,7 @@ function CarouselNext({
       {...props}
     >
       <ChevronRightIcon className="cn-rtl-flip" />
-      <span className="sr-only">Next slide</span>
+      <span className="sr-only">{uiControls[locale].nextSlide}</span>
     </Button>
   );
 }

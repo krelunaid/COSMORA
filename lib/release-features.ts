@@ -1,4 +1,4 @@
-// Enables the explicitly labelled TEST checkout only. getStripe() rejects live keys.
-// This flag does not authorize real sales, shipping, deposits or rentals.
-export const paymentsEnabled = true;
+// Store releases expose listings and seller contact without the TEST checkout.
+// Existing order records remain accessible; getStripe() still rejects live keys.
+export const paymentsEnabled = false;
 export const rentalsEnabled = false;

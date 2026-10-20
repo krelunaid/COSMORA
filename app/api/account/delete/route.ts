@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
+import { AppleRevocationError, prepareAppleRevocation, type AppleRevocationPlan, type AppleRevocationStatus } from '@/lib/apple-auth';
 
 export async function DELETE(request: Request) {
   const auth = await requireAuthenticatedUser(request, true);
@@ -13,10 +14,33 @@ export async function DELETE(request: Request) {
   if (live.error) return NextResponse.json({ error: 'Verifica dei dati non riuscita. Nessun dato è stato eliminato.' }, { status: 503 });
   if (live.data.length) return NextResponse.json({ error: 'Sono presenti operazioni reali da gestire. Contatta info@kreluna.it con oggetto [COSMORA] Eliminazione account per completare la richiesta.' }, { status: 409 });
 
+  let applePlan: AppleRevocationPlan;
+  try {
+    applePlan = await prepareAppleRevocation({
+      identities: user.identities ?? [],
+      refreshToken: 'appleRefreshToken' in input ? input.appleRefreshToken : undefined,
+      alreadyRevoked: user.app_metadata?.deletion_pending === true && user.app_metadata?.apple_revoked_for_deletion === true,
+    });
+  } catch (reason) {
+    if (reason instanceof AppleRevocationError)
+      return NextResponse.json({ error: reason.message, code: reason.code }, { status: reason.status, headers: { 'Cache-Control': 'no-store' } });
+    return NextResponse.json({ error: 'Verifica Apple non disponibile. Nessun dato è stato eliminato.', code: 'APPLE_REVOCATION_UNAVAILABLE' }, { status: 503 });
+  }
+
   // A failed attempt is resumable; other app mutations reject this account.
   const pending = await admin.auth.admin.updateUserById(user.id, { app_metadata: { ...user.app_metadata, deletion_pending: true } });
   if (pending.error) return NextResponse.json({ error: 'Impossibile avviare l’eliminazione. Riprova.' }, { status: 503 });
   try {
+    let appleRevocation: AppleRevocationStatus = applePlan.status === 'ready' ? 'revoked' : applePlan.status;
+    if (applePlan.revoke) {
+      await applePlan.revoke();
+      // Preserve successful external revocation if storage cleanup needs a retry.
+      const recorded = await admin.auth.admin.updateUserById(user.id, { app_metadata: {
+        ...user.app_metadata, deletion_pending: true, apple_revoked_for_deletion: true,
+      } });
+      if (recorded.error) throw recorded.error;
+      appleRevocation = 'revoked';
+    }
     // Storage paths are exclusively rooted in the authenticated UUID. Listing
     // from offset zero after each removal also covers orphaned upload files.
     for (const bucket of ['listing-images', 'community-media']) {
@@ -56,8 +80,10 @@ export async function DELETE(request: Request) {
     // memberships and owned crews. Storage must be cleared first.
     const deleted = await admin.auth.admin.deleteUser(user.id);
     if (deleted.error) throw deleted.error;
-    return NextResponse.json({ deleted: true, appleManualRevocation: user.identities?.some((identity) => identity.provider === 'apple') ?? false }, { headers: { 'Cache-Control': 'no-store' } });
-  } catch {
+    return NextResponse.json({ deleted: true, appleRevocation, appleManualRevocation: appleRevocation === 'manual-required' }, { headers: { 'Cache-Control': 'no-store' } });
+  } catch (reason) {
+    if (reason instanceof AppleRevocationError)
+      return NextResponse.json({ error: reason.message, code: reason.code }, { status: reason.status, headers: { 'Cache-Control': 'no-store' } });
     return NextResponse.json({ error: 'Eliminazione non completata. Alcuni dati potrebbero essere già stati rimossi. Riprova da questa pagina; se il problema continua scrivi a info@kreluna.it con oggetto [COSMORA] Eliminazione account.' }, { status: 503 });
   }
 }

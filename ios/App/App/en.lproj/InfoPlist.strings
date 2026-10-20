@@ -1,0 +1,5 @@
+"NSCameraUsageDescription" = "COSMORA uses the camera to take photos and videos for your community posts.";
+"NSPhotoLibraryUsageDescription" = "COSMORA accesses your photos so you can attach them to community posts.";
+"NSPhotoLibraryAddUsageDescription" = "COSMORA can save photos you take in the app to your photo library.";
+"NSMicrophoneUsageDescription" = "COSMORA uses the microphone when you record a video for the community.";
+"NSLocationWhenInUseUsageDescription" = "COSMORA uses your location when you select “Where am I” to show your position on the event map.";

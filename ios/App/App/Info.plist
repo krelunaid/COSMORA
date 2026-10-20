@@ -4,6 +4,14 @@
 <dict>
   <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>it</string>
+		<string>fr</string>
+		<string>de</string>
+		<string>es</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -26,7 +34,10 @@
 	<array>
 		<dict>
 			<key>CFBundleURLSchemes</key>
-			<array><string>com.kreluna.cosmora</string></array>
+			<array>
+				<string>it.kreluna.cosmora</string>
+				<string>com.kreluna.cosmora</string>
+			</array>
 		</dict>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
@@ -72,13 +83,15 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>COSMORA uses your location when you select “Where am I” to show your position on the event map.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>COSMORA usa la fotocamera per scattare foto e video da pubblicare nella Community.</string>
+	<string>COSMORA uses the camera to take photos and videos for your community posts.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>COSMORA accede alle tue foto per allegarle ai post della Community.</string>
+	<string>COSMORA accesses your photos so you can attach them to community posts.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>COSMORA può salvare nella libreria le foto che scatti nell’app.</string>
+	<string>COSMORA can save photos you take in the app to your photo library.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>COSMORA usa il microfono quando registri un video per la Community.</string>
+	<string>COSMORA uses the microphone when you record a video for the community.</string>
 </dict>
 </plist>

@@ -1,0 +1,3 @@
+Ahora puedes elegir italiano, inglés, francés, alemán o español al iniciar la aplicación por primera vez y cambiar el idioma en cualquier momento desde el Perfil.
+
+Mejoradas las traducciones de los mensajes de error de anuncios, vendedores y Comunidad, así como de los controles y las pantallas de moderación.

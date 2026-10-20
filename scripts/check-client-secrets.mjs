@@ -13,7 +13,7 @@ function scan(directory) {
       hits.push(path);
   }
 }
-scan('dist/client');
+scan(process.argv[2] ?? 'dist/client');
 if (hits.length) {
   console.error(
     'Build blocked: secret-like credentials detected in client files:',
