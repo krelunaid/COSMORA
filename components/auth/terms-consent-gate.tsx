@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import type { Session, User } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from '@/components/app-link';
 import { useI18n } from '@/components/i18n-provider';
@@ -9,6 +9,7 @@ import { accountMessages } from '@/lib/i18n/account';
 import { commerceText } from '@/lib/i18n/commerce';
 import { authTerms } from '@/lib/i18n/auth-terms';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSessionWithTimeout, observeSession } from '@/lib/supabase/session';
 import {
   TERMS_VERSION,
   createTermsConsent,
@@ -41,41 +42,35 @@ export function TermsConsentGate({ children }: { children: ReactNode }) {
   useEffect(() => {
     const client = getSupabaseBrowserClient();
     if (!client) return;
-    let active = true;
-    let authEvents = 0;
-    function apply(session: Session | null) {
-      if (!active) return;
+    return observeSession(client, (session, event) => {
+      if (event === 'SIGNED_OUT') {
+        termsConsentStore.clearPending();
+        setAccepted(false); setError(''); setBusy(false);
+      }
       const userId = session?.user.id ?? null;
       if (userIdRef.current !== userId) { setAccepted(false); setError(''); }
       userIdRef.current = userId;
       setUser(session?.user ?? null);
       setSessionError(false);
       setReady(true);
-    }
-    const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
-      authEvents++;
-      if (event === 'SIGNED_OUT') {
-        termsConsentStore.clearPending();
-        if (active) { setAccepted(false); setError(''); setBusy(false); }
-      }
-      apply(session);
+    }, () => {
+      setSessionError(true);
+      setReady(true);
     });
-    const initialEvents = authEvents;
-    void client.auth.getSession().then(({ data, error: reason }) => {
-      if (!active || initialEvents !== authEvents) return;
-      if (reason) { setSessionError(true); setReady(true); }
-      else apply(data.session);
-    }).catch(() => {
-      if (active && initialEvents === authEvents) { setSessionError(true); setReady(true); }
-    });
-    return () => { active = false; subscription.unsubscribe(); };
   }, [retry]);
 
   async function browseAsGuest() {
     setBusy(true);
     setError('');
     try {
-      const result = await getSupabaseBrowserClient()?.auth.signOut({ scope: 'local' });
+      const client = getSupabaseBrowserClient();
+      // Finish the bounded read before starting a destructive auth operation.
+      // Never time out a queued sign-out that could later clear a new login.
+      if (client) {
+        const session = await getSessionWithTimeout(client);
+        if (session.error) throw session.error;
+      }
+      const result = client ? await client.auth.signOut({ scope: 'local' }) : null;
       if (result?.error) throw result.error;
       termsConsentStore.clearPending();
       setUser(null);
@@ -106,12 +101,13 @@ export function TermsConsentGate({ children }: { children: ReactNode }) {
   if (ready && !sessionError && (!user || hasCurrentTermsReceipt(user))) return children;
 
   return (
-    <main className="min-h-dvh bg-[#090a19] px-5 py-10 text-white">
+    <main className="min-h-dvh bg-[#090a19] px-5 pb-10 pt-[calc(env(safe-area-inset-top)+2.5rem)] text-white">
       <section className="mx-auto max-w-lg space-y-5 rounded-2xl border border-white/15 bg-[#101122] p-6 text-base leading-relaxed">
-        {!ready ? <output>{copy.checkingSession}</output> : sessionError ? (
+        {!ready ? <output aria-live="polite">{copy.checkingSession}</output> : sessionError ? (
           <>
             <p role="alert">{copy.sessionError}</p>
             <button type="button" onClick={() => { setReady(false); setRetry((value) => value + 1); }} className="min-h-12 rounded-xl bg-violet-600 px-5">{copy.retry}</button>
+            <Link href="/auth/login" className="block min-h-11 text-pink-300 underline">{copy.standardLogin}</Link>
           </>
         ) : (
           <>

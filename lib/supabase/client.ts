@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { Capacitor } from '@capacitor/core';
 import { syncPendingTermsConsent } from '../terms-consent.ts';
+import { createAuthFetch } from './auth-fetch.ts';
 
 let browserClient: SupabaseClient | null = null;
 
@@ -14,6 +15,7 @@ export function getSupabaseBrowserClient() {
     let returningFromAuth = !native && typeof window !== 'undefined' && window.location.pathname !== '/auth/recovery' &&
       (/(?:^#|&)access_token=/.test(window.location.hash) || new URLSearchParams(window.location.search).has('code'));
     browserClient = createClient(url, anonKey, {
+      global: { fetch: createAuthFetch(url) },
       auth: {
         persistSession: true,
         autoRefreshToken: true,
@@ -28,7 +30,7 @@ export function getSupabaseBrowserClient() {
       if (session && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN')) {
         const allowUnbound = returningFromAuth;
         returningFromAuth = false;
-        // Supabase auth callbacks run under a lock; metadata sync must start later.
+        // Defer metadata requests to avoid re-entering auth during its event callback.
         setTimeout(() => { void syncPendingTermsConsent(client, session.user, allowUnbound); }, 0);
       }
     });

@@ -7,6 +7,7 @@ import Link from '@/components/app-link';
 import { MobileNav, MobileShell } from '@/components/mobile-shell';
 import { accountHttp, AccountRequestError } from '@/lib/account-http';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getSessionWithTimeout } from '@/lib/supabase/session';
 import { orderStatusLabel } from '@/lib/order-status';
 import { useBlockedContent } from '@/components/use-blocked-content';
 import { BlockedContentNotice } from '@/components/blocked-content-notice';
@@ -45,7 +46,8 @@ export default function RealInbox() {
     let active = true;
     const controller = new AbortController();
     void (async () => {
-      const session = await getSupabaseBrowserClient()?.auth.getSession();
+      const client = getSupabaseBrowserClient();
+      const session = client ? await getSessionWithTimeout(client, { signal: controller.signal }) : null;
       if (session?.error) throw session.error;
       if (!session?.data.session) throw new AccountRequestError('Accedi per continuare.', 401, 'AUTH_REQUIRED');
       const actor = session.data.session.user.id;

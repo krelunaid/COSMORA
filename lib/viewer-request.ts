@@ -1,11 +1,12 @@
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { accountHttp, AccountRequestError } from '@/lib/account-http';
+import { getSessionWithTimeout } from '@/lib/supabase/session';
 
 /** Bind a private mutation to the account that was viewing its form. */
 export async function viewerRequest<T = unknown>(path: string, viewerId: string, options: RequestInit) {
   const client = getSupabaseBrowserClient();
   if (!viewerId || !client) throw new AccountRequestError('Accedi per continuare.', 401, 'AUTH_REQUIRED');
-  const { data, error } = await client.auth.getSession();
+  const { data, error } = await getSessionWithTimeout(client, { signal: options.signal ?? undefined });
   if (error) throw new Error('Accesso non disponibile. Riprova più tardi.');
   if (data.session?.user.id !== viewerId)
     throw new AccountRequestError('Accedi per continuare.', 401, 'AUTH_REQUIRED');
