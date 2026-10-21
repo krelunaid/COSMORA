@@ -4,9 +4,11 @@ Prepared 21–22 October 2026. iOS candidate **1.0.4 (43)**, bundle `it.kreluna.
 
 ## Scope and observed failure
 
-The user reports that opening Messages in the App Store installation leaves the app on “Verifica della sessione…”. The public App Store lookup for app 6809232374 reported version 1.0.3 (released 18 October). This hotfix starts from `81dc23e`, the 1.0.3 source, and does not include pending VIECC presentation changes.
+The user reports that opening Messages in the App Store installation leaves the app on “Verifica della sessione…”. They subsequently clarified that this happens when reopening the app after it has remained closed for a while. The public App Store lookup for app 6809232374 reported version 1.0.3 (released 18 October). This hotfix starts from `81dc23e`, the 1.0.3 source, and does not include pending VIECC presentation changes.
 
 The terms gate previously waited indefinitely for both `getSession()` and the initial auth event. With the installed Supabase SDK, both can wait on the same stalled refresh request. The underlying request could also stall while reading its response body. This reproduces the reported screen; no logs from the user's physical iPhone were available to prove its exact network failure.
+
+The native app already stops automatic refresh while inactive and restarts it when active. The installed SDK schedules an immediate refresh check on that restart. Capacitor also reloads the WebView after iOS terminates its content process; that path remounts the session gate. Both can require a stored, expired session to refresh. The hotfix bounds that Auth transport and the bootstrap read. A real physical-device background/resume observation remains necessary after installing the new build; the exact iPhone suspension or process-termination event is not known.
 
 ## Changes
 
