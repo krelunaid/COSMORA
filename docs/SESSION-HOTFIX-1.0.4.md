@@ -1,6 +1,6 @@
 # COSMORA session recovery hotfix
 
-Prepared 21–22 October 2026. iOS candidate **1.0.4 (43)**, bundle `it.kreluna.cosmora`.
+Prepared 21–22 October 2026. iOS candidate **1.0.4 (43)**, bundle `it.kreluna.cosmora`; Android candidate **1.0.4 (42)**, package `com.kreluna.cosmora`.
 
 ## Scope and observed failure
 
@@ -34,9 +34,23 @@ Logs and screenshots are in ignored `outputs/session-hotfix/`. Signed artifact: 
 
 IPA SHA-256: `29beb16b3796b2d6a984b965f219cc5b19261a57227fa1c2b55fdfaeceac8b6b`.
 
+## Android artifact
+
+- The authenticated Play Console inspection on 22 October showed production version 1.0.3, code 40, and bundles 39 and 40. Code 42 was chosen to avoid reusing the obsolete local VIECC candidate with code 41.
+- Native sync used the existing hotfix `dist/mobile`; no VIECC changes were added. Local debug and release builds succeeded.
+- Signed AAB: `outputs/session-hotfix/COSMORA-session-hotfix-Android-1.0.4-42.aab` (41,453,023 bytes).
+- SHA-256: `e299efeeb0ff528e31c4e4d5b72afe76caaa111827be3b14cf631008877f3cc2`.
+- Public signing metadata: `outputs/session-hotfix/COSMORA-session-hotfix-Android-1.0.4-42.json`.
+- The manifest inside the signed AAB confirms `com.kreluna.cosmora`, version name `1.0.4`, version code `42` and compile SDK 36.
+- `jarsigner` verified the signature. Upload certificate SHA-256: `0cd0bba9991a9e9cc37cbe734854667609dcac3b2d6f90db6f5a85816554cc23`. It matches the local archived code-40 AAB; this comparison does not independently verify the certificate configured in Play Console.
+- All 161 files from `dist/mobile` match their packaged Android assets byte for byte. The Capacitor configuration has no hosted `server.url`.
+- Android preparation left the 164 iOS public/configuration files unchanged. Their aggregate SHA-256 remains `a99715454634ab86bf49d824a6b6e3642d60ee783ad3292d9cea5961442eb467`, calculated from sorted relative paths followed by each file's bytes under `ios/App/App/public` and `ios/App/App/capacitor.config.json`.
+
 ## Delivery status
 
-**Prepared locally only; not uploaded, submitted or released.** App Store Connect currently requires the operator to sign in. The maximum previously identified local build was 42; verify the candidate version/build in the authenticated console before uploading 43. Export used a separate plist with `destination=export`; the repository's `ios/ExportOptions.plist` uses `destination=upload` and must not be used for a preparation-only export.
+**Android upload started on 22 October; successful receipt and processing are not yet confirmed.** The operator has opened a new Play Console release and entered release notes in five languages. This record does not establish submission for review or public availability.
+
+The iOS artifact above was verified during local preparation; its subsequent store delivery is tracked separately. The maximum previously identified local iOS build was 42. Export used a separate plist with `destination=export`; the repository's `ios/ExportOptions.plist` uses `destination=upload` and must not be used for a preparation-only export.
 
 The installed App Store app bundles its JavaScript. A website deployment cannot deliver this fix to that installed binary. Confirm the actual Messages flow on an iPhone after installing the updated build. Apply the auth fix to the ongoing feature branch before its next release as well.
 
