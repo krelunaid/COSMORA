@@ -48,9 +48,11 @@ IPA SHA-256: `29beb16b3796b2d6a984b965f219cc5b19261a57227fa1c2b55fdfaeceac8b6b`.
 
 ## Delivery status
 
-**Android upload started on 22 October; successful receipt and processing are not yet confirmed.** The operator has opened a new Play Console release and entered release notes in five languages. This record does not establish submission for review or public availability.
+**Android upload accepted and submission confirmed on 22 October 2026.** Play Console accepted version 1.0.4, code 42, in production release 3. Release notes were entered in five languages. The publishing overview lists one app change, “1.0.4 (42) — Ripristino sessione”, under “Modifiche in fase di revisione”. At capture time, preliminary quick checks were still running, with an estimate of up to 12 minutes before the changes would proceed to review.
 
-The iOS artifact above was verified during local preparation; its subsequent store delivery is tracked separately. The maximum previously identified local iOS build was 42. Export used a separate plist with `destination=export`; the repository's `ios/ExportOptions.plist` uses `destination=upload` and must not be used for a preparation-only export.
+The release is configured for a complete rollout (100%) in 178 countries. Managed publishing remains disabled, preserving its existing setting. **Approval and public availability have not been confirmed.** Evidence: `outputs/session-hotfix/google-play-submitted-2026-10-22.jpg`.
+
+**iOS 1.0.4 (43) is signed and prepared locally, but has not been uploaded.** The Mac was locked, Apple sign-in was still required, and the Xcode profiles view was empty during the delivery attempt. Those access prerequisites remain open. The maximum previously identified local iOS build was 42. Export used a separate plist with `destination=export`; the repository's `ios/ExportOptions.plist` uses `destination=upload` and must not be used for a preparation-only export.
 
 The installed App Store app bundles its JavaScript. A website deployment cannot deliver this fix to that installed binary. Confirm the actual Messages flow on an iPhone after installing the updated build. Apply the auth fix to the ongoing feature branch before its next release as well.
 
