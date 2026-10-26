@@ -5,7 +5,7 @@ Verifica finale: 26 ottobre 2026, Europe/Rome. Questo documento aggiorna `COMMUN
 ## Stato degli store
 
 - **iOS 1.0.5 (45)**: consegnata da Transporter alle 22:02, elaborata da App Store Connect, selezionata e inviata alle 22:36. La pagina della pratica mostra **In attesa di verifica**. App `6809232374`, build `5e609732-8966-4363-92eb-b88b7f5c10bc`, invio `431e677c-febb-4d34-95f3-9a7cdaee29df`. Il precedente invio della build44 è stato ritirato per sostituirlo con45.
-- **Android 1.0.5 (44)**: AAB caricato ed elaborato; release di produzione5, nome `1.0.5 (44) — Notifiche della community`, implementazione100% nei paesi già abilitati. Tre modifiche inviate: release, sicurezza dei dati, URL privacy. Google mostra **Modifiche in fase di revisione**, con controlli rapidi iniziali ancora in corso al momento dell'invio. App Console `4974190705613393494`, sviluppatore `8769136787246988849`.
+- **Android 1.0.5 (44)**: AAB caricato ed elaborato; release di produzione5, nome `1.0.5 (44) — Notifiche della community`, implementazione100% nei paesi già abilitati. Tre modifiche inviate: release, sicurezza dei dati, URL privacy. Google mostra **Modifiche in fase di revisione** e **Le modifiche sono ora in fase di revisione**: i controlli rapidi iniziali sono terminati. App Console `4974190705613393494`, sviluppatore `8769136787246988849`.
 - Pubblicazione automatica dopo approvazione preservata. **Non è stata verificata l'approvazione o disponibilità pubblica dei nuovi pacchetti.**
 
 ## Comportamento e consenso
