@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "49831144408",
+    "project_id": "kreluna",
+    "storage_bucket": "kreluna.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:49831144408:android:a9feabd57c15ff46a420ad",
+        "android_client_info": {
+          "package_name": "com.kreluna.cosmora"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "49831144408-m904o4bru5niqhtelh84cp2btdbnjpt2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNLwupInBTc9NLg2iRNAcqJI7Ab4YkdR8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "49831144408-m904o4bru5niqhtelh84cp2btdbnjpt2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "49831144408-an7j262bultlmt046loelidsod0sg5no.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "it.kreluna.riparo",
+                "app_store_id": "6822464978"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

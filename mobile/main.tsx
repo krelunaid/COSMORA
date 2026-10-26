@@ -9,6 +9,8 @@ import { NativeAppClass } from '@/components/native-app-class';
 import { NativeAuthCallback } from '@/components/native-auth-callback';
 import { TermsConsentGate } from '@/components/auth/terms-consent-gate';
 import { BlockFeedback } from '@/components/block-feedback';
+import { NativePushController } from '@/components/native-push';
+import { CommunityThanks } from '@/components/community-thanks';
 import Loading from '@/app/loading';
 import NotFound from '@/app/not-found';
 import { pageRoute } from './route-path';
@@ -49,13 +51,13 @@ function MobileRoutes() {
     });
     return () => { void listener.then((handle) => handle.remove()); };
   }, [navigate, location.pathname]);
-  return <><NativeAuthCallback /><TermsConsentGate><ScreenBoundary key={location.pathname}>
+  return <><NativeAuthCallback /><NativePushController /><TermsConsentGate><ScreenBoundary key={location.pathname}>
     <Suspense fallback={<Loading />}><Routes>
       {screens.map(({ path, Screen }) => <Route key={path} path={path} element={<Screen />} />)}
       <Route path="/community/create" element={<Navigate to="/sell" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes></Suspense>
-  </ScreenBoundary><BlockFeedback /></TermsConsentGate></>;
+  </ScreenBoundary><BlockFeedback /><CommunityThanks /></TermsConsentGate></>;
 }
 
 createRoot(document.getElementById('root')!).render(

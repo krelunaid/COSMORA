@@ -3,6 +3,7 @@
 import Link from '@/components/app-link';
 import { useI18n } from '@/components/i18n-provider';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
+import { pushMessages } from '@/lib/i18n/push';
 import { privacyMessages } from '@/lib/i18n/privacy';
 
 export function PrivacyContent() {
@@ -15,6 +16,7 @@ export function PrivacyContent() {
       {copy.sections.map(([title, text]) => <section key={title} className="space-y-2">
         <h2 className="text-lg font-semibold text-white">{title}</h2><p>{text}</p>
       </section>)}
+      <section className="space-y-2"><h2 className="text-lg font-semibold text-white">{pushMessages[locale].title}</h2><p>{pushMessages[locale].privacy}</p></section>
       <p><a className="text-pink-300 underline" href="mailto:info@kreluna.it?subject=%5BCOSMORA%5D%20Privacy">{copy.contact}</a></p>
       <p><Link className="text-pink-300 underline" href="/account/delete">{copy.deleteAccount}</Link></p>
       <p><a className="text-pink-300 underline" href="https://www.garanteprivacy.it/">{copy.authority}</a></p>

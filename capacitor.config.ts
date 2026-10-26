@@ -12,6 +12,7 @@ const config: CapacitorConfig = {
   appName: 'COSMORA',
   webDir: 'dist/mobile',
   backgroundColor: '#050617',
+  plugins: { PushNotifications: { presentationOptions: ['badge', 'sound', 'banner', 'list'] } },
   ios: {
     backgroundColor: '#050617',
     contentInset: 'never',

@@ -2,6 +2,15 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 
+/* Keep the acknowledgement reachable on small phones, with large text and safe areas. */
+.community-thanks-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2rem);
+}
+.community-thanks-copy { min-height: 0; }
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

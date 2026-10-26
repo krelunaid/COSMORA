@@ -10,3 +10,6 @@ project(':capacitor-browser').projectDir = new File('../node_modules/.pnpm/@capa
 
 include ':capacitor-camera'
 project(':capacitor-camera').projectDir = new File('../node_modules/.pnpm/@capacitor+camera@8.2.4_@capacitor+core@8.5.1/node_modules/@capacitor/camera/android')
+
+include ':capacitor-push-notifications'
+project(':capacitor-push-notifications').projectDir = new File('../node_modules/.pnpm/@capacitor+push-notifications@8.1.3_@capacitor+core@8.5.1/node_modules/@capacitor/push-notifications/android')

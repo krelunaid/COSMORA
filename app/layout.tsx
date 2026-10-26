@@ -7,6 +7,8 @@ import { ServiceWorkerRegistration } from '@/components/service-worker-registrat
 import { NativeAuthCallback } from '@/components/native-auth-callback';
 import { TermsConsentGate } from '@/components/auth/terms-consent-gate';
 import { BlockFeedback } from '@/components/block-feedback';
+import { NativePushController } from '@/components/native-push';
+import { CommunityThanks } from '@/components/community-thanks';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -45,7 +47,7 @@ export default function RootLayout({
         <I18nProvider>
           <NativeAuthCallback />
           <ServiceWorkerRegistration />
-          <TermsConsentGate>{children}<BlockFeedback /></TermsConsentGate>
+          <NativePushController /><TermsConsentGate>{children}<BlockFeedback /><CommunityThanks /></TermsConsentGate>
         </I18nProvider>
       </body>
     </html>

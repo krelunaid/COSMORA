@@ -10,6 +10,8 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { localeLabels, supportedLocales, type Locale } from '@/lib/i18n/config';
 import { paymentsEnabled } from '@/lib/release-features';
 import { accountRestrictions } from '@/lib/i18n/account-restrictions';
+import { PushSettings } from '@/components/native-push';
+import { disablePush } from '@/lib/native-push';
 import { SafetyLink } from '@/components/safety-link';
 
 export default function MyProfilePage() {
@@ -67,6 +69,7 @@ export default function MyProfilePage() {
   }
   async function signOut() {
     try {
+      await disablePush().catch(() => { /* A failed push cleanup must not prevent logout. */ });
       const result = await getSupabaseBrowserClient()?.auth.signOut();
       if (result?.error) throw result.error;
       window.location.assign('/auth/login');
@@ -124,6 +127,7 @@ export default function MyProfilePage() {
               {profile.deletionPending ? accountRestrictions[locale].deleting : accountRestrictions[locale].suspended}
             </p>}
             {!restricted && <>
+            <PushSettings />
             <form onSubmit={save} className="space-y-4">
               <label className="block text-base">
                 {messages.auth.name}
