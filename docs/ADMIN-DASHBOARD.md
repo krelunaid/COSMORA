@@ -54,7 +54,14 @@ metadata completi. Risposte no-store e CORS limitato al sito operativo e
   metadata admin, RPC negata a authenticated, 200 solo con grant sul server.
 - Test reali di ricerca, preflight, no-store e rifiuto di origini/metodi non ammessi.
 - Browser: accesso, dashboard con dati reali, ricerca, uscita e assenza di dati dopo logout.
-- Account QA effimero usato soltanto per collaudo; da rimuovere al termine della pubblicazione.
+- Account QA effimero usato soltanto per collaudo, poi rimosso dopo la verifica online.
+- Pannello pubblicato su Cloudflare Pages, deployment
+  `cb2d7f23-8811-4e6f-b8c8-357de364fcad`: HTTP 200, CSP e no-store verificati,
+  accesso autorizzato e logout verificati anche sul dominio definitivo.
+- Password dell'account proprietario impostata su richiesta esplicita tramite
+  Auth Admin API; il servizio non ha confermato automaticamente l'indirizzo.
+  L'utente deve aprire l'invito ricevuto per confermare l'email. Le credenziali
+  sono conservate solo in un file locale privato, esterno al repository.
 
 Advisory Supabase: nessun nuovo rilievo legato al pannello. Restano preesistenti
 tabelle RLS senza policy (accesso diretto negato intenzionalmente) e la protezione
