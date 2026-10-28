@@ -111,6 +111,20 @@ function Spinner({ label }: { label: string }) {
   );
 }
 
+function PrivacyLink() {
+  return (
+    <a
+      className="privacy-link"
+      href="https://software.kreluna.it/cosmora/privacy/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Informativa privacy COSMORA
+      <span className="sr-only"> (si apre in una nuova scheda)</span>
+    </a>
+  );
+}
+
 function Login({
   busy,
   error,
@@ -233,6 +247,13 @@ function Login({
               La console è in sola lettura. L’accesso ai dati richiede
               un’autorizzazione amministrativa verificata dal server.
             </p>
+          </div>
+          <div className="login-privacy">
+            <p>
+              La sessione di accesso viene conservata nella memoria di questa
+              scheda. Per terminarla usa il pulsante Esci.
+            </p>
+            <PrivacyLink />
           </div>
         </div>
         <span className="login-copyright">
@@ -1153,6 +1174,7 @@ export function App() {
         )}
         <footer className="page-footer">
           <span>COSMORA · Amministrazione</span>
+          <PrivacyLink />
           <span>
             <ShieldCheck size={13} /> Dati riservati · Sola lettura
           </span>

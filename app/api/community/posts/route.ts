@@ -13,6 +13,7 @@ import {
   sniffCommunityMediaType,
 } from '@/lib/community-media';
 import { europeEvents } from '@/lib/events-data';
+import { PhotoPrivacyError, sanitizePhotoUploads } from '@/lib/photo-privacy';
 import { applyReviewFixtureVisibility } from '@/lib/server/review-fixture-visibility';
 import { applyPublicProfileVisibility } from '@/lib/server/public-profile-visibility';
 import {
@@ -252,19 +253,6 @@ export async function POST(request: Request) {
   }
 
   const { admin, user } = authenticated;
-  let connection;
-  try {
-    connection = await resolveLink(
-      authenticated,
-      parsed.data.connectionType,
-      parsed.data.connection,
-    );
-  } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : 'Collegamento non valido.' },
-      { status: 400 },
-    );
-  }
   const recent = await admin
     .from('community_posts')
     .select('id', { count: 'exact', head: true })
@@ -278,6 +266,27 @@ export async function POST(request: Request) {
       },
       { status: 429 },
     );
+
+  let uploadMedia: File[];
+  try {
+    uploadMedia = await sanitizePhotoUploads(media, mediaTypes);
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof PhotoPrivacyError ? error.message : 'Una foto non è valida. Esportala di nuovo come JPEG, PNG o WebP e riprova.' }, { status: 400 });
+  }
+
+  let connection;
+  try {
+    connection = await resolveLink(
+      authenticated,
+      parsed.data.connectionType,
+      parsed.data.connection,
+    );
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : 'Collegamento non valido.' },
+      { status: 400 },
+    );
+  }
   const categorySlug = slugify(parsed.data.category);
   const category = await admin
     .from('post_categories')
@@ -320,7 +329,7 @@ export async function POST(request: Request) {
 
   const paths: string[] = [];
   try {
-    for (const [index, item] of media.entries()) {
+    for (const [index, item] of uploadMedia.entries()) {
       const type = mediaTypes[index] || item.type;
       const extension = communityMediaStorageExtension({
         name: item.name,

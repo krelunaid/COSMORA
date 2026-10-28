@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { rentalsEnabled } from '@/lib/release-features';
 import { parseShipping } from '@/lib/shipping';
+import { PhotoPrivacyError, sanitizePhotoUploads } from '@/lib/photo-privacy';
 import { getBlockedAuthorIds } from '@/lib/server/blocked-content';
 import { applyReviewFixtureVisibility } from '@/lib/server/review-fixture-visibility';
 
@@ -205,6 +206,13 @@ export async function POST(request: Request) {
     );
   }
 
+  let uploadPhotos: File[];
+  try {
+    uploadPhotos = await sanitizePhotoUploads(photos);
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof PhotoPrivacyError ? error.message : 'Una foto non è valida. Esportala di nuovo come JPEG, PNG o WebP e riprova.' }, { status: 400 });
+  }
+
   const { admin, user } = authenticated;
   const sellerProfile = await admin
     .from('seller_details')
@@ -267,7 +275,7 @@ export async function POST(request: Request) {
 
   const uploadedPaths: string[] = [];
   try {
-    for (const [position, photo] of photos.entries()) {
+    for (const [position, photo] of uploadPhotos.entries()) {
       const extension =
         photo.type === 'image/png'
           ? 'png'
