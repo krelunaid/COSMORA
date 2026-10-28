@@ -1,4 +1,4 @@
-# COSMORA — console amministrativa in sola lettura
+# COSMORA — console amministrativa e moderazione
 
 Interfaccia web separata dall’app, servita sotto `/cosmora/admin/`. Non importa layout, service worker, routing o componenti dell’app principale. Nessun account viene creato e nessun ruolo viene assegnato da questa interfaccia.
 
@@ -18,7 +18,10 @@ La build legge esclusivamente `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE
 
 ## Accesso e dati
 
-- Login email/password attraverso Supabase. Nessuna registrazione, modifica ruoli, esportazione o azione sui singoli utenti.
+- Login email/password attraverso Supabase. Nessuna registrazione, modifica ruoli o esportazione.
+- La panoramica degli iscritti resta in sola lettura. La sezione `#moderation` usa separatamente `community-moderation`: solo operatori con ruolo server `cosmora_role=moderator` o `admin` possono decidere sui contenuti. Il solo accesso al dashboard non basta.
+- Approva propone una motivazione precompilata; Rifiuta richiede una scelta tra motivi espliciti (testo obbligatorio solo per Altro). La conferma invia lo stato atteso del contenuto: il server applica decisione e registro atomicamente tramite la RPC esistente.
+- Tutti i media devono essere disponibili e caricati prima di approvare; foto e video provengono da URL firmati temporanei. I post reali non vanno approvati durante il collaudo della grafica.
 - Sessione isolata dall’app con `sessionStorage` e chiave `cosmora-admin-auth`.
 - Richieste di autenticazione limitate a 12 secondi; attesa iniziale/login limitata a 13 secondi. Nessuna chiamata asincrona al client auth nei callback di `onAuthStateChange`.
 - I dati provengono da `GET https://pwdpwgonvnuwmgfiidut.supabase.co/functions/v1/community-admin`, con token Bearer e parametri `q` e `page` (pagina iniziale 1).
@@ -32,7 +35,7 @@ Nessun dato di esempio, utente dimostrativo, credenziale o elenco di amministrat
 ## Verifiche locali
 
 ```sh
-pnpm exec tsc --noEmit --target es2022 --module esnext --moduleResolution bundler --jsx react-jsx --lib es2022,dom,dom.iterable --skipLibCheck --strict admin-web/env.d.ts admin-web/main.tsx admin-web/App.tsx admin-web/api.ts admin-web/vite.config.ts
+pnpm exec tsc --noEmit --allowImportingTsExtensions --target es2022 --module esnext --moduleResolution bundler --jsx react-jsx --lib es2022,dom,dom.iterable --skipLibCheck --strict admin-web/env.d.ts admin-web/main.tsx admin-web/App.tsx admin-web/api.ts admin-web/vite.config.ts
 pnpm exec oxlint admin-web
 pnpm exec vite build --config admin-web/vite.config.ts
 node scripts/check-client-secrets.mjs dist/admin-web

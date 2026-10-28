@@ -9,6 +9,7 @@ import {
   type SyntheticEvent,
   type ReactNode,
 } from 'react';
+import { Moderation } from './Moderation';
 import type { Session } from '@supabase/supabase-js';
 import {
   Activity,
@@ -244,8 +245,8 @@ function Login({
           <div className="login-note">
             <ShieldCheck size={18} />
             <p>
-              La console è in sola lettura. L’accesso ai dati richiede
-              un’autorizzazione amministrativa verificata dal server.
+              Dati e moderazione sono riservati agli operatori autorizzati. Ogni
+              decisione sui contenuti viene registrata.
             </p>
           </div>
           <div className="login-privacy">
@@ -746,6 +747,17 @@ function Stores() {
 }
 
 export function App() {
+  const [section, setSection] = useState(() =>
+    window.location.hash === '#moderation' ? 'moderation' : 'overview',
+  );
+  useEffect(() => {
+    const change = () =>
+      setSection(
+        window.location.hash === '#moderation' ? 'moderation' : 'overview',
+      );
+    window.addEventListener('hashchange', change);
+    return () => window.removeEventListener('hashchange', change);
+  }, []);
   const [session, setSession] = useState<Session | null>(null);
   const [initialized, setInitialized] = useState(!supabase);
   const [authPending, setAuthPending] = useState(false);
@@ -837,7 +849,7 @@ export function App() {
   }, [acceptSession]);
 
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken || section === 'moderation') return;
     const controller = new AbortController();
     const version = ++requestVersion.current;
     const timer = setTimeout(() => controller.abort(), 20_000);
@@ -894,7 +906,7 @@ export function App() {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [accessToken, page, query, refresh, logout]);
+  }, [accessToken, page, query, refresh, logout, section]);
 
   async function login(email: string, password: string) {
     if (!supabase || authPending) return;
@@ -969,10 +981,20 @@ export function App() {
         <Brand compact />
         <div className="sidebar-section-label">WORKSPACE</div>
         <nav aria-label="Navigazione amministrazione">
-          <a href="#overview" className="nav-link">
+          <a
+            href="#moderation"
+            className={section === 'moderation' ? 'nav-link' : undefined}
+          >
+            <ShieldCheck size={19} />
+            Approva i post
+          </a>
+          <a
+            href="#overview"
+            className={section === 'overview' ? 'nav-link' : undefined}
+          >
             <LayoutDashboard size={19} />
             Panoramica
-            <span className="nav-dot" />
+            {section === 'overview' && <span className="nav-dot" />}
           </a>
           <a href="#users">
             <Users size={19} />
@@ -988,8 +1010,11 @@ export function App() {
           <div className="readonly-box">
             <ShieldCheck size={20} />
             <div>
-              <strong>Sola lettura</strong>
-              <p>Osserva i dati della community in uno spazio riservato.</p>
+              <strong>La tua community</strong>
+              <p>
+                Controlla i contenuti e consulta gli iscritti con il tuo account
+                autorizzato.
+              </p>
             </div>
           </div>
           <div className="account-box">
@@ -1014,169 +1039,185 @@ export function App() {
         </div>
       </aside>
       <main id="main" className="main-content">
-        <header id="overview" className="page-heading">
-          <div>
-            <div className="breadcrumb">
-              COSMORA <span>/</span> Console amministrativa
-            </div>
-            <h1>
-              Panoramica <span className="heading-dot" />
-            </h1>
-            <p>Un punto di vista sulla tua community.</p>
-          </div>
-          <div className="heading-actions">
-            <span className="readonly-chip">
-              <LockKeyhole size={12} />
-              Sola lettura
-            </span>
-            <button
-              className="button subtle refresh-button"
-              onClick={refreshData}
-              disabled={loading}
-            >
-              <RefreshCw size={16} className={loading ? 'spin' : ''} />
-              {loading ? 'Caricamento…' : 'Aggiorna'}
-            </button>
-          </div>
-        </header>
-        {status === 'forbidden' ? (
-          <section className="state-card access-state" role="alert">
-            <span className="state-symbol">
-              <ShieldX size={32} />
-            </span>
-            <span className="eyebrow">AREA RISERVATA</span>
-            <h2>Account non autorizzato</h2>
-            <p>
-              L’accesso al tuo account è riuscito, ma questo account non dispone
-              dell’autorizzazione amministrativa di COSMORA.
-            </p>
-            <p className="muted">
-              Contatta il responsabile del progetto oppure accedi con un account
-              autorizzato.
-            </p>
-            <button className="button primary" onClick={logout}>
-              <LogOut size={16} />
-              Esci e cambia account
-            </button>
-          </section>
-        ) : status === 'error' ? (
-          <section className="state-card access-state" role="alert">
-            <span className="state-symbol">
-              <Activity size={32} />
-            </span>
-            <h2>Dati non disponibili</h2>
-            <p>{error}</p>
-            <button className="button primary" onClick={refreshData}>
-              <RefreshCw size={16} />
-              Riprova
-            </button>
-          </section>
-        ) : !data ? (
-          <div className="dashboard-loading" aria-busy="true">
-            <Spinner label="Verifica dell’autorizzazione e caricamento dei dati…" />
-            <div className="skeleton-metrics" aria-hidden="true">
-              {[0, 1, 2, 3].map((item) => (
-                <div className="skeleton" key={item} />
-              ))}
-            </div>
-            <div className="skeleton skeleton-chart" aria-hidden="true" />
-          </div>
+        {section === 'moderation' ? (
+          <Moderation
+            key={session.user.id}
+            accessToken={session.access_token}
+            onSessionExpired={logout}
+          />
         ) : (
-          <div
-            className={
-              loading ? 'dashboard-content refreshing' : 'dashboard-content'
-            }
-            aria-busy={loading}
-          >
-            <div className="source-line">
-              <span className="source-dot" />
-              <span>Dati del backend COSMORA</span>
-              <span className="source-divider">·</span>
-              <span>Aggiornati il {formatDate(data.generatedAt)}</span>
-              <span className="timezone">Europe/Rome</span>
-            </div>
-            <section className="metrics-grid" aria-label="Riepilogo iscritti">
-              <Metric
-                title="Iscritti totali"
-                value={data.summary.totalUsers}
-                description="Account registrati su COSMORA"
-                icon={<Users size={20} />}
-              />
-              <Metric
-                title="Email confermate"
-                value={data.summary.confirmedUsers}
-                description="Account con indirizzo verificato"
-                icon={<CheckCircle2 size={20} />}
-                accent="green"
-              />
-              <Metric
-                title="Nuovi iscritti · 30g"
-                value={data.summary.newUsers30d}
-                description={`${numbers.format(data.summary.newUsers7d)} negli ultimi 7 giorni`}
-                icon={<Sparkles size={20} />}
-                accent="pink"
-              />
-              <Metric
-                title="Utenti con accesso · 30g"
-                value={data.summary.signIns30d}
-                description="Con accesso autenticato nel periodo"
-                icon={<Activity size={20} />}
-                accent="blue"
-              />
-            </section>
-            <p className="registration-note">
-              Gli iscritti totali comprendono anche eventuali account tecnici e
-              di revisione.
-            </p>
-            <div className="insights-grid">
-              <RegistrationChart days={data.registrations} />
-              <CommunityActivity summary={data.summary} />
-            </div>
-            <section className="push-strip" aria-label="Dispositivi push">
-              <span className="push-icon">
-                <Smartphone size={19} />
-              </span>
+          <>
+            <header id="overview" className="page-heading">
               <div>
-                <strong>
-                  {numbers.format(data.summary.pushDevices)} dispositivi push
-                  registrati
-                </strong>
-                <span>
-                  Registrazioni dei dispositivi, non download dell’app
-                </span>
+                <div className="breadcrumb">
+                  COSMORA <span>/</span> Console amministrativa
+                </div>
+                <h1>
+                  Panoramica <span className="heading-dot" />
+                </h1>
+                <p>Un punto di vista sulla tua community.</p>
               </div>
-              <div className="platform-counts">
-                <span>
-                  iOS <strong>{numbers.format(data.summary.pushIOS)}</strong>
+              <div className="heading-actions">
+                <span className="readonly-chip">
+                  <LockKeyhole size={12} />
+                  Sola lettura
                 </span>
-                <span>
-                  Android{' '}
-                  <strong>{numbers.format(data.summary.pushAndroid)}</strong>
-                </span>
+                <button
+                  className="button subtle refresh-button"
+                  onClick={refreshData}
+                  disabled={loading}
+                >
+                  <RefreshCw size={16} className={loading ? 'spin' : ''} />
+                  {loading ? 'Caricamento…' : 'Aggiorna'}
+                </button>
               </div>
-            </section>
-            <UsersTable
-              users={data.users}
-              loading={loading}
-              query={query}
-              input={input}
-              onInput={setInput}
-              onSearch={submitSearch}
-              onClear={clearSearch}
-              onPage={(nextPage) => {
-                setStatus('loading');
-                setError('');
-                setPage(nextPage);
-              }}
-            />
-            <Stores />
-          </div>
+            </header>
+            {status === 'forbidden' ? (
+              <section className="state-card access-state" role="alert">
+                <span className="state-symbol">
+                  <ShieldX size={32} />
+                </span>
+                <span className="eyebrow">AREA RISERVATA</span>
+                <h2>Account non autorizzato</h2>
+                <p>
+                  L’accesso al tuo account è riuscito, ma questo account non
+                  dispone dell’autorizzazione amministrativa di COSMORA.
+                </p>
+                <p className="muted">
+                  Contatta il responsabile del progetto oppure accedi con un
+                  account autorizzato.
+                </p>
+                <button className="button primary" onClick={logout}>
+                  <LogOut size={16} />
+                  Esci e cambia account
+                </button>
+              </section>
+            ) : status === 'error' ? (
+              <section className="state-card access-state" role="alert">
+                <span className="state-symbol">
+                  <Activity size={32} />
+                </span>
+                <h2>Dati non disponibili</h2>
+                <p>{error}</p>
+                <button className="button primary" onClick={refreshData}>
+                  <RefreshCw size={16} />
+                  Riprova
+                </button>
+              </section>
+            ) : !data ? (
+              <div className="dashboard-loading" aria-busy="true">
+                <Spinner label="Verifica dell’autorizzazione e caricamento dei dati…" />
+                <div className="skeleton-metrics" aria-hidden="true">
+                  {[0, 1, 2, 3].map((item) => (
+                    <div className="skeleton" key={item} />
+                  ))}
+                </div>
+                <div className="skeleton skeleton-chart" aria-hidden="true" />
+              </div>
+            ) : (
+              <div
+                className={
+                  loading ? 'dashboard-content refreshing' : 'dashboard-content'
+                }
+                aria-busy={loading}
+              >
+                <div className="source-line">
+                  <span className="source-dot" />
+                  <span>Dati del backend COSMORA</span>
+                  <span className="source-divider">·</span>
+                  <span>Aggiornati il {formatDate(data.generatedAt)}</span>
+                  <span className="timezone">Europe/Rome</span>
+                </div>
+                <section
+                  className="metrics-grid"
+                  aria-label="Riepilogo iscritti"
+                >
+                  <Metric
+                    title="Iscritti totali"
+                    value={data.summary.totalUsers}
+                    description="Account registrati su COSMORA"
+                    icon={<Users size={20} />}
+                  />
+                  <Metric
+                    title="Email confermate"
+                    value={data.summary.confirmedUsers}
+                    description="Account con indirizzo verificato"
+                    icon={<CheckCircle2 size={20} />}
+                    accent="green"
+                  />
+                  <Metric
+                    title="Nuovi iscritti · 30g"
+                    value={data.summary.newUsers30d}
+                    description={`${numbers.format(data.summary.newUsers7d)} negli ultimi 7 giorni`}
+                    icon={<Sparkles size={20} />}
+                    accent="pink"
+                  />
+                  <Metric
+                    title="Utenti con accesso · 30g"
+                    value={data.summary.signIns30d}
+                    description="Con accesso autenticato nel periodo"
+                    icon={<Activity size={20} />}
+                    accent="blue"
+                  />
+                </section>
+                <p className="registration-note">
+                  Gli iscritti totali comprendono anche eventuali account
+                  tecnici e di revisione.
+                </p>
+                <div className="insights-grid">
+                  <RegistrationChart days={data.registrations} />
+                  <CommunityActivity summary={data.summary} />
+                </div>
+                <section className="push-strip" aria-label="Dispositivi push">
+                  <span className="push-icon">
+                    <Smartphone size={19} />
+                  </span>
+                  <div>
+                    <strong>
+                      {numbers.format(data.summary.pushDevices)} dispositivi
+                      push registrati
+                    </strong>
+                    <span>
+                      Registrazioni dei dispositivi, non download dell’app
+                    </span>
+                  </div>
+                  <div className="platform-counts">
+                    <span>
+                      iOS{' '}
+                      <strong>{numbers.format(data.summary.pushIOS)}</strong>
+                    </span>
+                    <span>
+                      Android{' '}
+                      <strong>
+                        {numbers.format(data.summary.pushAndroid)}
+                      </strong>
+                    </span>
+                  </div>
+                </section>
+                <UsersTable
+                  users={data.users}
+                  loading={loading}
+                  query={query}
+                  input={input}
+                  onInput={setInput}
+                  onSearch={submitSearch}
+                  onClear={clearSearch}
+                  onPage={(nextPage) => {
+                    setStatus('loading');
+                    setError('');
+                    setPage(nextPage);
+                  }}
+                />
+                <Stores />
+              </div>
+            )}
+          </>
         )}
         <footer className="page-footer">
           <span>COSMORA · Amministrazione</span>
           <PrivacyLink />
           <span>
-            <ShieldCheck size={13} /> Dati riservati · Sola lettura
+            <ShieldCheck size={13} /> Accesso riservato · Decisioni registrate
           </span>
         </footer>
       </main>

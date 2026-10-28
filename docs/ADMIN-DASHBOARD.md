@@ -13,7 +13,7 @@ cartella `source/cosmora/admin/` con il bundle generato da questo progetto.
 - Permesso dedicato: `app_metadata.cosmora_dashboard_access` booleano `true`.
   Anche il ruolo server `cosmora_role=admin` è ammesso. Il semplice ruolo
   moderator, il profilo e i metadata modificabili dall'utente non concedono accesso.
-- La console non permette registrazioni, assegnazione ruoli o modifiche ai dati.
+- La panoramica `community-admin` resta in sola lettura. La console non permette registrazioni o assegnazione ruoli. La sezione moderazione introdotta il 28 ottobre usa un endpoint separato, con il ruolo server di moderatore già previsto dal servizio.
 - Il permesso va assegnato soltanto a un indirizzo confermato dal proprietario,
   tramite Auth Admin API, preservando gli altri app_metadata. Non concederlo via
   codice frontend, trigger su email arbitrarie o metadata pubblici.
@@ -75,3 +75,33 @@ Seguire `admin-web/README.md`, generare il bundle, confrontare e sostituire solo
 salvataggio e pubblicazione. Non inviare le chiavi server o i test come file statici.
 Per aggiornare Edge Function caricare index.ts e handler.ts con verify_jwt=true.
 Nuove migrazioni DDL devono restare service-only e non allargare RLS agli utenti.
+
+## Moderazione semplificata — 28 ottobre 2026
+
+Link diretto: `https://software.kreluna.it/cosmora/admin/#moderation`.
+La sessione è quella della console, separata dal browser dell’app principale.
+Il pannello mostra i contenuti reali in attesa, foto/video, segnalazioni e registro.
+La normale approvazione non richiede testo libero; il motivo precompilato viene
+registrato dopo una conferma. Il rifiuto offre motivi selezionabili, con testo
+obbligatorio solo per Altro. Non ci sono approvazioni automatiche o in blocco.
+
+Edge Function `community-moderation`, distinta dall’API statistica, mantiene
+JWT verification e verifica aggiornata di Auth, ruolo server admin/moderator e
+sospensione. La sola proprietà `cosmora_dashboard_access` non abilita decisioni.
+Le modifiche usano la RPC `cosmora_moderation_decision` esistente, con controllo
+atomico dello stato atteso, motivazione e segnalazioni associate. Nessuna
+migrazione o concessione aggiuntiva di ruolo. CORS limitato al dominio operativo
+e all’anteprima locale; risposte private/no-store.
+
+L’endpoint dell’app su `cosmora.kreluna.it/moderation` resta distinto: il suo
+progetto hosting non è accessibile dall’account Sites corrente (404). Questa
+modifica viene quindi pubblicata nel pannello amministrativo già operativo,
+senza sostituire il sito dell’app o modificare il DNS.
+
+Verifica del 28 ottobre: 21 test di autorizzazione, media, motivazioni e
+concorrenza superati, TypeScript rigoroso e lint frontend superati.
+Edge Function community-moderation v1 attiva, verify_jwt=true.
+API reale: GET autorizzato e registro 200, senza token 401, origine non
+autorizzata 403, decisione malformata 400 senza chiamata di mutazione.
+Il browser ha mostrato la coda e la conferma Approva senza campi di testo.
+Durante il collaudo non sono state inviate decisioni sui contenuti reali.
