@@ -105,3 +105,10 @@ API reale: GET autorizzato e registro 200, senza token 401, origine non
 autorizzata 403, decisione malformata 400 senza chiamata di mutazione.
 Il browser ha mostrato la coda e la conferma Approva senza campi di testo.
 Durante il collaudo non sono state inviate decisioni sui contenuti reali.
+
+Pubblicazione completata e verificata nel browser il 28 ottobre 2026:
+Cloudflare Pages `1b8afde0-9b61-42fa-8f43-829757659a4c`, sorgenti sito
+`9fe74275`, riferimenti release `390338d3`. Accesso dell’account autorizzato,
+foto privata firmata e dialogo di approvazione senza testo confermati sul
+dominio definitivo; nessuna decisione reale inviata. Layout controllato a
+412 px senza scorrimento orizzontale della pagina.
