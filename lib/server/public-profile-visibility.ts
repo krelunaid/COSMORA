@@ -7,6 +7,11 @@ const hiddenPublicProfileIds = [
 ] as const;
 const hiddenPublicProfilesFilter = '(' + hiddenPublicProfileIds.join(',') + ')';
 
+/** Match the public-profile endpoint when linking from existing content. */
+export function isPublicProfileVisible(id: string): boolean {
+  return !hiddenPublicProfileIds.some((hiddenId) => hiddenId === id);
+}
+
 /** Apply only to public profile queries, before IDs, search or pagination. */
 export function applyPublicProfileVisibility<
   T extends { not(column: string, operator: string, value: string): T },

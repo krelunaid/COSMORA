@@ -1,9 +1,11 @@
+import { normalizePublicName, validPublicName, isPublicNameConflict, PUBLIC_NAME_TAKEN } from '@/lib/public-name';
+import { publicNameAvailable } from '@/lib/server/public-name';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
 
 const schema = z.object({
-  displayName: z.string().trim().min(2).max(80),
+  displayName: z.string().max(160).transform(normalizePublicName).refine(validPublicName),
   country: z.string().trim().max(80),
 });
 
@@ -24,7 +26,11 @@ export async function PUT(request: Request) {
   if (!auth) return NextResponse.json({ error: 'Accedi per modificare il profilo.' }, { status: 401 });
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: 'Inserisci un nome da 2 a 80 caratteri e un paese valido.' }, { status: 400 });
+  const name = await publicNameAvailable(auth.admin, parsed.data.displayName, auth.user.id);
+  if (name.error) return NextResponse.json({ error: 'Salvataggio non riuscito. Riprova.' }, { status: 503 });
+  if (!name.available) return NextResponse.json({ error: PUBLIC_NAME_TAKEN, code: 'PUBLIC_NAME_TAKEN' }, { status: 409 });
   const { error } = await auth.admin.from('profiles').upsert({ id: auth.user.id, display_name: parsed.data.displayName, country: parsed.data.country, updated_at: new Date().toISOString() });
+  if (isPublicNameConflict(error)) return NextResponse.json({ error: PUBLIC_NAME_TAKEN, code: 'PUBLIC_NAME_TAKEN' }, { status: 409 });
   if (error) return NextResponse.json({ error: 'Salvataggio non riuscito. Riprova.' }, { status: 503 });
-  return NextResponse.json({ saved: true });
+  return NextResponse.json({ saved: true, displayName: parsed.data.displayName });
 }

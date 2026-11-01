@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 
 import {
   inferNativeMediaFormat,
+  shouldOptimizeCommunityPhoto,
   isHeicLike,
   isNativePickerCancel,
   isVideoMedia,
@@ -60,7 +61,7 @@ function loadHtmlImage(url: string) {
   });
 }
 
-export async function renderFileAsJpeg(file: File) {
+export async function renderFileAsJpeg(file: File, options: { maxEdge?: number; quality?: number } = {}) {
   const objectUrl = URL.createObjectURL(file);
   try {
     let source: CanvasImageSource;
@@ -81,7 +82,7 @@ export async function renderFileAsJpeg(file: File) {
     }
     if (!width || !height) throw new Error('Immagine vuota.');
     const canvas = document.createElement('canvas');
-    const scale = Math.min(1, 2048 / Math.max(width, height));
+    const scale = Math.min(1, (options.maxEdge ?? 2048) / Math.max(width, height));
     canvas.width = Math.round(width * scale);
     canvas.height = Math.round(height * scale);
     const context = canvas.getContext('2d');
@@ -95,10 +96,10 @@ export async function renderFileAsJpeg(file: File) {
             ? resolve(result)
             : reject(new Error('Conversione JPEG non riuscita.')),
         'image/jpeg',
-        0.92,
+        options.quality ?? 0.82,
       );
     });
-    const baseName = file.name.replace(/\.(heic|heif)$/i, '');
+    const baseName = file.name.replace(/\.(heic|heif|jpe?g)$/i, '');
     const name = baseName.toLowerCase().endsWith('.jpg')
       ? baseName
       : `${baseName || 'photo'}.jpg`;
@@ -112,9 +113,10 @@ export async function renderFileAsJpeg(file: File) {
 }
 
 export async function normalizeCommunityMediaFile(file: File): Promise<File> {
-  if (isVideoMedia(file) || !isHeicLike(file)) return file;
+  if (!shouldOptimizeCommunityPhoto(file)) return file;
   try {
-    return await renderFileAsJpeg(file);
+    const optimized = await renderFileAsJpeg(file, { maxEdge: 1440, quality: 0.76 });
+    return isHeicLike(file) || optimized.size < file.size ? optimized : file;
   } catch {
     return file;
   }

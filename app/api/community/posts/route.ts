@@ -12,14 +12,29 @@ import {
   isVideoMedia,
   sniffCommunityMediaType,
 } from '@/lib/community-media';
-import { europeEvents } from '@/lib/events-data';
 import { PhotoPrivacyError, sanitizePhotoUploads } from '@/lib/photo-privacy';
 import { applyReviewFixtureVisibility } from '@/lib/server/review-fixture-visibility';
-import { applyPublicProfileVisibility } from '@/lib/server/public-profile-visibility';
+import { isPublicProfileVisible } from '@/lib/server/public-profile-visibility';
+import { readCommunityPostInteractions } from '@/lib/server/community-post-interactions';
+import { getBlockedAuthorIds } from '@/lib/server/blocked-content';
 import {
   getSupabaseAdmin,
   requireAuthenticatedUser,
 } from '@/lib/supabase/server';
+
+type FeedPost = {
+  id: string;
+  author_id: string;
+  caption: string;
+  country_code: string | null;
+  language_code: string | null;
+  created_at: string;
+  link_label: string | null;
+  link_url: string | null;
+  post_categories: unknown;
+  post_media: Array<{ storage_path: string; media_type: 'IMAGE' | 'VIDEO'; sort_order: number }>;
+  saved_by?: unknown;
+};
 
 export async function GET(request: Request) {
   const admin = getSupabaseAdmin();
@@ -34,12 +49,18 @@ export async function GET(request: Request) {
     Math.min(10000, Number(params.get('offset')) || 0),
   );
   const auth = await requireAuthenticatedUser(request);
+  const savedOnly = params.get('saved') === '1';
+  if ((request.headers.has('authorization') || savedOnly) && !auth)
+    return NextResponse.json({ error: 'Accedi per continuare.' }, { status: 401, headers: { 'Cache-Control': 'private, no-store' } });
   let query = admin
     .from('community_posts')
     .select(
-      'id, author_id, caption, country_code, language_code, created_at, link_label, link_url, post_categories(label), post_media(storage_path,media_type,sort_order)',
+      'id, author_id, caption, country_code, language_code, created_at, link_label, link_url, post_categories(label), post_media(storage_path,media_type,sort_order)' +
+      (savedOnly ? ', saved_by:community_post_saves!inner(user_id)' : ''),
     )
     .eq('status', 'ACTIVE');
+  // Inner join limits the main result set, before searching, sorting or paging.
+  if (savedOnly && auth) query = query.eq('saved_by.user_id', auth.user.id);
   query = applyReviewFixtureVisibility(query, 'author_id', auth);
   if (params.get('q'))
     query = query.ilike(
@@ -47,20 +68,14 @@ export async function GET(request: Request) {
       '%' + params.get('q')!.slice(0, 100).replace(/[%_]/g, '') + '%',
     );
   if (auth) {
-    const blocks = await admin
-      .from('user_blocks')
-      .select('blocker_id,blocked_id')
-      .or(`blocker_id.eq.${auth.user.id},blocked_id.eq.${auth.user.id}`);
+    const blocks = await getBlockedAuthorIds(admin, auth.user.id);
     if (blocks.error)
       return NextResponse.json(
         { error: 'Community non disponibile.' },
         { status: 503 },
       );
-    const excluded = (blocks.data ?? []).map((row) =>
-      row.blocker_id === auth.user.id ? row.blocked_id : row.blocker_id,
-    );
-    if (excluded.length)
-      query = query.not('author_id', 'in', '(' + excluded.join(',') + ')');
+    if (blocks.ids.length)
+      query = query.not('author_id', 'in', '(' + blocks.ids.join(',') + ')');
   }
   const { data, error } = await query
     .order('created_at', { ascending: false })
@@ -71,22 +86,29 @@ export async function GET(request: Request) {
       { error: 'Non è stato possibile caricare i post.' },
       { status: 503 },
     );
-  const linkedProfileIds = (data ?? []).flatMap((row) => {
-    const id = typeof row.link_url === 'string' && row.link_url.startsWith('/profile/') ? row.link_url.slice('/profile/'.length) : '';
-    return z.uuid().safeParse(id).success ? [id] : [];
-  });
-  const ids = [...new Set([...(data ?? []).map((row) => row.author_id), ...linkedProfileIds])];
+  const rows = (data ?? []) as unknown as FeedPost[];
+  const ids = [...new Set(rows.map(row => row.author_id))];
   const profiles = ids.length
     ? await applyReviewFixtureVisibility(
         admin.from('profiles').select('id,display_name').eq('moderation_hidden', false).in('id', ids),
         'id',
         auth,
       )
-    : { data: [] };
+    : { data: [], error: null };
+  if (profiles.error)
+    return NextResponse.json(
+      { error: 'Non è stato possibile caricare gli autori dei post.' },
+      { status: 503 },
+    );
+  const interactions = await readCommunityPostInteractions(admin, auth?.user.id, rows.map((post) => post.id));
+  if (interactions.error)
+    return NextResponse.json(
+      { error: 'Non è stato possibile caricare i post. Riprova.' },
+      { status: 503, headers: { 'Cache-Control': 'private, no-store' } },
+    );
   const posts = await Promise.all(
-    (data ?? []).map(async (post) => {
-      const linkedProfileId = typeof post.link_url === 'string' && post.link_url.startsWith('/profile/') ? post.link_url.slice('/profile/'.length) : null;
-      const linkedProfile = linkedProfileId ? profiles.data?.find((profile) => profile.id === linkedProfileId) : null;
+    rows.map(async (post) => {
+      const authorProfile = profiles.data?.find((p) => p.id === post.author_id);
       const media = post.post_media.sort((a, b) => a.sort_order - b.sort_order);
       const urls = media.length
         ? await admin.storage.from('community-media').createSignedUrls(
@@ -96,11 +118,16 @@ export async function GET(request: Request) {
         : { data: [] };
       return {
         ...post,
-        ...(linkedProfileId ? { link_label: linkedProfile?.display_name || null, link_url: linkedProfile ? post.link_url : null } : {}),
-        author:
-          profiles.data?.find((p) => p.id === post.author_id)?.display_name ||
-          'Utente COSMORA',
+        link_label: null,
+        link_url: null,
+        author: authorProfile?.display_name || 'Utente COSMORA',
+        author_profile_url: authorProfile && isPublicProfileVisible(authorProfile.id)
+          ? '/profile/' + authorProfile.id
+          : null,
         post_media: undefined,
+        saved_by: undefined,
+        liked: interactions.likedIds.has(post.id),
+        saved: interactions.savedIds.has(post.id),
         media: media
           .map((item, index) => ({
             type: item.media_type,
@@ -117,10 +144,8 @@ export async function GET(request: Request) {
 }
 
 const schema = z.object({
-  caption: z.string().trim().min(12).max(2000),
+  caption: z.string().trim().min(1).max(2000),
   category: z.string().trim().min(2).max(50),
-  connectionType: z.enum(['event', 'product', 'creator', 'crew']).optional(),
-  connection: z.string().trim().max(150).optional(),
 });
 
 async function resolveMediaType(item: File) {
@@ -139,75 +164,6 @@ function slugify(value: string) {
     .replace(/(^-|-$)/g, '');
 }
 
-async function resolveLink(
-  viewer: NonNullable<Awaited<ReturnType<typeof requireAuthenticatedUser>>>,
-  type?: string,
-  value?: string,
-) {
-  const { admin, user } = viewer;
-  const userId = user.id;
-  if (!type || !value) return {};
-  if (type === 'event') {
-    const event = europeEvents.find((e) => e.name === value);
-    if (!event) throw Error('Evento non disponibile.');
-    return {
-      link_type: 'EVENT',
-      link_label: event.name,
-      link_url: event.internalUrl || event.url,
-    };
-  }
-  if (!z.uuid().safeParse(value).success)
-    throw Error('Collegamento non valido.');
-  if (type === 'product') {
-    const { data } = await applyReviewFixtureVisibility(
-      admin.from('listings')
-        .select('slug,title')
-        .eq('id', value)
-        .eq('seller_id', userId)
-        .eq('status', 'active'),
-      'seller_id',
-      viewer,
-    ).maybeSingle();
-    if (!data) throw Error('Annuncio non disponibile.');
-    return {
-      link_type: 'PRODUCT',
-      link_label: data.title,
-      link_url: '/marketplace/' + data.slug,
-    };
-  }
-  if (type === 'creator') {
-    const { data } = await applyPublicProfileVisibility(applyReviewFixtureVisibility(
-      admin.from('profiles')
-        .select('display_name')
-        .eq('id', value)
-        .eq('moderation_hidden', false),
-      'id',
-      viewer,
-    )).maybeSingle();
-    if (!data) throw Error('Profilo non disponibile.');
-    return {
-      link_type: 'CREATOR',
-      link_label: data.display_name,
-      link_url: '/profile/' + value,
-    };
-  }
-  const { data } = await applyReviewFixtureVisibility(
-    admin.from('squads')
-      .select('name')
-      .eq('id', value)
-      .eq('status', 'ACTIVE')
-      .eq('is_private', false),
-    'owner_id',
-    viewer,
-  ).maybeSingle();
-  if (!data) throw Error('Crew non disponibile.');
-  return {
-    link_type: 'SQUAD',
-    link_label: data.name,
-    link_url: '/squads/' + value,
-  };
-}
-
 export async function POST(request: Request) {
   const authenticated = await requireAuthenticatedUser(request);
   if (!authenticated)
@@ -220,8 +176,6 @@ export async function POST(request: Request) {
   const parsed = schema.safeParse({
     caption: form.get('caption'),
     category: form.get('category'),
-    connectionType: form.get('connectionType') || undefined,
-    connection: form.get('connection') || undefined,
   });
   if (!parsed.success)
     return NextResponse.json(
@@ -232,6 +186,8 @@ export async function POST(request: Request) {
   const media = form
     .getAll('media')
     .filter((item): item is File => item instanceof File && item.size > 0);
+  if (media.reduce((total, file) => total + file.size, 0) > 32 * 1024 * 1024)
+    return NextResponse.json({ error: 'Carica al massimo 32 MB complessivi per post.' }, { status: 413 });
   const mediaTypes = await Promise.all(
     media.map((item) => resolveMediaType(item)),
   );
@@ -274,19 +230,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error instanceof PhotoPrivacyError ? error.message : 'Una foto non è valida. Esportala di nuovo come JPEG, PNG o WebP e riprova.' }, { status: 400 });
   }
 
-  let connection;
-  try {
-    connection = await resolveLink(
-      authenticated,
-      parsed.data.connectionType,
-      parsed.data.connection,
-    );
-  } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : 'Collegamento non valido.' },
-      { status: 400 },
-    );
-  }
   const categorySlug = slugify(parsed.data.category);
   const category = await admin
     .from('post_categories')
@@ -317,7 +260,10 @@ export async function POST(request: Request) {
       language_code: user.user_metadata?.language_code ?? 'it',
       status: 'DRAFT',
       risk_score: signal.status === 'ACTIVE' ? 0 : 1,
-      ...connection,
+      // Ignore legacy connection fields from older clients.
+      link_type: null,
+      link_label: null,
+      link_url: null,
     })
     .select('id, status')
     .single();

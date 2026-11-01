@@ -12,13 +12,14 @@ import { formatEventDates, selectFeaturedEvent } from '@/lib/event-selection';
 import { eventMessages } from '@/lib/i18n/events';
 import { MARKET_CATEGORIES } from '@/lib/marketplace-categories';
 import { EVENT_MEDIA } from '@/lib/event-media';
+import { HomeCommunityCarousel } from '@/components/home-community-carousel';
 
 const categories = [
   { label: 'cosplay', category: 'Cosplay', image: MARKET_CATEGORIES.Cosplay.image },
   { label: 'comics', category: 'Comics', image: MARKET_CATEGORIES.Comics.image },
   { label: 'figures', category: 'Figures', image: MARKET_CATEGORIES.Figures.image },
-  { label: 'cards', category: 'Cards', image: MARKET_CATEGORIES.Cards.image },
-  { label: 'gaming', category: 'Gaming', image: MARKET_CATEGORIES.Gaming.image },
+  { label: 'cards', category: 'Cards', image: '/editorial/category-cards-original-246cd98eef.webp' },
+  { label: 'gaming', category: 'Gaming', image: '/editorial/category-gaming-real-622bc56c4d.webp' },
   { label: 'people', href: '/explore?section=Creator', image: '/editorial/category-artist-v2.png' },
 ] as const;
 
@@ -71,6 +72,7 @@ export default function HomePage() {
         </article>
         {event && <EventMediaCredit event={event} className="shrink-0 px-1" />}
         </div>
+        <HomeCommunityCarousel />
         <section className="home-categories-section">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="text-lg font-semibold">{copy.passions}</h2>

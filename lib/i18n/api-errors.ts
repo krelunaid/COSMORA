@@ -1,3 +1,4 @@
+import { accountMessages } from './account.ts';
 import type { Locale } from './config';
 import { accountRestrictions } from './account-restrictions.ts';
 
@@ -461,6 +462,7 @@ export function knownApiErrorText(
   error: unknown,
 ): string | undefined {
   const { message, status, code } = details(error);
+  if (code === 'PUBLIC_NAME_TAKEN') return accountMessages[locale].nameTaken;
   if (code === 'ACCOUNT_SUSPENDED')
     return accountRestrictions[locale].suspended;
   if (code === 'ACCOUNT_DELETION_PENDING')

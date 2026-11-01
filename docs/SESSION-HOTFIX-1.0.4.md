@@ -2,6 +2,8 @@
 
 Prepared 21–22 October 2026. iOS candidate **1.0.4 (43)**, bundle `it.kreluna.cosmora`; Android candidate **1.0.4 (42)**, package `com.kreluna.cosmora`.
 
+**Latest delivery status — 25 October 2026, 17:01 Europe/Rome:** iOS **1.0.4 (43)** uploaded, processed, selected and submitted to App Review; status **In attesa di verifica**. Automatic release after approval is selected. Android **1.0.4 (42)** was already verified active in production earlier today. iOS approval/public availability and physical iPhone background/resume validation remain unconfirmed.
+
 ## Scope and observed failure
 
 The user reports that opening Messages in the App Store installation leaves the app on “Verifica della sessione…”. They subsequently clarified that this happens when reopening the app after it has remained closed for a while. The public App Store lookup for app 6809232374 reported version 1.0.3 (released 18 October). This hotfix starts from `81dc23e`, the 1.0.3 source, and does not include pending VIECC presentation changes.
@@ -58,3 +60,23 @@ The installed App Store app bundles its JavaScript. A website deployment cannot 
 
 Suggested Italian release notes: “Migliorata l’apertura dei messaggi e il recupero dell’accesso in caso di connessione lenta o interrotta.”
 Suggested English release notes: “Improved opening Messages and recovering sign-in when the connection is slow or interrupted.”
+
+## Live verification — 25 October 2026
+
+- The authenticated Google Play production dashboard identifies the latest active release as **1.0.4 (42) — Ripristino sessione**, available in 178 countries/regions, with five active installations. No duplicate upload or release was created. Screenshot: `outputs/session-hotfix/google-play-production-2026-10-25.png`.
+- App Store Connect distribution still shows **1.0.3 (41)**, ready for distribution; TestFlight's latest version is also 1.0.3 (41). The public Italy lookup agrees. No iOS 1.0.4 build was visible.
+- The local iOS IPA and Android AAB hashes still match the artifacts recorded above. The IPA's Info.plist confirms `it.kreluna.cosmora`, version 1.0.4, build 43.
+- The user authorized proceeding with the store upload. Native app access is blocked because the Mac is locked; a request to unlock it was sent. The browser session can read App Store Connect, so the previously recorded web sign-in blocker is no longer observed. **The iOS upload has not been performed.** Continue with the verified IPA in Transporter after the Mac is unlocked, then confirm processing/build selection and submit the hotfix for review.
+- Google also reports a DEX code optimization warning (deadline February 2027) and an edge-to-edge deprecation recommendation. These are separate from the session hotfix and did not prevent the observed active production release.
+
+## iOS upload and review submission — 25 October 2026
+
+- The Mac became accessible. Rechecked the existing IPA's bundle identifier, version/build and SHA-256; all matched the artifact recorded above. No source or package changes were required.
+- Transporter confirmed delivery of COSMORA **1.0.4 (43)** to App Store Connect at 16:51 Europe/Rome. Evidence: `outputs/session-hotfix/transporter-uploaded-2026-10-25.png`.
+- TestFlight showed build 43 processed and ready for submission, build ID `81fb7143-46d4-4de0-9f9b-8c710d363fb5`.
+- Created iOS version 1.0.4, saved release notes in Italian, English (UK), French, German and Spanish, and updated review notes to describe the session recovery fix and review steps. Existing app metadata, review credentials and contact fields were retained.
+- Selected build 43 and submitted version 1.0.4 to App Review at **17:01 Europe/Rome**. The submission detail page confirms **In attesa di verifica** for **1.0.4 (43)**. Submission ID: `7e5ffa8c-e9a4-472c-8c71-a10163139b01`.
+- Submission page: https://appstoreconnect.apple.com/apps/6809232374/distribution/reviewsubmissions/details/7e5ffa8c-e9a4-472c-8c71-a10163139b01
+- Evidence: `outputs/session-hotfix/appstore-submitted-2026-10-25.png`.
+- Release settings: automatically release after approval, immediately to all users; keep the current ratings. Submission is confirmed, but Apple approval and public iOS availability are not yet confirmed. Android was not uploaded again.
+- No further code changes were made in this session, so the existing test evidence above still applies. A physical iPhone check after installation is still needed for the user's exact background/resume scenario.

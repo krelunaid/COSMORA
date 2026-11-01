@@ -166,3 +166,65 @@ test('a stalled native request has a consumer deadline and is never retried', as
 test('native network rejections retain the existing readable network-error path', async () => {
   await assert.rejects(nativeApiFetch(url, {}, async () => { throw new Error('native offline'); }), TypeError);
 });
+
+test('dedicated Community service allows its read and interaction methods without broadening Supabase access', async () => {
+  const base = 'https://pwdpwgonvnuwmgfiidut.supabase.co/functions/v1/cosmora-community';
+  for (const [path, method] of [
+    ['/api/community/posts?offset=12&saved=1', 'GET'],
+    ['/api/community/posts/interaction', 'PUT'],
+    ['/api/community/posts', 'POST'], ['/api/account', 'GET'], ['/api/account', 'PUT'],
+    ['/api/account/name-availability?name=Andre', 'GET'],
+    ['/api/seller/profile', 'GET'], ['/api/seller/profile', 'POST'],
+  ]) {
+    const target = base + path;
+    const result = await nativeApiFetch(target, {
+      method, headers: { Authorization: 'Bearer current-user' },
+      ...(method === 'PUT' ? { body: '{"active":true}' } : {}),
+    }, async (request) => {
+      assert.equal(request.url, target);
+      assert.equal(request.method, method);
+      assert.equal(request.headers?.authorization, 'Bearer current-user');
+      assert.equal(request.disableRedirects, true);
+      return response({ url: target });
+    });
+    assert.equal(result.status, 200);
+  }
+
+  let requests = 0;
+  for (const [target, method] of [
+    [base + '/api/community/posts', 'DELETE'],
+    [base + '/api/community/posts/interaction', 'GET'],
+    [base + '/api/community/posts/interaction', 'DELETE'],
+    [base + '/api/account/delete', 'POST'],
+    [base + '/api/community/posts/other', 'GET'],
+    [base + '/api/community/posts/', 'GET'],
+    [base + '/api/community/posts#fragment', 'GET'],
+    [base.replace('cosmora-community', 'another-function') + '/api/community/posts', 'GET'],
+    [base.replace('pwdpwgonvnuwmgfiidut', 'untrusted-project') + '/api/community/posts', 'GET'],
+    ['https://pwdpwgonvnuwmgfiidut.supabase.co/rest/v1/profiles', 'GET'],
+    ['https://pwdpwgonvnuwmgfiidut.supabase.co/auth/v1/user', 'GET'],
+  ]) {
+    await assert.rejects(nativeApiFetch(target, { method, headers: { Authorization: 'Bearer current-user' } }, async () => {
+      requests++;
+      return response({ url: target });
+    }), /COSMORA API URL/);
+  }
+  assert.equal(requests, 0);
+});
+
+test('Community native responses cannot redirect or switch endpoints after receiving authorization', async () => {
+  const target = 'https://pwdpwgonvnuwmgfiidut.supabase.co/functions/v1/cosmora-community/api/community/posts/interaction';
+  for (const value of [
+    response({ url: target, status: 302 }),
+    response({ url: 'https://cosmora.kreluna.it/api/community/posts/interaction' }),
+    response({ url: target + '?redirected=1' }),
+    response({ url: target.replace('/interaction', '') }),
+  ]) {
+    let requests = 0;
+    await assert.rejects(nativeApiFetch(target, { method: 'PUT', body: '{}' }, async () => {
+      requests++;
+      return value;
+    }), TypeError);
+    assert.equal(requests, 1);
+  }
+});

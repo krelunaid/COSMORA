@@ -94,6 +94,9 @@ function loadRoute(path: string, onDatabase: (...args: unknown[]) => unknown, st
     '@/lib/community-moderation': { moderateText: () => ({ status: 'ACTIVE' }) }, '@/lib/events-data': {}, '@/lib/release-features': { rentalsEnabled: false },
     '@/lib/shipping': { parseShipping: () => ({}) }, '@/lib/server/blocked-content': {},
     '@/lib/server/review-fixture-visibility': {}, '@/lib/server/public-profile-visibility': {},
+    '@/lib/server/community-post-interactions': {
+      readCommunityPostInteractions: () => assert.fail('POST must not read feed interaction state'),
+    },
   };
   vm.runInNewContext(compiled, {
     exports, require: (name: string) => {
@@ -259,4 +262,29 @@ void test('ICC profile descriptions remain intentionally preserved, not promised
   original.set(description, at);
   const clean = privacy.sanitizePhotoBytes(original, 'image/jpeg');
   assert.ok(Buffer.from(clean).includes(description));
+});
+
+void test('community creates hashtag-only captions and ignores all legacy connection fields', async () => {
+  for (const connectionType of ['event', 'product', 'creator', 'crew']) {
+    const inserts: Record<string, unknown>[] = [];
+    const post = loadRoute('app/api/community/posts/route.ts', (table) => {
+      assert.ok(['community_posts', 'post_categories', 'post_media'].includes(String(table)));
+      const chain: Record<string, unknown> = { data: { id: 'synthetic-test', status: 'DRAFT' }, error: null, count: 0 };
+      for (const method of ['select', 'eq', 'gte', 'upsert', 'update', 'single']) chain[method] = () => chain;
+      chain.insert = (data: Record<string, unknown>) => { if (table === 'community_posts') inserts.push(data); return chain; };
+      return chain;
+    }, { from: () => ({ upload: () => ({ error: null }) }) });
+    const form = new FormData();
+    form.set('caption', '#cosplay'); form.set('category', 'Cosplay');
+    form.set('connectionType', connectionType); form.set('connection', 'untrusted-legacy-value');
+    form.set('link_url', '/profile/unapproved');
+    form.set('media', new File([fixture('metadata.jpg')], 'photo.jpg', { type: 'image/jpeg' }));
+    const response = await post(new Request('https://example.invalid/upload', { method: 'POST', body: form }));
+    assert.equal(response.status, 201);
+    assert.equal(inserts.length, 1);
+    assert.equal(inserts[0].caption, '#cosplay');
+    assert.equal(inserts[0].link_url, null);
+    assert.equal(inserts[0].link_label, null);
+    assert.equal(inserts[0].link_type, null);
+  }
 });

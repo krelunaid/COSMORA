@@ -36,12 +36,12 @@ export function LanguageStartup({ locale }: { locale: Locale }) {
     <main
       className="flex min-h-dvh items-center justify-center bg-[#080918] text-white"
       style={safeAreaStyle}
-      aria-busy="true"
     >
       <div className="flex flex-col items-center gap-6">
         <CosmoraBrand />
-        <output className="sr-only" aria-live="polite">
-          {languageWelcomeMessages[locale].loading}
+        <output className="flex flex-col items-center gap-4 text-center text-sm text-white/65" aria-live="polite">
+          <span aria-hidden="true" className="size-7 animate-spin rounded-full border-2 border-violet-400/20 border-t-pink-400 motion-reduce:animate-none" />
+          <span>{languageWelcomeMessages[locale].loading}</span>
         </output>
       </div>
     </main>

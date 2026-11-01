@@ -1,3 +1,5 @@
+import { normalizePublicName, validPublicName, isPublicNameConflict, PUBLIC_NAME_TAKEN } from '@/lib/public-name';
+import { publicNameAvailable } from '@/lib/server/public-name';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireAuthenticatedUser } from '@/lib/supabase/server';
@@ -25,6 +27,7 @@ const countries = [
 const text = z.string().trim().max(2000).default('');
 const schema = z.object({
   displayName: z.string().trim().min(2).max(100),
+  updatePublicName: z.boolean().default(false),
   sellerType: z.enum(['private', 'shop']),
   businessType: z.enum(['individual', 'company']).default('individual'),
   country: z.enum(countries),
@@ -57,7 +60,9 @@ export async function GET(request: Request) {
       { error: 'Profilo non disponibile.' },
       { status: 503 },
     );
-  const accountDisplayName = registeredAccountName(a.user.user_metadata);
+  const publicProfile = await a.admin.from('profiles').select('display_name').eq('id', a.user.id).maybeSingle();
+  if (publicProfile.error) return NextResponse.json({ error: 'Profilo non disponibile.' }, { status: 503 });
+  const accountDisplayName = publicProfile.data?.display_name || registeredAccountName(a.user.user_metadata);
   return NextResponse.json(
     { profile: data, accountDisplayName },
     { headers: { 'Cache-Control': 'private, no-store' } },
@@ -77,14 +82,16 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   const d = p.data;
-  const registeredDisplayName = registeredAccountName(a.user.user_metadata);
+  const publicProfile = await a.admin.from('profiles').select('display_name').eq('id', a.user.id).maybeSingle();
+  if (publicProfile.error) return NextResponse.json({ error: 'Profilo non disponibile.' }, { status: 503 });
+  const registeredDisplayName = publicProfile.data?.display_name || registeredAccountName(a.user.user_metadata);
   if (d.sellerType === 'private' && registeredDisplayName.length < 2)
     return NextResponse.json(
       { error: 'Completa prima il nome del tuo account COSMORA.' },
       { status: 400 },
     );
-  const publicDisplayName =
-    d.sellerType === 'shop' ? d.legalName : registeredDisplayName;
+  const publicDisplayName = normalizePublicName(d.sellerType === 'shop' && d.updatePublicName ? d.displayName : publicProfile.data?.display_name || (d.sellerType === 'shop' ? d.legalName : registeredDisplayName));
+  if (!validPublicName(publicDisplayName)) return NextResponse.json({ error: 'Inserisci un nome pubblico valido da 2 a 80 caratteri.' }, { status: 400 });
   if (
     d.sellerType === 'shop' &&
     [
@@ -100,6 +107,18 @@ export async function POST(request: Request) {
       { error: 'Completa i dati aziendali e le condizioni di vendita.' },
       { status: 400 },
     );
+  const availability = await publicNameAvailable(a.admin, publicDisplayName, a.user.id);
+  if (availability.error) return NextResponse.json({ error: 'Profilo non disponibile.' }, { status: 503 });
+  if (!availability.available) return NextResponse.json({ error: PUBLIC_NAME_TAKEN, code: 'PUBLIC_NAME_TAKEN' }, { status: 409 });
+  if (d.sellerType === 'shop' && d.updatePublicName) {
+    const { error } = await a.admin.rpc('cosmora_save_shop_public_name', {
+      p_user_id: a.user.id, p_public_name: publicDisplayName, p_country: d.country,
+      p_details: { ...d, displayName: publicDisplayName },
+    });
+    if (isPublicNameConflict(error)) return NextResponse.json({ error: PUBLIC_NAME_TAKEN, code: 'PUBLIC_NAME_TAKEN' }, { status: 409 });
+    if (error) return NextResponse.json({ error: 'Impossibile salvare i dati venditore.' }, { status: 503 });
+    return NextResponse.json({ ok: true, displayName: publicDisplayName });
+  }
   const details = await a.admin
     .from('seller_details')
     .upsert({
@@ -123,6 +142,7 @@ export async function POST(request: Request) {
       country: d.country,
       updated_at: new Date().toISOString(),
     });
+  if (isPublicNameConflict(saved.error)) return NextResponse.json({ error: PUBLIC_NAME_TAKEN, code: 'PUBLIC_NAME_TAKEN' }, { status: 409 });
   if (saved.error)
     return NextResponse.json(
       {
@@ -131,7 +151,7 @@ export async function POST(request: Request) {
       },
       { status: 503 },
     );
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, displayName: publicDisplayName });
 }
 
 function registeredAccountName(metadata: Record<string, unknown> | undefined) {

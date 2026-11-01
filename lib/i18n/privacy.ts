@@ -1,6 +1,6 @@
 import type { Locale } from './config';
 
-export const PRIVACY_UPDATED_AT = '2026-10-28';
+export const PRIVACY_UPDATED_AT = '2026-10-29';
 
 export const pushPrivacy: Record<Locale, string> = {
   "it": "Le notifiche sono facoltative e si basano sul consenso che esprimi scegliendo di attivarle (art. 6.1.a GDPR). Registriamo identificativo di installazione, token del dispositivo, piattaforma, lingua, scelta e date tecniche, associati al tuo account, per inviare il ringraziamento e le novità COSMORA tramite Apple Push Notification service o Firebase Cloud Messaging di Google. Non sono pubblicità di terzi. Puoi disattivarle nel Profilo: il token viene rimosso dal registro COSMORA quando la richiesta raggiunge il server. Se sei offline, l’app ritenta alla riconnessione o riapertura. La revoca nelle impostazioni del telefono impedisce la visualizzazione delle notifiche; l’app aggiorna il registro quando viene riaperta e può collegarsi. I dispositivi inattivi da oltre 90 giorni sono esclusi dagli invii: questa esclusione non equivale alla cancellazione dei dati. La cancellazione dell’account rimuove i dati push associati nei sistemi COSMORA; non significa cancellazione immediata di ogni identificativo presso Apple o Google.",
@@ -24,14 +24,18 @@ export const privacyMessages: Record<Locale, PrivacyMessages> = {
   "it": {
     "title": "Privacy",
     "heading": "Informativa sulla privacy",
-    "updated": "Aggiornata il 28 ottobre 2026",
+    "updated": "Aggiornata il 29 ottobre 2026",
     "contact": "Contatta il titolare per la privacy",
     "deleteAccount": "Elimina il tuo account",
     "authority": "Garante per la protezione dei dati personali",
     "sections": [
       [
-        "Titolare e ambito",
-        "Il titolare del trattamento è Andrea Gadducci, titolare della ditta individuale Kreluna Software, Viale Dante Alighieri 3, 51016 Montecatini Terme (PT), Italia. Contatto: info@kreluna.it, oggetto [COSMORA] Privacy. Questa informativa riguarda l’app COSMORA, cosmora.kreluna.it, le pagine COSMORA e il pannello riservato su software.kreluna.it/cosmora/. Le altre aree del sito aziendale hanno informative proprie: le loro tecnologie pubblicitarie non descrivono automaticamente quelle di COSMORA."
+        "Privacy di COSMORA",
+        "Qui trovi come COSMORA tratta i tuoi dati personali, per quali scopi e come puoi esercitare i tuoi diritti. Questa informativa riguarda l’app COSMORA, cosmora.kreluna.it, le pagine COSMORA e il pannello riservato su software.kreluna.it/cosmora/. Le altre aree del sito aziendale hanno informative proprie: le loro tecnologie pubblicitarie non descrivono automaticamente quelle di COSMORA."
+      ],
+      [
+        "Chi gestisce i tuoi dati",
+        "Il titolare del trattamento è Andrea Gadducci, titolare della ditta individuale Kreluna Software, Viale Dante Alighieri 3, 51016 Montecatini Terme (PT), Italia. Contatto: info@kreluna.it, oggetto [COSMORA] Privacy."
       ],
       [
         "Account e accesso",
@@ -39,7 +43,7 @@ export const privacyMessages: Record<Locale, PrivacyMessages> = {
       ],
       [
         "Community e visibilità",
-        "Trattiamo foto e video caricati, post, annunci, messaggi, preferiti, relazioni e partecipazioni a crew e incontri per fornire le funzioni che richiedi (art. 6.1.b GDPR). Nome pubblico, paese, post e annunci possono essere visibili anche senza accesso. I messaggi sono destinati ai partecipanti, non sono post pubblici. Evita di condividere dati sensibili o informazioni altrui senza averne titolo. Altri possono copiare i contenuti pubblici: eliminare l’originale non cancella automaticamente copie esterne."
+        "Trattiamo foto e video caricati, post, annunci, messaggi, preferiti, relazioni e partecipazioni a crew e incontri per fornire le funzioni che richiedi (art. 6.1.b GDPR). Nome pubblico, paese, post e annunci possono essere visibili anche senza accesso. I messaggi sono destinati ai partecipanti, non sono post pubblici. Evita di condividere dati sensibili o informazioni altrui senza averne titolo. Altri possono copiare i contenuti pubblici: eliminare l’originale non cancella automaticamente copie esterne. Mi piace e post salvati sono associati al tuo account con identificativo del post e data, per ritrovarli anche su altri dispositivi. Queste scelte non sono mostrate agli altri utenti e non alimentano pubblicità personalizzata. Puoi annullarle dal post; vengono rimosse anche quando il post o il tuo account viene eliminato dai sistemi operativi COSMORA."
       ],
       [
         "Gestione, assistenza e sicurezza",
@@ -86,14 +90,18 @@ export const privacyMessages: Record<Locale, PrivacyMessages> = {
   "en": {
     "title": "Privacy",
     "heading": "Privacy notice",
-    "updated": "Updated 28 October 2026",
+    "updated": "Updated 29 October 2026",
     "contact": "Contact the data controller about privacy",
     "deleteAccount": "Delete your account",
     "authority": "Italian Data Protection Authority",
     "sections": [
       [
-        "Controller and scope",
-        "The controller is Andrea Gadducci, owner of the sole proprietorship Kreluna Software, Viale Dante Alighieri 3, 51016 Montecatini Terme (PT), Italy. Contact: info@kreluna.it, subject [COSMORA] Privacy. This notice covers the COSMORA app, cosmora.kreluna.it, and the COSMORA pages and restricted dashboard at software.kreluna.it/cosmora/. Other areas of the company website have their own notices: their advertising technologies do not automatically describe those used by COSMORA."
+        "COSMORA privacy",
+        "Here you can find out how COSMORA processes your personal data, for what purposes and how to exercise your rights. This notice covers the COSMORA app, cosmora.kreluna.it, and the COSMORA pages and restricted dashboard at software.kreluna.it/cosmora/. Other areas of the company website have their own notices: their advertising technologies do not automatically describe those used by COSMORA."
+      ],
+      [
+        "Who manages your data",
+        "The controller is Andrea Gadducci, owner of the sole proprietorship Kreluna Software, Viale Dante Alighieri 3, 51016 Montecatini Terme (PT), Italy. Contact: info@kreluna.it, subject [COSMORA] Privacy."
       ],
       [
         "Account and sign-in",
@@ -101,7 +109,7 @@ export const privacyMessages: Record<Locale, PrivacyMessages> = {
       ],
       [
         "Community and visibility",
-        "We process uploaded photos and videos, posts, listings, messages, favourites, connections and participation in crews and meetups to provide the features you request (Article 6(1)(b) GDPR). Public name, country, posts and listings may be visible without signing in. Messages are for the participants, not public posts. Avoid sharing sensitive information or other people’s data without authority to do so. Others may copy public content: deleting the original does not automatically delete external copies."
+        "We process uploaded photos and videos, posts, listings, messages, favourites, connections and participation in crews and meetups to provide the features you request (Article 6(1)(b) GDPR). Public name, country, posts and listings may be visible without signing in. Messages are for the participants, not public posts. Avoid sharing sensitive information or other people’s data without authority to do so. Others may copy public content: deleting the original does not automatically delete external copies. Likes and saved posts are linked to your account with the post identifier and date so you can find them across devices. These choices are not shown to other users and do not feed personalised advertising. You can undo them from the post; they are also removed when the post or your account is deleted from COSMORA operational systems."
       ],
       [
         "Administration, support and security",
@@ -148,14 +156,18 @@ export const privacyMessages: Record<Locale, PrivacyMessages> = {
   "fr": {
     "title": "Confidentialité",
     "heading": "Politique de confidentialité",
-    "updated": "Mise à jour le 28 octobre 2026",
+    "updated": "Mise à jour le 29 octobre 2026",
     "contact": "Contacter le responsable du traitement",
     "deleteAccount": "Supprimer votre compte",
     "authority": "Autorité italienne de protection des données",
     "sections": [
       [
-        "Responsable et périmètre",
-        "Le responsable est Andrea Gadducci, titulaire de l’entreprise individuelle Kreluna Software, Viale Dante Alighieri 3, 51016 Montecatini Terme (PT), Italie. Contact : info@kreluna.it, objet [COSMORA] Privacy. Cette politique couvre l’application COSMORA, cosmora.kreluna.it, les pages COSMORA et le tableau de bord réservé sur software.kreluna.it/cosmora/. Les autres parties du site de l’entreprise disposent de leurs propres informations : leurs technologies publicitaires ne décrivent pas automatiquement celles de COSMORA."
+        "Confidentialité de COSMORA",
+        "Découvrez comment COSMORA traite vos données personnelles, à quelles fins et comment exercer vos droits. Cette politique couvre l’application COSMORA, cosmora.kreluna.it, les pages COSMORA et le tableau de bord réservé sur software.kreluna.it/cosmora/. Les autres parties du site de l’entreprise disposent de leurs propres informations : leurs technologies publicitaires ne décrivent pas automatiquement celles de COSMORA."
+      ],
+      [
+        "Qui traite vos données",
+        "Le responsable est Andrea Gadducci, titulaire de l’entreprise individuelle Kreluna Software, Viale Dante Alighieri 3, 51016 Montecatini Terme (PT), Italie. Contact : info@kreluna.it, objet [COSMORA] Privacy."
       ],
       [
         "Compte et connexion",
@@ -163,7 +175,7 @@ export const privacyMessages: Record<Locale, PrivacyMessages> = {
       ],
       [
         "Communauté et visibilité",
-        "Nous traitons les photos et vidéos importées, publications, annonces, messages, favoris, relations et participations aux groupes et rencontres pour fournir les fonctions demandées (article 6.1.b du RGPD). Le nom public, le pays, les publications et annonces peuvent être visibles sans connexion. Les messages sont destinés aux participants, pas au public. Évitez de partager des informations sensibles ou des données d’autrui sans en avoir le droit. Des tiers peuvent copier des contenus publics : supprimer l’original ne supprime pas automatiquement les copies externes."
+        "Nous traitons les photos et vidéos importées, publications, annonces, messages, favoris, relations et participations aux groupes et rencontres pour fournir les fonctions demandées (article 6.1.b du RGPD). Le nom public, le pays, les publications et annonces peuvent être visibles sans connexion. Les messages sont destinés aux participants, pas au public. Évitez de partager des informations sensibles ou des données d’autrui sans en avoir le droit. Des tiers peuvent copier des contenus publics : supprimer l’original ne supprime pas automatiquement les copies externes. Les mentions J’aime et publications enregistrées sont liées à votre compte avec l’identifiant de la publication et la date, pour les retrouver sur vos appareils. Ces choix ne sont pas montrés aux autres utilisateurs et ne servent pas à la publicité personnalisée. Vous pouvez les annuler depuis la publication ; ils sont aussi supprimés lorsque la publication ou votre compte est supprimé des systèmes opérationnels COSMORA."
       ],
       [
         "Gestion, assistance et sécurité",
@@ -210,14 +222,18 @@ export const privacyMessages: Record<Locale, PrivacyMessages> = {
   "de": {
     "title": "Datenschutz",
     "heading": "Datenschutzhinweise",
-    "updated": "Aktualisiert am 28. Oktober 2026",
+    "updated": "Aktualisiert am 29. Oktober 2026",
     "contact": "Verantwortlichen zum Datenschutz kontaktieren",
     "deleteAccount": "Dein Konto löschen",
     "authority": "Italienische Datenschutzbehörde",
     "sections": [
       [
-        "Verantwortlicher und Geltungsbereich",
-        "Verantwortlich ist Andrea Gadducci, Inhaber des Einzelunternehmens Kreluna Software, Viale Dante Alighieri 3, 51016 Montecatini Terme (PT), Italien. Kontakt: info@kreluna.it, Betreff [COSMORA] Privacy. Diese Hinweise gelten für die COSMORA-App, cosmora.kreluna.it sowie die COSMORA-Seiten und das zugangsbeschränkte Dashboard unter software.kreluna.it/cosmora/. Andere Bereiche der Unternehmenswebsite haben eigene Hinweise: Deren Werbetechnologien beschreiben nicht automatisch die von COSMORA."
+        "Datenschutz bei COSMORA",
+        "Hier erfährst du, wie COSMORA deine personenbezogenen Daten verarbeitet, zu welchen Zwecken und wie du deine Rechte ausüben kannst. Diese Hinweise gelten für die COSMORA-App, cosmora.kreluna.it sowie die COSMORA-Seiten und das zugangsbeschränkte Dashboard unter software.kreluna.it/cosmora/. Andere Bereiche der Unternehmenswebsite haben eigene Hinweise: Deren Werbetechnologien beschreiben nicht automatisch die von COSMORA."
+      ],
+      [
+        "Wer deine Daten verarbeitet",
+        "Verantwortlich ist Andrea Gadducci, Inhaber des Einzelunternehmens Kreluna Software, Viale Dante Alighieri 3, 51016 Montecatini Terme (PT), Italien. Kontakt: info@kreluna.it, Betreff [COSMORA] Privacy."
       ],
       [
         "Konto und Anmeldung",
@@ -225,7 +241,7 @@ export const privacyMessages: Record<Locale, PrivacyMessages> = {
       ],
       [
         "Community und Sichtbarkeit",
-        "Wir verarbeiten hochgeladene Fotos und Videos, Beiträge, Anzeigen, Nachrichten, Favoriten, Kontakte sowie Crew- und Treffen-Teilnahmen für die angeforderten Funktionen (Art. 6 Abs. 1 Buchst. b DSGVO). Öffentlicher Name, Land, Beiträge und Anzeigen können ohne Anmeldung sichtbar sein. Nachrichten sind für die Beteiligten bestimmt und keine öffentlichen Beiträge. Teile sensible Angaben oder Daten anderer nur, wenn du dazu berechtigt bist. Öffentliche Inhalte können kopiert werden: Das Löschen des Originals entfernt externe Kopien nicht automatisch."
+        "Wir verarbeiten hochgeladene Fotos und Videos, Beiträge, Anzeigen, Nachrichten, Favoriten, Kontakte sowie Crew- und Treffen-Teilnahmen für die angeforderten Funktionen (Art. 6 Abs. 1 Buchst. b DSGVO). Öffentlicher Name, Land, Beiträge und Anzeigen können ohne Anmeldung sichtbar sein. Nachrichten sind für die Beteiligten bestimmt und keine öffentlichen Beiträge. Teile sensible Angaben oder Daten anderer nur, wenn du dazu berechtigt bist. Öffentliche Inhalte können kopiert werden: Das Löschen des Originals entfernt externe Kopien nicht automatisch. Gefällt-mir-Angaben und gespeicherte Beiträge werden mit Beitragskennung und Datum deinem Konto zugeordnet, damit du sie auch auf anderen Geräten wiederfindest. Diese Entscheidungen werden anderen Nutzern nicht angezeigt und nicht für personalisierte Werbung verwendet. Du kannst sie im Beitrag rückgängig machen; sie werden auch entfernt, wenn der Beitrag oder dein Konto aus den operativen COSMORA-Systemen gelöscht wird."
       ],
       [
         "Verwaltung, Support und Sicherheit",
@@ -272,14 +288,18 @@ export const privacyMessages: Record<Locale, PrivacyMessages> = {
   "es": {
     "title": "Privacidad",
     "heading": "Aviso de privacidad",
-    "updated": "Actualizado el 28 de octubre de 2026",
+    "updated": "Actualizado el 29 de octubre de 2026",
     "contact": "Contactar con el responsable de privacidad",
     "deleteAccount": "Eliminar tu cuenta",
     "authority": "Autoridad italiana de protección de datos",
     "sections": [
       [
-        "Responsable y alcance",
-        "El responsable es Andrea Gadducci, titular de la empresa individual Kreluna Software, Viale Dante Alighieri 3, 51016 Montecatini Terme (PT), Italia. Contacto: info@kreluna.it, asunto [COSMORA] Privacy. Este aviso cubre la app COSMORA, cosmora.kreluna.it, y las páginas COSMORA y el panel restringido en software.kreluna.it/cosmora/. Otras áreas del sitio de la empresa tienen avisos propios: sus tecnologías publicitarias no describen automáticamente las de COSMORA."
+        "Privacidad de COSMORA",
+        "Aquí encontrarás cómo COSMORA trata tus datos personales, con qué fines y cómo puedes ejercer tus derechos. Este aviso cubre la app COSMORA, cosmora.kreluna.it, y las páginas COSMORA y el panel restringido en software.kreluna.it/cosmora/. Otras áreas del sitio de la empresa tienen avisos propios: sus tecnologías publicitarias no describen automáticamente las de COSMORA."
+      ],
+      [
+        "Quién trata tus datos",
+        "El responsable es Andrea Gadducci, titular de la empresa individual Kreluna Software, Viale Dante Alighieri 3, 51016 Montecatini Terme (PT), Italia. Contacto: info@kreluna.it, asunto [COSMORA] Privacy."
       ],
       [
         "Cuenta y acceso",
@@ -287,7 +307,7 @@ export const privacyMessages: Record<Locale, PrivacyMessages> = {
       ],
       [
         "Comunidad y visibilidad",
-        "Tratamos fotos y vídeos subidos, publicaciones, anuncios, mensajes, favoritos, relaciones y participación en grupos y encuentros para ofrecer las funciones solicitadas (artículo 6.1.b del RGPD). Nombre público, país, publicaciones y anuncios pueden ser visibles sin iniciar sesión. Los mensajes son para sus participantes, no publicaciones públicas. Evita compartir datos sensibles o de otras personas sin estar legitimado. Otros pueden copiar contenido público: eliminar el original no elimina automáticamente las copias externas."
+        "Tratamos fotos y vídeos subidos, publicaciones, anuncios, mensajes, favoritos, relaciones y participación en grupos y encuentros para ofrecer las funciones solicitadas (artículo 6.1.b del RGPD). Nombre público, país, publicaciones y anuncios pueden ser visibles sin iniciar sesión. Los mensajes son para sus participantes, no publicaciones públicas. Evita compartir datos sensibles o de otras personas sin estar legitimado. Otros pueden copiar contenido público: eliminar el original no elimina automáticamente las copias externas. Los Me gusta y las publicaciones guardadas se vinculan a tu cuenta con el identificador de la publicación y la fecha para encontrarlos en tus dispositivos. Estas elecciones no se muestran a otros usuarios ni se usan para publicidad personalizada. Puedes deshacerlas desde la publicación; también se eliminan cuando la publicación o tu cuenta se borra de los sistemas operativos de COSMORA."
       ],
       [
         "Administración, asistencia y seguridad",

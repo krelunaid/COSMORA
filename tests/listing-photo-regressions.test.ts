@@ -27,7 +27,8 @@ test('native picker does not automatically reopen after an error', () => {
 });
 
 test('image conversion bounds output dimensions for iPhone photos', () => {
-  assert.match(media, /2048 \/ Math.max\(width, height\)/);
+  assert.match(media, /options\.maxEdge \?\? 2048/);
+  assert.match(media, /Math\.max\(width, height\)/);
   assert.match(media, /canvas.width, canvas.height/);
 });
 

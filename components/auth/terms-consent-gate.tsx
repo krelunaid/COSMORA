@@ -5,6 +5,7 @@ import type { User } from '@supabase/supabase-js';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from '@/components/app-link';
 import { useI18n } from '@/components/i18n-provider';
+import { LanguageStartup } from '@/components/language-welcome';
 import { accountMessages } from '@/lib/i18n/account';
 import { commerceText } from '@/lib/i18n/commerce';
 import { authTerms } from '@/lib/i18n/auth-terms';
@@ -98,12 +99,13 @@ export function TermsConsentGate({ children }: { children: ReactNode }) {
   }
 
   if (isTermsExemptPath(pathname ?? '')) return children;
+  if (!ready) return <LanguageStartup locale={locale} />;
   if (ready && !sessionError && (!user || hasCurrentTermsReceipt(user))) return children;
 
   return (
     <main className="min-h-dvh bg-[#090a19] px-5 pb-10 pt-[calc(env(safe-area-inset-top)+2.5rem)] text-white">
       <section className="mx-auto max-w-lg space-y-5 rounded-2xl border border-white/15 bg-[#101122] p-6 text-base leading-relaxed">
-        {!ready ? <output aria-live="polite">{copy.checkingSession}</output> : sessionError ? (
+        {sessionError ? (
           <>
             <p role="alert">{copy.sessionError}</p>
             <button type="button" onClick={() => { setReady(false); setRetry((value) => value + 1); }} className="min-h-12 rounded-xl bg-violet-600 px-5">{copy.retry}</button>

@@ -1,5 +1,7 @@
 'use client';
 import { useI18n } from '@/components/i18n-provider';
+import { accountHttp } from '@/lib/account-http';
+import { normalizePublicName, validPublicName } from '@/lib/public-name';
 import { accountMessages } from '@/lib/i18n/account';
 import { commerceText } from '@/lib/i18n/commerce';
 import { communityRules } from '@/lib/i18n/community-rules';
@@ -44,9 +46,9 @@ function authSchema(t: (typeof accountMessages)['en']) {
     password: z.string().min(8, t.passwordLength),
     displayName: z
       .string()
-      .trim()
-      .min(2, t.validName)
-      .max(80, t.validName)
+      .max(160, t.validName)
+      .transform(normalizePublicName)
+      .refine(validPublicName, t.validName)
       .optional(),
   });
 }
@@ -165,6 +167,8 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
       const client = getSupabaseBrowserClient();
       if (!client) throw new Error(t.unavailable);
       if (isRegister) {
+        const available = await accountHttp<{ available: boolean }>('/api/account/name-availability?name=' + encodeURIComponent(result.data.displayName || ''), { method: 'GET' });
+        if (!available.available) throw new Error(t.nameTaken);
         const { data, error } = await client.auth.signUp({
           email: result.data.email,
           password: result.data.password,
@@ -336,7 +340,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
               {isRegister && (
                 <Field
                   icon={UserRound}
-                  label={messages.auth.name}
+                  label={t.publicName}
                   name="displayName"
                 >
                   <Input

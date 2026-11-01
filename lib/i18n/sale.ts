@@ -616,11 +616,11 @@ export const saleCopy = {
     'El nombre público del vendedor es el que elegiste al registrarte y no se puede cambiar aquí.',
   ],
   shopSellerNameHelp: [
-    'Il nome dell’attività come da visura sarà mostrato come venditore. L’account e i dati personali di accesso restano i tuoi.',
-    'The registered business name will be shown as the seller. The account and its personal sign-in details remain yours.',
-    'Le nom enregistré de l’activité sera affiché comme vendeur. Le compte et ses identifiants personnels restent les vôtres.',
-    'Der eingetragene Geschäftsname wird als Verkäufer angezeigt. Dein Konto und deine persönlichen Anmeldedaten bleiben bestehen.',
-    'El nombre comercial registrado se mostrará como vendedor. La cuenta y tus datos personales de acceso siguen siendo tuyos.',
+    'Puoi cambiare qui il nome pubblico: sarà usato anche sul tuo profilo e nella community. Il nome legale dell’attività è richiesto separatamente.',
+    'You can change your public name here. It will also appear on your profile and in the community. Your registered business name is entered separately.',
+    'Vous pouvez modifier ici votre nom public, également affiché sur votre profil et dans la communauté. Le nom légal de l’activité est indiqué séparément.',
+    'Hier kannst du deinen öffentlichen Namen ändern. Er erscheint auch in deinem Profil und in der Community. Der eingetragene Geschäftsname wird separat angegeben.',
+    'Aquí puedes cambiar tu nombre público, que también aparecerá en tu perfil y en la comunidad. El nombre legal de la actividad se indica por separado.',
   ],
   private: [
     'Privato',

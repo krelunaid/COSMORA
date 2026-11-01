@@ -2,6 +2,10 @@ import type { Locale } from './config';
 
 // English, Italian, French, German, Spanish. User-written names/content are preserved.
 const copy = {
+  nameTaken: ['Name already taken. Add something or choose another name.', 'Nome già in uso. Aggiungi qualcosa o scegli un altro nome.', 'Nom déjà utilisé. Ajoutez un élément ou choisissez un autre nom.', 'Name bereits vergeben. Ergänze etwas oder wähle einen anderen Namen.', 'Nombre ya utilizado. Añade algo o elige otro nombre.'],
+  publicName: ['Unique public name', 'Nome pubblico univoco', 'Nom public unique', 'Eindeutiger öffentlicher Name', 'Nombre público único'],
+  uniqueNameHint: ['Your name must be unique. Uppercase and lowercase count as the same name.', 'Il nome deve essere unico. Maiuscole e minuscole contano come lo stesso nome.', 'Votre nom doit être unique. Majuscules et minuscules comptent comme le même nom.', 'Dein Name muss eindeutig sein. Groß- und Kleinschreibung zählt als derselbe Name.', 'Tu nombre debe ser único. Mayúsculas y minúsculas cuentan como el mismo nombre.'],
+
   back: ['Back', 'Indietro', 'Retour', 'Zurück', 'Volver'],
   language: [
     'App language',
@@ -378,11 +382,18 @@ const copy = {
     'Perfil no disponible',
   ],
   profileMissing: [
-    'This profile does not exist or is no longer available.',
-    'Questo profilo non esiste o non è più disponibile.',
-    'Ce profil n’existe pas ou n’est plus disponible.',
-    'Dieses Profil existiert nicht oder ist nicht mehr verfügbar.',
-    'Este perfil no existe o ya no está disponible.',
+    'This public profile cannot be viewed at the moment.',
+    'Al momento non è possibile visualizzare questa scheda pubblica.',
+    'Ce profil public ne peut pas être consulté pour le moment.',
+    'Dieses öffentliche Profil kann derzeit nicht angezeigt werden.',
+    'Este perfil público no se puede ver en este momento.',
+  ],
+  ownPublicProfileMissing: [
+    'Your public profile is not available. Open your account to check and save the name you want to show in the community.',
+    'La tua scheda pubblica non è disponibile. Apri il tuo account per controllare e salvare il nome da mostrare nella community.',
+    'Votre profil public est indisponible. Ouvrez votre compte pour vérifier et enregistrer le nom à afficher dans la communauté.',
+    'Dein öffentliches Profil ist nicht verfügbar. Öffne dein Konto, um den Namen für die Community zu prüfen und zu speichern.',
+    'Tu perfil público no está disponible. Abre tu cuenta para revisar y guardar el nombre que quieres mostrar en la comunidad.',
   ],
   discoverPeople: [
     'Discover people in the community',

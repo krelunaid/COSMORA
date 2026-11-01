@@ -1,6 +1,8 @@
 import type { HttpOptions, HttpResponse } from '@capacitor/core';
 
 export const COSMORA_API_ORIGIN = 'https://cosmora.kreluna.it';
+const communityApiOrigin = 'https://pwdpwgonvnuwmgfiidut.supabase.co';
+const communityApiPrefix = '/functions/v1/cosmora-community';
 export const NATIVE_API_TIMEOUT_MS = 60_000;
 type NativeRequest = (options: HttpOptions) => Promise<HttpResponse>;
 type FormEntry = { key: string; value: string; type: 'string' | 'base64File';
@@ -8,11 +10,32 @@ type FormEntry = { key: string; value: string; type: 'string' | 'base64File';
 const methods = new Set(['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE']);
 const requestHeaders = new Set(['authorization', 'content-type', 'accept', 'accept-language', 'cache-control']);
 
-export function validateNativeApiUrl(raw: string): string {
+function isCommunityRoute(pathname: string, method: string): boolean {
+  return ((method === 'GET' || method === 'POST') && pathname === '/api/community/posts')
+    || (method === 'PUT' && pathname === '/api/community/posts/interaction')
+    || ((method === 'GET' || method === 'PUT') && pathname === '/api/account')
+    || (method === 'GET' && pathname === '/api/account/name-availability')
+    || ((method === 'GET' || method === 'POST') && pathname === '/api/seller/profile');
+}
+
+export function validateNativeApiUrl(raw: string, method = 'GET'): string {
   const url = new URL(raw);
-  if (url.origin !== COSMORA_API_ORIGIN || !url.pathname.startsWith('/api/')
+  const legacyApi = url.origin === COSMORA_API_ORIGIN && url.pathname.startsWith('/api/');
+  const communityApi = url.origin === communityApiOrigin
+    && url.pathname.startsWith(communityApiPrefix)
+    && isCommunityRoute(url.pathname.slice(communityApiPrefix.length), method.toUpperCase());
+  if ((!legacyApi && !communityApi)
     || url.username || url.password || url.hash || raw.includes('\\')) {
     throw new TypeError('Expected a COSMORA API URL.');
+  }
+  return url.href;
+}
+
+/** Route only explicitly released account and Community operations to their dedicated service. */
+export function resolveNativeApiUrl(raw: string, method = 'GET'): string {
+  const url = new URL(validateNativeApiUrl(raw, method));
+  if (url.origin === COSMORA_API_ORIGIN && isCommunityRoute(url.pathname, method.toUpperCase())) {
+    return communityApiOrigin + communityApiPrefix + url.pathname + url.search;
   }
   return url.href;
 }
@@ -86,7 +109,7 @@ async function requestOptions(url: string, options: RequestInit, timeoutMs: numb
 function toResponse(value: HttpResponse, url: string, method: string): Response {
   // Reject even a same-origin redirect: native requests must never resend a mutation.
   if (value.status >= 300 && value.status < 400) throw new TypeError('Unexpected API redirect.');
-  if (validateNativeApiUrl(value.url) !== url) throw new TypeError('Unexpected API response URL.');
+  if (validateNativeApiUrl(value.url, method) !== url) throw new TypeError('Unexpected API response URL.');
   if (!Number.isInteger(value.status) || value.status < 200 || value.status > 599) {
     throw new TypeError('Invalid API response status.');
   }
@@ -129,7 +152,7 @@ export function nativeApiFetch(
     signal?.addEventListener('abort', abort, { once: true });
     timer = setTimeout(() => finish(new DOMException('API request timed out', 'TimeoutError')), timeoutMs);
     void (async () => {
-      const url = validateNativeApiUrl(rawUrl);
+      const url = validateNativeApiUrl(rawUrl, options.method ?? 'GET');
       const nativeOptions = await requestOptions(url, options, timeoutMs);
       if (settled) return;
       let value: HttpResponse;

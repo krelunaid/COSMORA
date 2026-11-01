@@ -77,8 +77,10 @@ void test('Explore discoveries always expose image, label, title and meta', () =
   assert.ok(figures);
   assert.equal(figures.section, 'Prodotti');
   assert.equal(figures.meta, 'Figure e collectibles');
-  assert.equal(figures.image, '/editorial/category-figures.svg');
-  assert.match(readFileSync(join(root, 'public', figures.image), 'utf8'), /<svg\b/);
+  assert.equal(figures.image, '/editorial/category-figures-v2.png');
+  const figureBytes = readFileSync(join(root, 'public', figures.image));
+  assert.deepEqual(figureBytes.subarray(0, 8), Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+  assert.ok(figureBytes.readUInt32BE(16) > 0 && figureBytes.readUInt32BE(20) > 0, 'Figure artwork must be a nonempty PNG');
   const lucca = exploreDiscoveries.find(
     (card) => card.title === 'Lucca Comics & Games 2026',
   );

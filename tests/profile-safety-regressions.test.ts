@@ -231,7 +231,15 @@ void test('other users have a labeled block button with visible effect explanati
 });
 
 void test('confirmation is outside route content and survives removal of a blocked profile or post', () => {
-  assert.match(source('app/layout.tsx'), /<TermsConsentGate>\{children\}<BlockFeedback \/><\/TermsConsentGate>/);
+  const layout = parse(source('app/layout.tsx'));
+  const gate = find(layout, (node): node is ts.JsxElement =>
+    ts.isJsxElement(node) && node.openingElement.tagName.getText(layout) === 'TermsConsentGate');
+  const routeIndex = gate.children.findIndex((node) => ts.isJsxExpression(node) && node.expression?.getText(layout) === 'children');
+  const noticeIndexes = gate.children.flatMap((node, index) =>
+    ts.isJsxSelfClosingElement(node) && node.tagName.getText(layout) === 'BlockFeedback' ? [index] : []);
+  assert.ok(routeIndex >= 0, 'The consent gate must contain routed children');
+  assert.equal(noticeIndexes.length, 1, 'One persistent notice must be a direct sibling of routed children');
+  assert.ok(noticeIndexes[0] > routeIndex, 'The notice must follow route content, independently of other persistent overlays');
   const mobile = source('mobile/main.tsx');
   assert.equal((mobile.match(/<BlockFeedback \/>/g) ?? []).length, 1);
   assert.ok(mobile.indexOf('<BlockFeedback />') > mobile.indexOf('</Suspense>'));

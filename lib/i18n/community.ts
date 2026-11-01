@@ -3,6 +3,14 @@ import { apiErrorText, knownApiErrorText } from './api-errors.ts';
 
 // Only interface copy belongs here. User captions, names and messages stay unchanged.
 const translations: Record<string, Record<Locale, string>> = {
+  "Puoi collegare uno dei tuoi annunci attivi nel marketplace.": {"it": "Puoi collegare uno dei tuoi annunci attivi nel marketplace.", "en": "You can link one of your active marketplace listings.", "fr": "Vous pouvez lier une de vos annonces actives sur le marketplace.", "de": "Du kannst eines deiner aktiven Marktplatzangebote verlinken.", "es": "Puedes enlazar uno de tus anuncios activos del marketplace."},
+  "Un collegamento al profilo non indica una collaborazione approvata.": {"it": "Un collegamento al profilo non indica una collaborazione approvata.", "en": "A profile link does not mean an approved collaboration.", "fr": "Un lien vers un profil ne signifie pas une collaboration approuvée.", "de": "Ein Profillink bedeutet keine bestätigte Zusammenarbeit.", "es": "Un enlace a un perfil no implica una colaboración aprobada."},
+  "Puoi scrivere hashtag nella descrizione, per esempio #cosplay. Non collegano automaticamente una persona.": {"it": "Puoi scrivere hashtag nella descrizione, per esempio #cosplay. Non collegano automaticamente una persona.", "en": "You can add hashtags to the caption, such as #cosplay. They do not automatically link to a person.", "fr": "Vous pouvez ajouter des hashtags à la description, par exemple #cosplay. Ils ne lient pas automatiquement une personne.", "de": "Du kannst Hashtags wie #cosplay in die Beschreibung schreiben. Sie verlinken nicht automatisch eine Person.", "es": "Puedes escribir hashtags en la descripción, por ejemplo #cosplay. No enlazan automáticamente a una persona."},
+  "Il nome sui tuoi post si imposta nel tuo profilo.": {"it": "Il nome sui tuoi post si imposta nel tuo profilo.", "en": "Set the name shown on your posts in your profile.", "fr": "Définissez le nom affiché sur vos publications dans votre profil.", "de": "Lege den Namen auf deinen Beiträgen in deinem Profil fest.", "es": "Configura el nombre de tus publicaciones en tu perfil."},
+  "Cerca nei collegamenti disponibili": {"it": "Cerca nei collegamenti disponibili", "en": "Search available links", "fr": "Rechercher parmi les liens disponibles", "de": "Verfügbare Verknüpfungen suchen", "es": "Buscar en los enlaces disponibles"},
+  "Non hai annunci attivi. Pubblica un annuncio nel marketplace oppure continua senza collegamento.": {"it": "Non hai annunci attivi. Pubblica un annuncio nel marketplace oppure continua senza collegamento.", "en": "You have no active listings. Create a marketplace listing or continue without a link.", "fr": "Vous n’avez pas d’annonce active. Publiez une annonce ou continuez sans lien.", "de": "Du hast keine aktiven Angebote. Erstelle ein Marktplatzangebot oder fahre ohne Verlinkung fort.", "es": "No tienes anuncios activos. Publica un anuncio o continúa sin enlace."},
+  "Nessun risultato. Prova un altro nome.": {"it": "Nessun risultato. Prova un altro nome.", "en": "No results. Try another name.", "fr": "Aucun résultat. Essayez un autre nom.", "de": "Keine Ergebnisse. Versuche einen anderen Namen.", "es": "Sin resultados. Prueba otro nombre."},
+
   'Aggiorna': { it: 'Aggiorna', en: 'Refresh', fr: 'Actualiser', de: 'Aktualisieren', es: 'Actualizar' },
   'Post visualizzati': { it: 'Post visualizzati', en: 'Posts shown', fr: 'Publications affichées', de: 'Angezeigte Beiträge', es: 'Publicaciones mostradas' },
   'Cerca nel testo dei post': { it: 'Cerca nel testo dei post', en: 'Search post text', fr: 'Rechercher dans le texte des publications', de: 'Im Text der Beiträge suchen', es: 'Buscar en el texto de las publicaciones' },
@@ -621,6 +629,7 @@ const translations: Record<string, Record<Locale, string>> = {
     de: 'Weitere hinzufügen',
     es: 'Añadir más',
   },
+  'Carica al massimo 32 MB complessivi per post.': { it: 'Carica al massimo 32 MB complessivi per post.', en: 'Upload no more than 32 MB in total per post.', fr: 'Importez au maximum 32 Mo au total par publication.', de: 'Lade insgesamt höchstens 32 MB pro Beitrag hoch.', es: 'Sube como máximo 32 MB en total por publicación.' },
   'Inserisci fino a 8 foto o video supportati (massimo 25 MB ciascuno).': {
     it: 'Inserisci fino a 8 foto o video supportati (massimo 25 MB ciascuno).',
     en: 'Add up to 8 supported photos or videos (maximum 25 MB each).',

@@ -39,10 +39,7 @@ export default function Onboarding() {
           setType(d.profile.seller_type);
           setValues({
             ...d.profile.details,
-            displayName:
-              d.profile.seller_type === 'shop'
-                ? d.profile.details.legalName || d.profile.details.displayName
-                : d.accountDisplayName,
+            displayName: d.accountDisplayName,
           });
           setSaved(true);
         }
@@ -100,15 +97,20 @@ export default function Onboarding() {
     setSaved(false);
     setBusy(true);
     try {
-      await accountRequest('/api/seller/profile', {
+      const result = await accountRequest<{displayName?: string}>('/api/seller/profile', {
         method: 'POST',
         body: JSON.stringify({
           ...values,
           sellerType: type,
-          displayName: type === 'shop' ? values.legalName : accountDisplayName,
+          displayName: type === 'shop' ? values.displayName || accountDisplayName : accountDisplayName,
+          updatePublicName: type === 'shop' && !!values.displayName && values.displayName !== accountDisplayName,
           businessType: type === 'private' ? 'individual' : values.businessType,
         }),
       });
+      if (result.displayName) {
+        setAccountDisplayName(result.displayName);
+        setValues(current => ({ ...current, displayName: result.displayName! }));
+      }
       setSaved(true);
     } catch (error) {
       setError(error instanceof Error ? error : 'failed');
@@ -137,7 +139,7 @@ export default function Onboarding() {
     }
   }
   const fields = [
-    ...(type === 'private' ? [['displayName', t('publicName')]] : []),
+    ['displayName', t('publicName')],
     ['email', t('email')],
     ['phone', t('phone')],
     ['description', t('bio')],
@@ -185,7 +187,7 @@ export default function Onboarding() {
                     setType(v);
                     setValues((current) => ({
                       ...current,
-                      displayName: v === 'shop' ? current.legalName || '' : accountDisplayName,
+                      displayName: accountDisplayName,
                     }));
                     setSaved(false);
                   }}
@@ -237,14 +239,14 @@ export default function Onboarding() {
                       'billingAddress',
                     ].includes(name)
                   }
-                  maxLength={2000}
-                  value={name === 'displayName' ? accountDisplayName : values[name] || ''}
-                  readOnly={name === 'displayName'}
+                  minLength={name === 'displayName' ? 2 : undefined}
+                  maxLength={name === 'displayName' ? 80 : 2000}
+                  value={name === 'displayName' ? (type === 'shop' ? (values.displayName ?? accountDisplayName) : accountDisplayName) : values[name] || ''}
+                  readOnly={name === 'displayName' && type !== 'shop'}
                   onChange={(e) => {
                     setValues((v) => ({
                       ...v,
                       [name]: e.target.value,
-                      ...(name === 'legalName' ? { displayName: e.target.value } : {}),
                     }));
                     setSaved(false);
                   }}

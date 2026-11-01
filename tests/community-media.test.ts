@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   communityMediaSelectionError,
+  shouldOptimizeCommunityPhoto,
   inferCommunityMediaType,
   inferNativeMediaFormat,
   isAllowedCommunityMediaFile,
@@ -132,4 +133,13 @@ void test('marks Capacitor native apps for the full-bleed shell', () => {
     },
   });
   assert.equal(classList.has(NATIVE_CAPACITOR_CLASS), true);
+});
+
+void test('large camera photos are optimized while small photos, transparency and video are preserved', () => {
+  assert.equal(shouldOptimizeCommunityPhoto({ name: 'camera.JPG', type: '', size: 4_900_000 }), true);
+  assert.equal(shouldOptimizeCommunityPhoto({ name: 'medium.jpg', type: 'image/jpeg', size: 400_000 }), true);
+  assert.equal(shouldOptimizeCommunityPhoto({ name: 'camera.heic', type: '', size: 100_000 }), true);
+  for (const [name, type, size] of [['small.jpg', 'image/jpeg', 120_000], ['logo.png', 'image/png', 4_000_000], ['animation.webp', 'image/webp', 4_000_000], ['movie.mov', 'video/quicktime', 4_000_000]] as const) {
+    assert.equal(shouldOptimizeCommunityPhoto({ name, type, size }), false);
+  }
 });

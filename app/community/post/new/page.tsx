@@ -4,25 +4,15 @@ import { apiFetch } from '@/lib/api-fetch';
 import { useI18n } from '@/components/i18n-provider';
 import { communityTranslator, communityError } from '@/lib/i18n/community';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from '@/components/app-link';
-import {
-  CalendarDays,
-  CheckCircle2,
-  Link2,
-  ShoppingBag,
-  UserRound,
-  UsersRound,
-} from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 import { CommunityMediaPicker } from '@/components/community-media-picker';
 import { MobileShell, ScreenHeader } from '@/components/mobile-shell';
-import { accountRequest } from '@/lib/account-client';
 import { AccountRequestError } from '@/lib/account-http';
 import { readFormResponse } from '@/lib/form-response';
 import { moderateText } from '@/lib/community-moderation';
-import { europeEvents } from '@/lib/events-data';
-import { formatEventDates } from '@/lib/event-selection';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 const categories = [
@@ -36,35 +26,6 @@ const categories = [
   'Event',
   'Making Of',
 ];
-type ConnectionType = '' | 'event' | 'product' | 'creator' | 'crew';
-
-const connectionTypes = [
-  {
-    id: 'event' as const,
-    label: 'Evento',
-    description: 'Chi legge può aprire la pagina dell’evento.',
-    icon: CalendarDays,
-  },
-  {
-    id: 'product' as const,
-    label: 'Prodotto',
-    description: 'Chi vede il post può aprire direttamente l’articolo.',
-    icon: ShoppingBag,
-  },
-  {
-    id: 'creator' as const,
-    label: 'Profilo',
-    description: 'Collega il lavoro al profilo che lo ha realizzato.',
-    icon: UserRound,
-  },
-  {
-    id: 'crew' as const,
-    label: 'Crew',
-    description: 'Collega il post a una squadra cosplay o a un incontro.',
-    icon: UsersRound,
-  },
-];
-
 export default function CreateCommunityPostPage() {
   const { locale } = useI18n();
   const t = communityTranslator(locale);
@@ -72,49 +33,19 @@ export default function CreateCommunityPostPage() {
     status: string;
     reasons: string[];
   } | null>(null);
-  const [connectionType, setConnectionType] = useState<ConnectionType>('');
-  const [options, setOptions] = useState<
-    Array<{ value: string; label: string }>
-  >([]);
-  const [connectionError, setConnectionError] = useState('');
-  useEffect(() => {
-    let active = true;
-    if (!connectionType || connectionType === 'event') return;
-    accountRequest<{ options: Array<{ value: string; label: string }> }>(
-      '/api/community/connections?type=' + connectionType,
-    )
-      .then((d) => {
-        if (active) {
-          setOptions(d.options);
-          setConnectionError('');
-        }
-      })
-      .catch((e) => {
-        if (active) {
-          setOptions([]);
-          setConnectionError(
-            communityError(locale, e, 'Caricamento non riuscito.'),
-          );
-        }
-      });
-    return () => {
-      active = false;
-    };
-  }, [connectionType, locale]);
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState<Error | string>('');
   const [needsLogin, setNeedsLogin] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaError, setMediaError] = useState('');
-  const italianEvents = europeEvents.filter(
-    (event) => event.country === 'Italy',
-  );
-  const otherEvents = europeEvents.filter((event) => event.country !== 'Italy');
-
   async function submit(formData: FormData) {
     if (publishing) return;
     if (!mediaFiles.length) {
       setMediaError(t('Aggiungi almeno una foto o un video.'));
+      return;
+    }
+    if (mediaFiles.reduce((total, file) => total + file.size, 0) > 32 * 1024 * 1024) {
+      setMediaError(t('Carica al massimo 32 MB complessivi per post.'));
       return;
     }
     setPublishing(true);
@@ -132,7 +63,6 @@ export default function CreateCommunityPostPage() {
       if (!token) throw new AccountRequestError('Accedi per continuare.', 401, 'AUTH_REQUIRED');
       formData.delete('media');
       for (const file of mediaFiles) formData.append('media', file);
-      formData.set('connectionType', connectionType);
       const response = await apiFetch('/api/community/posts', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
@@ -199,12 +129,14 @@ export default function CreateCommunityPostPage() {
         <textarea
           required
           name="caption"
-          minLength={12}
+          minLength={1}
           maxLength={2000}
           aria-label={t('Descrizione')}
           placeholder={t('Racconta cosa stai condividendo…')}
           className="checkout-input min-h-28 resize-none py-3"
         />
+        <p className="text-sm text-white/60">{t('Puoi scrivere hashtag nella descrizione, per esempio #cosplay. Non collegano automaticamente una persona.')}</p>
+        <Link href="/profile/me" className="block text-sm text-pink-200 underline">{t('Il nome sui tuoi post si imposta nel tuo profilo.')}</Link>
         <select
           required
           name="category"
@@ -219,106 +151,6 @@ export default function CreateCommunityPostPage() {
           ))}
         </select>
 
-        <section className="space-y-3 rounded-2xl border border-white/8 bg-[#111225] p-3">
-          <div className="flex items-start gap-2">
-            <Link2 className="mt-0.5 size-4 shrink-0 text-violet-300" />
-            <div>
-              <h2 className="text-xs">
-                {t('Collega a…')}{' '}
-                <span className="font-normal text-white/35">
-                  {t('facoltativo')}
-                </span>
-              </h2>
-              <p className="mt-1 text-sm leading-5 text-white/60">
-                {t(
-                  'Collega un evento, prodotto, profilo o crew al tuo post. Puoi anche lasciare vuoto.',
-                )}
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {connectionTypes.map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={connectionType === id}
-                onClick={() => {
-                  setOptions([]);
-                  setConnectionError('');
-                  setConnectionType((current) => (current === id ? '' : id));
-                }}
-                className={`flex h-10 items-center justify-center gap-2 rounded-xl border text-sm ${connectionType === id ? 'border-pink-400 bg-pink-400/10 text-pink-200' : 'border-white/8 text-white/50'}`}
-              >
-                <Icon className="size-3.5" />
-                {t(label)}
-              </button>
-            ))}
-          </div>
-          {connectionType && (
-            <p className="rounded-lg bg-white/[.035] p-2 text-sm leading-5 text-white/65">
-              {t(
-                connectionTypes.find((item) => item.id === connectionType)
-                  ?.description ?? '',
-              )}
-            </p>
-          )}
-          {connectionType === 'event' && (
-            <select
-              name="connection"
-              required
-              aria-label={t('Scegli un evento')}
-              className="checkout-input"
-            >
-              <option value="">{t('Scegli un evento')}</option>
-              <optgroup label={'🇮🇹 ' + t('Italia')}>
-                {italianEvents.map((event) => (
-                  <option key={event.name} value={event.name}>
-                    {event.name} · {event.city} ·{' '}
-                    {formatEventDates(event, locale)}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label={t('Europa')}>
-                {otherEvents.map((event) => (
-                  <option key={event.name} value={event.name}>
-                    {event.flag} {event.name} · {event.city}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-          )}
-          {connectionType && connectionType !== 'event' && (
-            <>
-              <select
-                name="connection"
-                aria-label={t('Scegli un collegamento')}
-                required
-                className="checkout-input"
-                key={connectionType}
-              >
-                <option value="">{t('Scegli un collegamento')}</option>
-                {options.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-              {connectionError ? (
-                <p role="alert" className="text-sm text-amber-200">
-                  {connectionError}
-                </p>
-              ) : (
-                !options.length && (
-                  <p className="text-sm text-white/70">
-                    {t(
-                      'Nessun contenuto disponibile da collegare. Puoi pubblicare senza collegamenti.',
-                    )}
-                  </p>
-                )
-              )}
-            </>
-          )}
-        </section>
         <CommunityRulesNotice />
         {publishError && (
           <p role="alert" className="text-sm text-rose-300">

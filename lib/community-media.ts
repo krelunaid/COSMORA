@@ -221,3 +221,10 @@ export function communityMediaSelectionError(
   }
   return null;
 }
+
+/** Compress large photos; preserve transparent/animated formats and videos. */
+export function shouldOptimizeCommunityPhoto(file: { name: string; type: string; size: number }) {
+  if (isVideoMedia(file)) return false;
+  if (isHeicLike(file)) return true;
+  return ['image/jpeg', 'image/jpg', 'image/pjpeg'].includes(inferCommunityMediaType(file)) && file.size > 300_000;
+}

@@ -45,6 +45,8 @@ function MobileRoutes() {
   useEffect(() => {
     if (Capacitor.getPlatform() !== 'android') return;
     const listener = App.addListener('backButton', ({ canGoBack }) => {
+      const postDialog = document.querySelector<HTMLDialogElement>('dialog[data-community-post-dialog][open]');
+      if (postDialog) { postDialog.close(); return; }
       if (canGoBack) void navigate(-1);
       else if (location.pathname !== '/') void navigate('/', { replace: true });
       else void App.exitApp();

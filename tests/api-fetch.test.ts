@@ -26,3 +26,45 @@ test('web fetch semantics remain unchanged', async (t) => {
   });
   await apiFetch('/api/account', options);
 });
+
+test('native Community routing preserves query and leaves unrelated API operations on the existing service', () => {
+  const base = 'https://pwdpwgonvnuwmgfiidut.supabase.co/functions/v1/cosmora-community';
+  assert.equal(resolveApiUrl('/api/community/posts?q=%23cosplay&offset=12&saved=1', true),
+    base + '/api/community/posts?q=%23cosplay&offset=12&saved=1');
+  assert.equal(resolveApiUrl('/api/community/posts/interaction', true, 'put'),
+    base + '/api/community/posts/interaction');
+  for (const [path, method] of [
+    ['/api/community/posts', 'DELETE'],
+    ['/api/community/posts/interaction', 'GET'], ['/api/community/posts/interaction', 'POST'],
+    ['/api/community/posts/other', 'GET'], ['/api/community/postscript', 'GET'],
+    ['/api/account/delete', 'POST'], ['/api/profiles', 'GET'], ['/api/messages', 'POST'],
+  ]) {
+    assert.equal(resolveApiUrl(path, true, method), 'https://cosmora.kreluna.it' + path);
+  }
+  assert.equal(resolveApiUrl('/api/community/posts?saved=1', false), '/api/community/posts?saved=1');
+  assert.equal(resolveApiUrl('/api/community/posts/interaction', false, 'PUT'), '/api/community/posts/interaction');
+});
+
+test('native apiFetch dispatches only the intended Community operation and retains its bearer and body', async (t) => {
+  t.mock.method(Capacitor, 'isNativePlatform', () => true);
+  const requests: Array<{ url: string; method?: string }> = [];
+  // In Node, CapacitorHttp's web implementation lets us observe dispatch without a network call.
+  t.mock.method(globalThis, 'fetch', async (target: RequestInfo | URL, options?: RequestInit) => {
+    const dispatchedUrl = typeof target === 'string' ? target : target instanceof URL ? target.href : target.url;
+    requests.push({ url: dispatchedUrl, method: options?.method });
+    assert.equal(new Headers(options?.headers).get('authorization'), 'Bearer current-user');
+    assert.equal(options?.body, body);
+    const result = Response.json({ ok: true });
+    Object.defineProperty(result, 'url', { value: dispatchedUrl });
+    return result;
+  });
+  const body = JSON.stringify({ postId: 'post', action: 'save', active: true });
+  const options = { method: 'PUT', body, headers: { Authorization: 'Bearer current-user' } };
+  await apiFetch('/api/community/posts/interaction', options);
+  await apiFetch('/api/community/posts', { ...options, method: 'POST' });
+  assert.equal(requests[0].url,
+    'https://pwdpwgonvnuwmgfiidut.supabase.co/functions/v1/cosmora-community/api/community/posts/interaction');
+  assert.equal(requests[0].method, 'PUT');
+  assert.equal(requests[1].url, 'https://pwdpwgonvnuwmgfiidut.supabase.co/functions/v1/cosmora-community/api/community/posts');
+  assert.equal(requests[1].method, 'POST');
+});

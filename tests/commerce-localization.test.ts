@@ -1,7 +1,27 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
 import { commerceCategory } from '../lib/i18n/commerce.ts';
-import { checkoutErrorText } from '../lib/i18n/checkout.ts';
+import { AccountRequestError } from '../lib/account-http.ts';
+import type { Locale } from '../lib/i18n/config.ts';
+
+// Execute the real module with the same aliased dependency used by the bundler.
+// Node's strip-types runner does not resolve the app's @/ paths.
+const compiled = ts.transpileModule(
+  readFileSync(new URL('../lib/i18n/checkout.ts', import.meta.url), 'utf8'),
+  { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } },
+).outputText;
+const exports: { checkoutErrorText?: (locale: Locale, reason: string | Error) => string } = {};
+vm.runInNewContext(compiled, {
+  exports, Error,
+  require(name: string) {
+    assert.equal(name, '@/lib/account-http', 'Unexpected checkout dependency');
+    return { AccountRequestError };
+  },
+});
+const checkoutErrorText = exports.checkoutErrorText!;
 
 void test('category translation only changes known category and condition values', () => {
   assert.equal(commerceCategory('fr', 'Comics'), 'Mangas et BD');
@@ -37,6 +57,11 @@ void test('checkout preserves payment verification and state conflict instructio
       'en',
       'Esito del rimborso non verificato. Riprova lo stesso ordine: non verrà creato un secondo rimborso.',
     ),
-    /second refund will not be created/,
+    /could not be verified[\s\S]*Resume the same request with the same details[\s\S]*Do not create a new request/,
+  );
+  assert.equal(
+    checkoutErrorText('en', new AccountRequestError('Private upstream diagnostic', 503, 'REFUND_UNVERIFIED')),
+    checkoutErrorText('en', 'Esito del rimborso non verificato. Riprova lo stesso ordine: non verrà creato un secondo rimborso.'),
+    'A coded error must retain the same safe no-duplicate-payment guidance',
   );
 });

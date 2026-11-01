@@ -127,7 +127,12 @@ export default function ProfilePage() {
         ) : (
           <div className="space-y-4">
             <h1 className="text-xl">{t.profileUnavailable}</h1>
-            <p className="text-base text-white/70">{t.profileMissing}</p>
+            <p className="text-base text-white/70">{viewerId && viewerId === username ? t.ownPublicProfileMissing : t.profileMissing}</p>
+            {viewerId && viewerId === username && (
+              <Link href="/profile/me" className="flex min-h-12 items-center justify-center rounded-xl bg-violet-600 px-4 text-base">
+                {safety.manageProfile}
+              </Link>
+            )}
             <Link
               href="/explore?section=Creator"
               className="inline-flex min-h-11 items-center text-pink-300"

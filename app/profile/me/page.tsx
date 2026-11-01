@@ -5,6 +5,7 @@ import { accountMessages } from '@/lib/i18n/account';
 import { useEffect, useState } from 'react';
 import Link from '@/components/app-link';
 import { MobileNav, MobileShell } from '@/components/mobile-shell';
+import { AccountRequestError } from '@/lib/account-http';
 import { accountRequest } from '@/lib/account-client';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { localeLabels, supportedLocales, type Locale } from '@/lib/i18n/config';
@@ -56,13 +57,14 @@ export default function MyProfilePage() {
     setError('');
     setNotice('');
     try {
-      await accountRequest('/api/account', {
+      const saved = await accountRequest<{ displayName: string }>('/api/account', {
         method: 'PUT',
         body: JSON.stringify(profile),
       });
+      setProfile(current => ({ ...current, displayName: saved.displayName || current.displayName }));
       setNotice('saved');
-    } catch {
-      setError('saveFailed');
+    } catch (reason) {
+      setError(reason instanceof AccountRequestError && reason.code === 'PUBLIC_NAME_TAKEN' ? 'nameTaken' : 'saveFailed');
     } finally {
       setSaving(false);
     }
@@ -130,7 +132,7 @@ export default function MyProfilePage() {
             <PushSettings />
             <form onSubmit={save} className="space-y-4">
               <label className="block text-base">
-                {messages.auth.name}
+                {t.publicName}
                 <input
                   value={profile.displayName}
                   onChange={(event) =>
@@ -155,6 +157,7 @@ export default function MyProfilePage() {
                   className="mt-2 w-full rounded-xl border border-white/20 bg-[#111225] p-3"
                 />
               </label>
+              <p className="text-sm text-white/60">{t.uniqueNameHint}</p>
               <button
                 disabled={saving}
                 className="w-full rounded-xl bg-gradient-to-r from-pink-500 to-violet-600 p-3 text-base disabled:opacity-50"
