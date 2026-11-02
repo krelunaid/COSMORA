@@ -11,6 +11,15 @@
       }
     },
     {
+      "identity" : "facebook-ios-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/meta/facebook-ios-sdk",
+      "state" : {
+        "revision" : "c50f3b9afb19dd50cdcae50f3ffe3260e37859a8",
+        "version" : "19.0.0"
+      }
+    },
+    {
       "identity" : "ion-ios-camera",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/ionic-team/ion-ios-camera.git",
