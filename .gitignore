@@ -30,6 +30,10 @@ yarn-error.log*
 .env*
 !.env.example
 
+# Meta client token for native release builds. Examples are committed.
+/ios/FacebookClientToken.xcconfig
+/android/facebook-client-token.properties
+
 # deployment and generated files
 .vercel
 next-env.d.ts

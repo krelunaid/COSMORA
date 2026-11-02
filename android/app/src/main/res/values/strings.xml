@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">COSMORA</string>
+    <string name="title_activity_main">COSMORA</string>
+    <string name="package_name">it.kreluna.cosmora</string>
+    <string name="custom_url_scheme">it.kreluna.cosmora</string>
+    <string name="facebook_app_id">1609311830149459</string>
+    <string name="fb_login_protocol_scheme">fb1609311830149459</string>
+</resources>

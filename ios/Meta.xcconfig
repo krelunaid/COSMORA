@@ -1,0 +1,4 @@
+#include? "FacebookClientToken.xcconfig"
+
+FACEBOOK_APP_ID = 1609311830149459
+FACEBOOK_DISPLAY_NAME = COSMORA
